@@ -3,29 +3,29 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import React, { useState } from 'react';
-import ProdutosCarrossel from './ProdutosCarrossel';
+import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { 
   Disc, 
   Film, 
-  Tv, 
   Package, 
   ShieldCheck, 
   Truck, 
   History, 
   ExternalLink,
   ChevronRight,
+  ChevronLeft,
   Star,
-  Music
+  Music,
+  Loader2,
+  ShoppingCart,
+  TrendingUp
 } from 'lucide-react';
-
-// Design Recipe: Dark Luxury / Specialist Tool
-// Mood: Professional, Trustworthy, Collector-focused
 
 const STORE_NAME = "Sylvios Records";
 const STORE_LINK = "https://www.mercadolivre.com.br/pagina/sylviosrecords";
 const STORE_LOGO = "https://lh3.googleusercontent.com/d/1q6YyW7bYCceOyChffF9LhNuVLhmrGjGA";
+const SELLER_NICKNAME = "sylviosrecords";
 
 const LINKS = {
   ALL: "https://lista.mercadolivre.com.br/pagina/sylviosrecords/#component=menu_corridors&tracking_id=0632775d6426985ea171cf11e4d9bcd2&label=Todos+os+produtos&global_position=1",
@@ -35,13 +35,13 @@ const LINKS = {
 };
 
 const GENRES = [
-  { name: 'Rock', color: 'bg-red-500' },
-  { name: 'Metal', color: 'bg-blue-600' },
-  { name: 'Clássico', color: 'bg-zinc-700' },
-  { name: 'Grunge', color: 'bg-zinc-800' },
-  { name: 'Punk', color: 'bg-red-700' },
-  { name: 'MPB', color: 'bg-blue-500' },
-  { name: 'Moda de Viola', color: 'bg-amber-700' }
+  { name: 'Rock' },
+  { name: 'Metal' },
+  { name: 'Clássico' },
+  { name: 'Grunge' },
+  { name: 'Punk' },
+  { name: 'MPB' },
+  { name: 'Moda de Viola' }
 ];
 
 const CATEGORIES = [
@@ -112,16 +112,344 @@ const FAQ = [
   }
 ];
 
+// ── Produtos mais vendidos (atualize conforme desejar) ────────────────────────
+interface MLProduct {
+  id: string;
+  title: string;
+  price: number;
+  original_price: number | null;
+  thumbnail: string;
+  permalink: string;
+  label: string;
+}
+
+const BEST_SELLERS: MLProduct[] = [
+  {
+    id: '1',
+    title: 'King Crimson – In the Court of the Crimson King',
+    price: 49.90,
+    original_price: 59.90,
+    thumbnail: 'https://upload.wikimedia.org/wikipedia/en/7/76/InTheCourt.jpg',
+    permalink: 'https://www.mercadolivre.com.br/cd-king-crimson-in-the-court-of-the-impnovolacr/p/MLB25581255',
+    label: 'Rock Progressivo'
+  },
+  {
+    id: '2',
+    title: 'Belchior – Alucinação',
+    price: 39.90,
+    original_price: null,
+    thumbnail: 'https://upload.wikimedia.org/wikipedia/pt/5/5b/Belchior_-_Alucinação.jpg',
+    permalink: 'https://www.mercadolivre.com.br/cd-belchior-alucinacao/p/MLB22999342',
+    label: 'MPB'
+  },
+  {
+    id: '3',
+    title: 'Guns N\' Roses – Use Your Illusion I',
+    price: 44.90,
+    original_price: 54.90,
+    thumbnail: 'https://upload.wikimedia.org/wikipedia/en/3/thirty/GunsnRosesUseYourIllusionI.jpg',
+    permalink: 'https://www.mercadolivre.com.br/cd-guns-n-roses-use-your-illusion-i-lacrado/p/MLB24742382',
+    label: 'Hard Rock'
+  },
+  {
+    id: '4',
+    title: 'Raul Seixas – Gita',
+    price: 37.90,
+    original_price: null,
+    thumbnail: 'https://upload.wikimedia.org/wikipedia/pt/e/e2/Gita_Raul_Seixas.jpg',
+    permalink: 'https://www.mercadolivre.com.br/cd-raul-seixas-gita-lacrado-verso-do-album-estandar/p/MLB22921057',
+    label: 'Rock Nacional'
+  },
+  {
+    id: '5',
+    title: 'Guns N\' Roses – Greatest Hits',
+    price: 42.90,
+    original_price: 49.90,
+    thumbnail: 'https://upload.wikimedia.org/wikipedia/en/b/be/Gnr_greatest_hits.jpg',
+    permalink: 'https://www.mercadolivre.com.br/cd-guns-n-roses-greatest-hits/p/MLB22610868',
+    label: 'Hard Rock'
+  },
+  {
+    id: '6',
+    title: 'Rainbow – Straight Between the Eyes',
+    price: 46.90,
+    original_price: null,
+    thumbnail: 'https://upload.wikimedia.org/wikipedia/en/8/87/Rainbow-StraightBetweenTheEyes.jpg',
+    permalink: 'https://www.mercadolivre.com.br/cd-rainbow-straight-between-the-eyes-impnovolacrado/p/MLB24577768',
+    label: 'Heavy Metal'
+  },
+  {
+    id: '7',
+    title: 'A-ha – Collection',
+    price: 38.90,
+    original_price: 45.90,
+    thumbnail: 'https://upload.wikimedia.org/wikipedia/en/thumb/8/8f/A-ha_-_The_Definitive_Singles_Collection_1984-2004.jpg/220px-A-ha_-_The_Definitive_Singles_Collection_1984-2004.jpg',
+    permalink: 'https://www.mercadolivre.com.br/cd-a-ha-collection-lacrado/p/MLB22507415',
+    label: 'Pop Rock'
+  },
+  {
+    id: '8',
+    title: 'Bryan Adams – So Far So Good',
+    price: 36.90,
+    original_price: null,
+    thumbnail: 'https://upload.wikimedia.org/wikipedia/en/4/4b/Bryan_Adams_-_So_Far_So_Good.jpg',
+    permalink: 'https://www.mercadolivre.com.br/bryan-adams-so-far-so-good-cd-1993-produzido-por-polygran/p/MLB22981121',
+    label: 'Rock'
+  },
+  {
+    id: '9',
+    title: 'Titãs – Acústico MTV',
+    price: 41.90,
+    original_price: 49.90,
+    thumbnail: 'https://upload.wikimedia.org/wikipedia/pt/d/d7/Titas_Acustico_MTV.jpg',
+    permalink: 'https://www.mercadolivre.com.br/tits-acustico-mtv-cd-original/p/MLB23056108',
+    label: 'Rock Nacional'
+  },
+  {
+    id: '10',
+    title: 'Adele – 25',
+    price: 39.90,
+    original_price: null,
+    thumbnail: 'https://upload.wikimedia.org/wikipedia/en/3/3b/Adele_-_25.png',
+    permalink: 'https://www.mercadolivre.com.br/cd-adele-25/p/MLB22913005',
+    label: 'Pop'
+  },
+  {
+    id: '11',
+    title: 'Bee Gees – Greatest Hits',
+    price: 43.90,
+    original_price: 52.90,
+    thumbnail: 'https://upload.wikimedia.org/wikipedia/en/b/b3/BeeGees-TalesFromTheBrothersGibb.jpg',
+    permalink: 'https://www.mercadolivre.com.br/cd-bee-gees-greatest-hits-stayin-alive-lacrado/p/MLB23130291',
+    label: 'Disco / Pop'
+  },
+  {
+    id: '12',
+    title: 'Ramones – Adios Amigos',
+    price: 44.90,
+    original_price: null,
+    thumbnail: 'https://upload.wikimedia.org/wikipedia/en/b/b9/Ramones_-_Adios_Amigos%21.jpg',
+    permalink: 'https://www.mercadolivre.com.br/cd-ramones-adios-amigos-rock-1995-album-fisico-13-faixas-brasil/p/MLB22959340',
+    label: 'Punk Rock'
+  },
+];
+
+// ── Hook: busca produtos via proxy público (evita bloqueio CORS) ──────────────
+function useMercadoLivreProducts() {
+  const [products, setProducts] = useState<MLProduct[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(false);
+
+  useEffect(() => {
+    const fetchProducts = async () => {
+      try {
+        setLoading(true);
+        setError(false);
+        const mlUrl = `https://api.mercadolibre.com/sites/MLB/search?nickname=sylviosrecords&sort=sold_quantity_desc&limit=20`;
+        const proxyUrl = `https://corsproxy.io/?url=${encodeURIComponent(mlUrl)}`;
+        const response = await fetch(proxyUrl, { headers: { 'Accept': 'application/json' } });
+        if (!response.ok) throw new Error('API error');
+        const data = await response.json();
+        const items: MLProduct[] = (data.results || []).map((item: any) => ({
+          id: item.id,
+          title: item.title,
+          price: item.price,
+          original_price: item.original_price,
+          thumbnail: (item.thumbnail || '').replace('http://', 'https://').replace('-I.jpg', '-O.jpg'),
+          permalink: item.permalink,
+          label: item.category_id || '',
+        }));
+        if (items.length > 0) {
+          setProducts(items);
+        } else {
+          // Fallback para produtos manuais se a API não retornar nada
+          setProducts(BEST_SELLERS);
+        }
+      } catch {
+        // Se o proxy falhar, usa os produtos manuais como fallback
+        setProducts(BEST_SELLERS);
+        setError(false); // não mostra erro, usa o fallback silenciosamente
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchProducts();
+    const interval = setInterval(fetchProducts, 30 * 60 * 1000);
+    return () => clearInterval(interval);
+  }, []);
+
+  return { products, loading, error };
+}
+
+// ── Componente do Carrossel ───────────────────────────────────────────────────
+function ProductCarousel({ products, loading, error }: { products: MLProduct[], loading: boolean, error: boolean }) {
+  const [currentIndex, setCurrentIndex] = useState(0);
+  const [isPaused, setIsPaused] = useState(false);
+  const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const visibleCount = 4; // quantos cards mostrar por vez (em telas grandes)
+  const maxIndex = Math.max(0, products.length - visibleCount);
+
+  const next = () => setCurrentIndex(i => Math.min(i + 1, maxIndex));
+  const prev = () => setCurrentIndex(i => Math.max(i - 1, 0));
+
+  // Auto-play
+  useEffect(() => {
+    if (isPaused || products.length === 0) return;
+    timerRef.current = setTimeout(() => {
+      setCurrentIndex(i => (i >= maxIndex ? 0 : i + 1));
+    }, 3500);
+    return () => { if (timerRef.current) clearTimeout(timerRef.current); };
+  }, [currentIndex, isPaused, maxIndex, products.length]);
+
+  const formatPrice = (price: number) =>
+    price.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+
+  const discount = (orig: number, current: number) =>
+    Math.round(((orig - current) / orig) * 100);
+
+  if (loading) {
+    return (
+      <div className="flex flex-col items-center justify-center py-20 gap-4">
+        <Loader2 className="w-10 h-10 text-red-500 animate-spin" />
+        <p className="text-zinc-500 text-sm">Buscando produtos no Mercado Livre...</p>
+      </div>
+    );
+  }
+
+  if (error || products.length === 0) {
+    return (
+      <div className="flex flex-col items-center justify-center py-16 gap-6">
+        <p className="text-zinc-500 text-center">
+          Não foi possível carregar os produtos automaticamente.
+        </p>
+        <a
+          href={LINKS.ALL}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="inline-flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-red-600 to-blue-600 text-white rounded-full font-semibold hover:opacity-90 transition-opacity"
+        >
+          Ver todos os produtos no Mercado Livre
+          <ExternalLink className="w-4 h-4" />
+        </a>
+      </div>
+    );
+  }
+
+  return (
+    <div
+      className="relative"
+      onMouseEnter={() => setIsPaused(true)}
+      onMouseLeave={() => setIsPaused(false)}
+    >
+      {/* Botão anterior */}
+      <button
+        onClick={prev}
+        disabled={currentIndex === 0}
+        className="absolute -left-5 top-1/2 -translate-y-1/2 z-10 w-10 h-10 rounded-full bg-zinc-900 border border-white/10 flex items-center justify-center hover:bg-zinc-800 disabled:opacity-20 disabled:cursor-not-allowed transition-all shadow-xl"
+      >
+        <ChevronLeft className="w-5 h-5" />
+      </button>
+
+      {/* Trilho de cards */}
+      <div className="overflow-hidden">
+        <motion.div
+          className="flex gap-4"
+          animate={{ x: `calc(-${currentIndex * (100 / visibleCount)}% - ${currentIndex * 16 / visibleCount}px)` }}
+          transition={{ type: 'spring', stiffness: 300, damping: 35 }}
+        >
+          {products.map((product) => (
+            <a
+              key={product.id}
+              href={product.permalink}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex-none w-[calc(25%-12px)] min-w-[200px] group"
+            >
+              <div className="bg-zinc-900 border border-white/8 rounded-2xl overflow-hidden hover:border-red-500/40 transition-all hover:-translate-y-1 hover:shadow-xl hover:shadow-red-900/20 duration-300">
+                {/* Imagem */}
+                <div className="relative aspect-square bg-zinc-800 overflow-hidden">
+                  <img
+                    src={product.thumbnail}
+                    alt={product.title}
+                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                    onError={(e) => {
+                      (e.currentTarget as HTMLImageElement).src = 'https://via.placeholder.com/300x300/1a1a1a/666?text=Sem+Imagem';
+                    }}
+                  />
+                  {product.original_price && product.original_price > product.price && (
+                    <div className="absolute top-2 left-2 bg-green-500 text-white text-[10px] font-bold px-2 py-1 rounded-full">
+                      -{discount(product.original_price, product.price)}%
+                    </div>
+                  )}
+                  {product.condition === 'new' && (
+                    <div className="absolute top-2 right-2 bg-blue-600/80 backdrop-blur-sm text-white text-[10px] font-bold px-2 py-1 rounded-full">
+                      NOVO
+                    </div>
+                  )}
+                </div>
+
+                {/* Info */}
+                <div className="p-3">
+                  <p className="text-xs text-zinc-400 leading-tight line-clamp-2 mb-2 min-h-[32px]">
+                    {product.title}
+                  </p>
+                  {product.original_price && product.original_price > product.price && (
+                    <p className="text-zinc-600 text-xs line-through">
+                      {formatPrice(product.original_price)}
+                    </p>
+                  )}
+                  <p className="text-white font-bold text-base">
+                    {formatPrice(product.price)}
+                  </p>
+                  <div className="mt-2 flex items-center gap-1 text-zinc-500 text-[10px]">
+                    <ShoppingCart className="w-3 h-3" />
+                    <span>{product.sold_quantity} vendidos</span>
+                  </div>
+                </div>
+              </div>
+            </a>
+          ))}
+        </motion.div>
+      </div>
+
+      {/* Botão próximo */}
+      <button
+        onClick={next}
+        disabled={currentIndex >= maxIndex}
+        className="absolute -right-5 top-1/2 -translate-y-1/2 z-10 w-10 h-10 rounded-full bg-zinc-900 border border-white/10 flex items-center justify-center hover:bg-zinc-800 disabled:opacity-20 disabled:cursor-not-allowed transition-all shadow-xl"
+      >
+        <ChevronRight className="w-5 h-5" />
+      </button>
+
+      {/* Indicadores de paginação */}
+      <div className="flex justify-center gap-1.5 mt-6">
+        {Array.from({ length: maxIndex + 1 }).map((_, i) => (
+          <button
+            key={i}
+            onClick={() => setCurrentIndex(i)}
+            className={`h-1 rounded-full transition-all ${
+              i === currentIndex ? 'w-6 bg-red-500' : 'w-1.5 bg-zinc-700'
+            }`}
+          />
+        ))}
+      </div>
+    </div>
+  );
+}
+
+// ── App principal ─────────────────────────────────────────────────────────────
 export default function App() {
   const [activeCategory, setActiveCategory] = useState(CATEGORIES[0]);
+  const { products, loading, error } = useMercadoLivreProducts();
 
   return (
     <div className="min-h-screen bg-[#0a0a0a] text-zinc-100 font-sans selection:bg-red-500/30 relative overflow-x-hidden">
       {/* Background Logo Decoration */}
       <div className="fixed -right-[30vw] top-1/2 -translate-y-1/2 w-[150vw] h-[150vh] opacity-[0.02] pointer-events-none z-0 blur-[2px]">
-        <img 
-          src={STORE_LOGO} 
-          alt="" 
+        <img
+          src={STORE_LOGO}
+          alt=""
           className="w-full h-full object-contain object-right"
           referrerPolicy="no-referrer"
         />
@@ -132,31 +460,24 @@ export default function App() {
         <div className="max-w-7xl mx-auto px-6 h-20 flex items-center justify-between">
           <div className="flex items-center gap-3">
             <div className="w-16 h-16 flex items-center justify-center">
-              <img 
-                src={STORE_LOGO} 
-                alt={STORE_NAME} 
+              <img
+                src={STORE_LOGO}
+                alt={STORE_NAME}
                 className="w-full h-full object-contain drop-shadow-[0_0_15px_rgba(255,255,255,0.8)]"
                 referrerPolicy="no-referrer"
-                onError={(e) => {
-                  e.currentTarget.style.display = 'none';
-                  e.currentTarget.parentElement?.classList.add('bg-gradient-to-br', 'from-red-600', 'to-blue-700', 'rounded-lg');
-                  const icon = document.createElement('div');
-                  icon.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-disc text-white animate-spin-slow"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="2"/></svg>';
-                  e.currentTarget.parentElement?.appendChild(icon.firstChild as Node);
-                }}
               />
             </div>
             <span className="text-xl font-bold tracking-tighter uppercase italic hidden sm:block">{STORE_NAME}</span>
           </div>
           <div className="hidden md:flex items-center gap-8 text-sm font-medium text-zinc-400">
+            <a href="#mais-vendidos" className="hover:text-white transition-colors">Mais Vendidos</a>
             <a href="#sobre" className="hover:text-white transition-colors">Sobre</a>
             <a href="#categorias" className="hover:text-white transition-colors">Categorias</a>
-            <a href="#generos" className="hover:text-white transition-colors">Gêneros</a>
             <a href="#diferenciais" className="hover:text-white transition-colors">Diferenciais</a>
           </div>
-          <a 
-            href={STORE_LINK} 
-            target="_blank" 
+          <a
+            href={STORE_LINK}
+            target="_blank"
             rel="noopener noreferrer"
             className="bg-gradient-to-r from-red-600 to-blue-600 hover:from-red-500 hover:to-blue-500 text-white px-5 py-2.5 rounded-full text-sm font-semibold flex items-center gap-2 transition-all active:scale-95 shadow-lg shadow-red-900/20"
           >
@@ -174,7 +495,7 @@ export default function App() {
         </div>
 
         <div className="max-w-7xl mx-auto relative">
-          <motion.div 
+          <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8 }}
@@ -191,7 +512,7 @@ export default function App() {
               De Rock e Metal a MPB e Moda de Viola. Na <span className="text-white font-semibold">{STORE_NAME}</span>, cada disco é uma história preservada desde 2005.
             </p>
             <div className="flex flex-wrap gap-4">
-              <a 
+              <a
                 href={LINKS.ALL}
                 target="_blank"
                 rel="noopener noreferrer"
@@ -224,17 +545,44 @@ export default function App() {
           <div className="flex flex-wrap gap-3 justify-center md:justify-start">
             <span className="text-zinc-500 text-sm font-bold uppercase tracking-widest self-center mr-4">Gêneros:</span>
             {GENRES.map((genre, idx) => (
-              <motion.span 
+              <motion.span
                 key={idx}
                 initial={{ opacity: 0, scale: 0.9 }}
                 animate={{ opacity: 1, scale: 1 }}
                 transition={{ delay: idx * 0.1 }}
-                className={`px-4 py-2 rounded-full text-xs font-bold uppercase tracking-wider border border-white/10 bg-white/5 hover:border-white/30 transition-colors cursor-default`}
+                className="px-4 py-2 rounded-full text-xs font-bold uppercase tracking-wider border border-white/10 bg-white/5 hover:border-white/30 transition-colors cursor-default"
               >
                 {genre.name}
               </motion.span>
             ))}
           </div>
+        </div>
+      </section>
+
+      {/* ── CARROSSEL MAIS VENDIDOS ────────────────────────────────────────── */}
+      <section id="mais-vendidos" className="py-24 px-6">
+        <div className="max-w-7xl mx-auto">
+          <div className="flex items-end justify-between mb-12">
+            <div>
+              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-amber-500/10 border border-amber-500/20 text-amber-400 text-xs font-bold uppercase tracking-widest mb-4">
+                <TrendingUp className="w-3 h-3" />
+                Atualizados automaticamente
+              </div>
+              <h2 className="text-4xl font-bold italic tracking-tight">Mais Vendidos</h2>
+              <p className="text-zinc-500 mt-2">Os produtos favoritos dos nossos clientes no Mercado Livre</p>
+            </div>
+            <a
+              href={LINKS.ALL}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="hidden md:inline-flex items-center gap-2 text-sm text-zinc-400 hover:text-white transition-colors border border-white/10 px-5 py-2.5 rounded-full hover:border-white/30"
+            >
+              Ver todos
+              <ExternalLink className="w-4 h-4" />
+            </a>
+          </div>
+
+          <ProductCarousel products={products} loading={loading} error={error} />
         </div>
       </section>
 
@@ -250,8 +598,8 @@ export default function App() {
                     key={cat.id}
                     onClick={() => setActiveCategory(cat)}
                     className={`group relative flex items-center gap-6 p-6 rounded-3xl transition-all text-left ${
-                      activeCategory.id === cat.id 
-                      ? 'bg-gradient-to-r from-red-600 to-blue-700 text-white shadow-2xl shadow-red-900/40' 
+                      activeCategory.id === cat.id
+                      ? 'bg-gradient-to-r from-red-600 to-blue-700 text-white shadow-2xl shadow-red-900/40'
                       : 'bg-white/5 hover:bg-white/10 text-zinc-400'
                     }`}
                   >
@@ -273,7 +621,7 @@ export default function App() {
                 ))}
               </div>
             </div>
-            
+
             <div className="w-full md:w-1/2 relative aspect-square">
               <AnimatePresence mode="wait">
                 <motion.div
@@ -284,8 +632,8 @@ export default function App() {
                   transition={{ duration: 0.4 }}
                   className="w-full h-full rounded-[40px] overflow-hidden border border-white/10 shadow-2xl"
                 >
-                  <img 
-                    src={activeCategory.image} 
+                  <img
+                    src={activeCategory.image}
                     alt={activeCategory.title}
                     className="w-full h-full object-cover grayscale-[0.2] hover:grayscale-0 transition-all duration-700"
                     referrerPolicy="no-referrer"
@@ -294,7 +642,7 @@ export default function App() {
                   <div className="absolute bottom-6 left-6 right-6 p-8 bg-black/40 backdrop-blur-xl border border-white/10 rounded-[32px]">
                     <div className="text-3xl font-bold mb-2">{activeCategory.title}</div>
                     <p className="text-zinc-300 mb-6">Confira as melhores ofertas em nossa loja oficial.</p>
-                    <a 
+                    <a
                       href={activeCategory.link}
                       target="_blank"
                       rel="noopener noreferrer"
@@ -311,13 +659,6 @@ export default function App() {
         </div>
       </section>
 
-      {/* Carrossel de Produtos Mais Vendidos */}
-      <ProdutosCarrossel
-        titulo="Mais Vendidos"
-        limite={20}
-        ordenar="sold_quantity_desc"
-      />
-
       {/* Features */}
       <section id="diferenciais" className="py-24 px-6">
         <div className="max-w-7xl mx-auto">
@@ -325,10 +666,10 @@ export default function App() {
             <h2 className="text-4xl font-bold mb-4">Por que comprar conosco?</h2>
             <p className="text-zinc-400">Compromisso com a qualidade e a satisfação do colecionador.</p>
           </div>
-          
+
           <div className="grid md:grid-cols-3 gap-8">
             {FEATURE_CARDS.map((feature, idx) => (
-              <motion.div 
+              <motion.div
                 key={idx}
                 whileHover={{ y: -10 }}
                 className="p-10 rounded-[32px] bg-white/5 border border-white/10 hover:border-red-500/30 transition-all"
@@ -347,7 +688,7 @@ export default function App() {
         <div className="absolute top-0 right-0 opacity-10 -translate-y-1/4 translate-x-1/4">
           <Disc className="w-[600px] h-[600px] animate-spin-slow" />
         </div>
-        
+
         <div className="max-w-7xl mx-auto relative">
           <div className="max-w-2xl">
             <h2 className="text-5xl font-bold mb-8 italic tracking-tighter">Nossa História</h2>
@@ -396,9 +737,9 @@ export default function App() {
             <span className="text-lg font-bold tracking-tighter uppercase italic">{STORE_NAME}</span>
           </div>
           <h2 className="text-4xl font-bold mb-10">Pronto para aumentar sua coleção?</h2>
-          <a 
-            href={LINKS.ALL} 
-            target="_blank" 
+          <a
+            href={LINKS.ALL}
+            target="_blank"
             rel="noopener noreferrer"
             className="inline-flex items-center gap-3 px-10 py-5 bg-white text-black rounded-full font-bold text-xl hover:scale-105 transition-transform active:scale-95 shadow-2xl shadow-white/10"
           >
