@@ -4,6 +4,7 @@
  */
 
 import React, { useState } from 'react';
+import ProdutosCarrossel from './ProdutosCarrossel';
 import { motion, AnimatePresence } from 'motion/react';
 import { 
   Disc, 
@@ -309,6 +310,13 @@ export default function App() {
           </div>
         </div>
       </section>
+
+      {/* Carrossel de Produtos Mais Vendidos */}
+      <ProdutosCarrossel
+        titulo="Mais Vendidos"
+        limite={20}
+        ordenar="sold_quantity_desc"
+      />
 
       {/* Features */}
       <section id="diferenciais" className="py-24 px-6">
