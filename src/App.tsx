@@ -129,7 +129,7 @@ const BEST_SELLERS: MLProduct[] = [
     title: 'King Crimson – In the Court of the Crimson King',
     price: 49.90,
     original_price: 59.90,
-    thumbnail: 'https://upload.wikimedia.org/wikipedia/en/7/76/InTheCourt.jpg',
+    thumbnail: 'https://is1-ssl.mzstatic.com/image/thumb/Music/v4/c7/72/1d/c7721df0-9c25-2ec0-5f66-a8f19b7e9e0d/source/600x600bb.jpg',
     permalink: 'https://www.mercadolivre.com.br/cd-king-crimson-in-the-court-of-the-impnovolacr/p/MLB25581255',
     label: 'Rock Progressivo'
   },
@@ -138,16 +138,16 @@ const BEST_SELLERS: MLProduct[] = [
     title: 'Belchior – Alucinação',
     price: 39.90,
     original_price: null,
-    thumbnail: 'https://upload.wikimedia.org/wikipedia/pt/5/5b/Belchior_-_Alucinação.jpg',
+    thumbnail: 'https://is1-ssl.mzstatic.com/image/thumb/Music125/v4/8e/2f/7b/8e2f7b90-4a0e-b892-2be2-3a2c9e4c0e1d/source/600x600bb.jpg',
     permalink: 'https://www.mercadolivre.com.br/cd-belchior-alucinacao/p/MLB22999342',
     label: 'MPB'
   },
   {
     id: '3',
-    title: 'Guns N\' Roses – Use Your Illusion I',
+    title: "Guns N' Roses – Use Your Illusion I",
     price: 44.90,
     original_price: 54.90,
-    thumbnail: 'https://upload.wikimedia.org/wikipedia/en/3/thirty/GunsnRosesUseYourIllusionI.jpg',
+    thumbnail: 'https://is1-ssl.mzstatic.com/image/thumb/Music/v4/8f/04/09/8f040974-ca1a-5fc0-ac75-c62a58b94480/source/600x600bb.jpg',
     permalink: 'https://www.mercadolivre.com.br/cd-guns-n-roses-use-your-illusion-i-lacrado/p/MLB24742382',
     label: 'Hard Rock'
   },
@@ -156,16 +156,16 @@ const BEST_SELLERS: MLProduct[] = [
     title: 'Raul Seixas – Gita',
     price: 37.90,
     original_price: null,
-    thumbnail: 'https://upload.wikimedia.org/wikipedia/pt/e/e2/Gita_Raul_Seixas.jpg',
+    thumbnail: 'https://is1-ssl.mzstatic.com/image/thumb/Music125/v4/5b/6e/38/5b6e38f0-0e6a-5c31-0c1a-3e7a1d4e7c2b/source/600x600bb.jpg',
     permalink: 'https://www.mercadolivre.com.br/cd-raul-seixas-gita-lacrado-verso-do-album-estandar/p/MLB22921057',
     label: 'Rock Nacional'
   },
   {
     id: '5',
-    title: 'Guns N\' Roses – Greatest Hits',
+    title: "Guns N' Roses – Greatest Hits",
     price: 42.90,
     original_price: 49.90,
-    thumbnail: 'https://upload.wikimedia.org/wikipedia/en/b/be/Gnr_greatest_hits.jpg',
+    thumbnail: 'https://is1-ssl.mzstatic.com/image/thumb/Music/v4/aa/43/c4/aa43c4a8-0e31-e52b-a96e-f9356be9bb2e/source/600x600bb.jpg',
     permalink: 'https://www.mercadolivre.com.br/cd-guns-n-roses-greatest-hits/p/MLB22610868',
     label: 'Hard Rock'
   },
@@ -174,16 +174,16 @@ const BEST_SELLERS: MLProduct[] = [
     title: 'Rainbow – Straight Between the Eyes',
     price: 46.90,
     original_price: null,
-    thumbnail: 'https://upload.wikimedia.org/wikipedia/en/8/87/Rainbow-StraightBetweenTheEyes.jpg',
+    thumbnail: 'https://is1-ssl.mzstatic.com/image/thumb/Music/v4/b5/3a/58/b53a58b2-2a18-e4cd-5048-8e49f5c8b7b3/source/600x600bb.jpg',
     permalink: 'https://www.mercadolivre.com.br/cd-rainbow-straight-between-the-eyes-impnovolacrado/p/MLB24577768',
     label: 'Heavy Metal'
   },
   {
     id: '7',
-    title: 'A-ha – Collection',
+    title: 'A-ha – The Collection',
     price: 38.90,
     original_price: 45.90,
-    thumbnail: 'https://upload.wikimedia.org/wikipedia/en/thumb/8/8f/A-ha_-_The_Definitive_Singles_Collection_1984-2004.jpg/220px-A-ha_-_The_Definitive_Singles_Collection_1984-2004.jpg',
+    thumbnail: 'https://is1-ssl.mzstatic.com/image/thumb/Music/v4/46/ae/d0/46aed0fa-c1b4-6b5e-ed25-52bbb90e6e1e/source/600x600bb.jpg',
     permalink: 'https://www.mercadolivre.com.br/cd-a-ha-collection-lacrado/p/MLB22507415',
     label: 'Pop Rock'
   },
@@ -192,7 +192,7 @@ const BEST_SELLERS: MLProduct[] = [
     title: 'Bryan Adams – So Far So Good',
     price: 36.90,
     original_price: null,
-    thumbnail: 'https://upload.wikimedia.org/wikipedia/en/4/4b/Bryan_Adams_-_So_Far_So_Good.jpg',
+    thumbnail: 'https://is1-ssl.mzstatic.com/image/thumb/Music/v4/a7/f2/32/a7f232e8-a4e1-c1a4-5e32-1e7b4e3c9b1a/source/600x600bb.jpg',
     permalink: 'https://www.mercadolivre.com.br/bryan-adams-so-far-so-good-cd-1993-produzido-por-polygran/p/MLB22981121',
     label: 'Rock'
   },
@@ -201,7 +201,7 @@ const BEST_SELLERS: MLProduct[] = [
     title: 'Titãs – Acústico MTV',
     price: 41.90,
     original_price: 49.90,
-    thumbnail: 'https://upload.wikimedia.org/wikipedia/pt/d/d7/Titas_Acustico_MTV.jpg',
+    thumbnail: 'https://is1-ssl.mzstatic.com/image/thumb/Music125/v4/2c/4b/8e/2c4b8e12-3a1c-6e2b-9f4a-1c3e7d5b8a0c/source/600x600bb.jpg',
     permalink: 'https://www.mercadolivre.com.br/tits-acustico-mtv-cd-original/p/MLB23056108',
     label: 'Rock Nacional'
   },
@@ -210,16 +210,16 @@ const BEST_SELLERS: MLProduct[] = [
     title: 'Adele – 25',
     price: 39.90,
     original_price: null,
-    thumbnail: 'https://upload.wikimedia.org/wikipedia/en/3/3b/Adele_-_25.png',
+    thumbnail: 'https://is1-ssl.mzstatic.com/image/thumb/Music20/v4/26/20/33/262033d8-8a0e-5a6a-8484-f6a5c5a4e1c5/source/600x600bb.jpg',
     permalink: 'https://www.mercadolivre.com.br/cd-adele-25/p/MLB22913005',
     label: 'Pop'
   },
   {
     id: '11',
-    title: 'Bee Gees – Greatest Hits',
+    title: 'Bee Gees – Greatest',
     price: 43.90,
     original_price: 52.90,
-    thumbnail: 'https://upload.wikimedia.org/wikipedia/en/b/b3/BeeGees-TalesFromTheBrothersGibb.jpg',
+    thumbnail: 'https://is1-ssl.mzstatic.com/image/thumb/Music/v4/e4/9c/ba/e49cba3e-7b0e-0f23-5c82-9b8e6b7a3e2c/source/600x600bb.jpg',
     permalink: 'https://www.mercadolivre.com.br/cd-bee-gees-greatest-hits-stayin-alive-lacrado/p/MLB23130291',
     label: 'Disco / Pop'
   },
@@ -228,11 +228,23 @@ const BEST_SELLERS: MLProduct[] = [
     title: 'Ramones – Adios Amigos',
     price: 44.90,
     original_price: null,
-    thumbnail: 'https://upload.wikimedia.org/wikipedia/en/b/b9/Ramones_-_Adios_Amigos%21.jpg',
+    thumbnail: 'https://is1-ssl.mzstatic.com/image/thumb/Music/v4/cd/7e/bf/cd7ebfe2-5e9a-7d3b-8d6a-1a4b9c2e0f1d/source/600x600bb.jpg',
     permalink: 'https://www.mercadolivre.com.br/cd-ramones-adios-amigos-rock-1995-album-fisico-13-faixas-brasil/p/MLB22959340',
     label: 'Punk Rock'
   },
 ];
+
+// ── Busca capa no iTunes por nome do álbum ────────────────────────────────────
+async function fetchItunesArtwork(title: string): Promise<string> {
+  try {
+    const query = encodeURIComponent(title.replace(/[–-]/g, ' ').trim());
+    const res = await fetch(`https://itunes.apple.com/search?term=${query}&media=music&entity=album&limit=1&country=BR`);
+    const data = await res.json();
+    const artwork = data.results?.[0]?.artworkUrl100;
+    if (artwork) return artwork.replace('100x100bb', '400x400bb');
+  } catch {}
+  return '';
+}
 
 // ── Hook: busca produtos via proxy público (evita bloqueio CORS) ──────────────
 function useMercadoLivreProducts() {
@@ -250,25 +262,38 @@ function useMercadoLivreProducts() {
         const response = await fetch(proxyUrl, { headers: { 'Accept': 'application/json' } });
         if (!response.ok) throw new Error('API error');
         const data = await response.json();
-        const items: MLProduct[] = (data.results || []).map((item: any) => ({
-          id: item.id,
-          title: item.title,
-          price: item.price,
-          original_price: item.original_price,
-          thumbnail: (item.thumbnail || '').replace('http://', 'https://').replace('-I.jpg', '-O.jpg'),
-          permalink: item.permalink,
-          label: item.category_id || '',
-        }));
+
+        // Para cada produto, busca a capa no iTunes pelo título
+        const items: MLProduct[] = await Promise.all(
+          (data.results || []).map(async (item: any) => {
+            const artwork = await fetchItunesArtwork(item.title);
+            return {
+              id: item.id,
+              title: item.title,
+              price: item.price,
+              original_price: item.original_price,
+              thumbnail: artwork,
+              permalink: item.permalink,
+              label: item.category_id || '',
+            };
+          })
+        );
+
         if (items.length > 0) {
           setProducts(items);
         } else {
-          // Fallback para produtos manuais se a API não retornar nada
           setProducts(BEST_SELLERS);
         }
       } catch {
-        // Se o proxy falhar, usa os produtos manuais como fallback
-        setProducts(BEST_SELLERS);
-        setError(false); // não mostra erro, usa o fallback silenciosamente
+        // Se o proxy falhar, usa produtos manuais com capas do iTunes
+        const withArtwork = await Promise.all(
+          BEST_SELLERS.map(async (p) => {
+            const artwork = await fetchItunesArtwork(p.title);
+            return artwork ? { ...p, thumbnail: artwork } : p;
+          })
+        );
+        setProducts(withArtwork);
+        setError(false);
       } finally {
         setLoading(false);
       }
@@ -369,14 +394,29 @@ function ProductCarousel({ products, loading, error }: { products: MLProduct[], 
               <div className="bg-zinc-900 border border-white/8 rounded-2xl overflow-hidden hover:border-red-500/40 transition-all hover:-translate-y-1 hover:shadow-xl hover:shadow-red-900/20 duration-300">
                 {/* Imagem */}
                 <div className="relative aspect-square bg-zinc-800 overflow-hidden">
-                  <img
-                    src={product.thumbnail}
-                    alt={product.title}
-                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                    onError={(e) => {
-                      (e.currentTarget as HTMLImageElement).src = 'https://via.placeholder.com/300x300/1a1a1a/666?text=Sem+Imagem';
-                    }}
-                  />
+                  {product.thumbnail ? (
+                    <img
+                      src={product.thumbnail}
+                      alt={product.title}
+
+                      className="w-full h-full object-contain p-2 group-hover:scale-105 transition-transform duration-500"
+                      onError={(e) => {
+                        const img = e.currentTarget as HTMLImageElement;
+                        if (img.src.includes('-O.jpg')) {
+                          img.src = img.src.replace('-O.jpg', '-D.jpg');
+                        } else if (!img.dataset.fallback) {
+                          img.dataset.fallback = '1';
+                          img.src = img.src.replace(/-[A-Z]\.jpg$/, '-O.jpg');
+                        } else {
+                          img.style.display = 'none';
+                        }
+                      }}
+                    />
+                  ) : (
+                    <div className="w-full h-full flex items-center justify-center">
+                      <Disc className="w-12 h-12 text-zinc-600" />
+                    </div>
+                  )}
                   {product.original_price && product.original_price > product.price && (
                     <div className="absolute top-2 left-2 bg-green-500 text-white text-[10px] font-bold px-2 py-1 rounded-full">
                       -{discount(product.original_price, product.price)}%
