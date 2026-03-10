@@ -103,7 +103,7 @@ function useProduto(slug: string) {
     const carregar = async () => {
       setLoading(true); setError(false);
       try {
-        const res  = await fetch(`/api/produto?id=${encodeURIComponent(slug)}`);
+        const res  = await fetch(`/api/item?id=${encodeURIComponent(slug)}`);
         if (!res.ok) throw new Error();
         const data = await res.json();
         if (!cancelado) setProduto(data);
