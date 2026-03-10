@@ -1,49 +1,29 @@
-import type { VercelRequest, VercelResponse } from '@vercel/node';
-
 const SELLER_NICKNAME = 'sylviosrecords';
 
-export default async function handler(req: VercelRequest, res: VercelResponse) {
-  // CORS — permite chamadas do próprio site
+export default async function handler(req: any, res: any) {
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'GET, OPTIONS');
-  res.setHeader('Cache-Control', 's-maxage=300, stale-while-revalidate=600'); // cache 5 min
+  res.setHeader('Cache-Control', 's-maxage=300, stale-while-revalidate=600');
 
   if (req.method === 'OPTIONS') return res.status(200).end();
 
   const { categoria, busca, pagina = '1', limite = '20' } = req.query;
-  const offset = (parseInt(pagina as string) - 1) * parseInt(limite as string);
+  const offset = (parseInt(pagina) - 1) * parseInt(limite);
 
   try {
-    // Monta a URL de busca no ML
     let url = `https://api.mercadolibre.com/sites/MLB/search?nickname=${SELLER_NICKNAME}&limit=${limite}&offset=${offset}&sort=sold_quantity_desc`;
 
-    if (busca) {
-      url += `&q=${encodeURIComponent(busca as string)}`;
-    }
+    if (busca) url += `&q=${encodeURIComponent(busca)}`;
 
-    // Filtros por categoria
-    const categorias: Record<string, string> = {
-      cds:     'MLB1144',  // Música
-      dvds:    'MLB1649',  // Filmes
-      blurays: '&q=blu-ray',
-    };
-    if (categoria && categorias[categoria as string]) {
-      if ((categoria as string) === 'blurays') {
-        url += categorias['blurays'];
-      } else {
-        url += `&category=${categorias[categoria as string]}`;
-      }
-    }
+    if (categoria === 'cds')     url += '&category=MLB1144';
+    if (categoria === 'dvds')    url += '&category=MLB1649';
+    if (categoria === 'blurays') url += '&q=blu-ray';
 
-    const response = await fetch(url, {
-      headers: { 'Accept': 'application/json' }
-    });
-
+    const response = await fetch(url, { headers: { 'Accept': 'application/json' } });
     if (!response.ok) throw new Error(`ML API error: ${response.status}`);
 
     const data = await response.json();
 
-    // Formata os produtos
     const produtos = (data.results || []).map((item: any) => ({
       id:             item.id,
       titulo:         item.title,
@@ -58,9 +38,9 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
     return res.status(200).json({
       produtos,
-      total:   data.paging?.total || 0,
-      pagina:  parseInt(pagina as string),
-      limite:  parseInt(limite as string),
+      total:  data.paging?.total || 0,
+      pagina: parseInt(pagina),
+      limite: parseInt(limite),
     });
 
   } catch (err: any) {
