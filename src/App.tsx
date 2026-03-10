@@ -118,9 +118,8 @@ function useProduto(slug: string) {
 
 function ProdutoCard({ p, navigate }: { p: Produto; navigate: (path: string) => void }) {
   const [imgOk, setImgOk] = useState(true);
-  const slug = p.slug || slugify(p.titulo);
   return (
-    <div onClick={() => navigate(`/produto/${slug}`)}
+    <div onClick={() => navigate(`/produto/${p.id}`)}
       className="group flex flex-col rounded-2xl overflow-hidden bg-zinc-900 border border-white/6 hover:border-red-500/40 transition-all hover:-translate-y-2 hover:shadow-2xl hover:shadow-red-950/30 duration-300 cursor-pointer">
       <div className="relative aspect-square bg-zinc-800 overflow-hidden">
         {imgOk && p.foto
