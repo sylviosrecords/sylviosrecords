@@ -47,7 +47,7 @@ export default async function handler(req: any, res: any) {
     const auth  = { Authorization: `Bearer ${token}` };
 
     // Monta URL de busca de IDs
-    let idsUrl = `https://api.mercadolibre.com/users/${SELLER_ID}/items/search?limit=50&offset=${offset}`;
+    let idsUrl = `https://api.mercadolibre.com/users/${SELLER_ID}/items/search?limit=50&offset=${offset}&status=active`;
 
     // Para CDs e DVDs/Blurays, usa busca por texto para filtrar
     const termoBusca = busca
