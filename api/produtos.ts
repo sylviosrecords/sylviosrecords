@@ -1,27 +1,23 @@
-const SELLER_NICKNAME = 'sylviosrecords';
-const ML_APP_ID       = process.env.ML_APP_ID;
-const ML_SECRET       = process.env.ML_SECRET;
+const SELLER_ID = '78078427';
 
 let cachedToken: string | null = null;
 let tokenExpiry: number        = 0;
 
 async function getAccessToken(): Promise<string> {
   if (cachedToken && Date.now() < tokenExpiry) return cachedToken;
-
-  const res  = await fetch('https://api.mercadolibre.com/oauth/token', {
+  const res = await fetch('https://api.mercadolibre.com/oauth/token', {
     method:  'POST',
     headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
     body:    new URLSearchParams({
       grant_type:    'client_credentials',
-      client_id:     ML_APP_ID!,
-      client_secret: ML_SECRET!,
+      client_id:     process.env.ML_APP_ID!,
+      client_secret: process.env.ML_SECRET!,
     }),
   });
-
   if (!res.ok) throw new Error(`Token error: ${res.status}`);
-  const data    = await res.json();
-  cachedToken   = data.access_token;
-  tokenExpiry   = Date.now() + (data.expires_in - 60) * 1000;
+  const data  = await res.json();
+  cachedToken = data.access_token;
+  tokenExpiry = Date.now() + (data.expires_in - 60) * 1000;
   return cachedToken!;
 }
 
@@ -32,53 +28,60 @@ export default async function handler(req: any, res: any) {
 
   if (req.method === 'OPTIONS') return res.status(200).end();
 
-  const { categoria, busca, pagina = '1', limite = '20' } = req.query;
-  const offset = (parseInt(pagina) - 1) * parseInt(limite);
+  const { busca, pagina = '1', ordem = 'sold_quantity_desc' } = req.query;
+  const limite = 20;
+  const offset = (parseInt(pagina) - 1) * limite;
 
   try {
     const token = await getAccessToken();
+    const auth  = { Authorization: `Bearer ${token}` };
 
-    // Busca seller_id pelo nickname
-    const sellerRes  = await fetch(
-      `https://api.mercadolibre.com/sites/MLB/search?nickname=${SELLER_NICKNAME}&limit=1`,
-      { headers: { Authorization: `Bearer ${token}` } }
+    // Busca IDs dos itens
+    let idsUrl = `https://api.mercadolibre.com/users/${SELLER_ID}/items/search?limit=${limite}&offset=${offset}&sort_by=${ordem}`;
+    if (busca) idsUrl += `&q=${encodeURIComponent(busca)}`;
+
+    const idsRes  = await fetch(idsUrl, { headers: auth });
+    if (!idsRes.ok) throw new Error(`Items search error: ${idsRes.status}`);
+    const idsData = await idsRes.json();
+
+    const ids: string[] = idsData.results || [];
+    if (!ids.length) {
+      return res.status(200).json({ produtos: [], total: idsData.paging?.total || 0, pagina: parseInt(pagina), limite });
+    }
+
+    // Busca detalhes dos itens em lote (máx 20 por vez)
+    const detalhesRes  = await fetch(
+      `https://api.mercadolibre.com/items?ids=${ids.join(',')}&attributes=id,title,price,original_price,thumbnail,permalink,sold_quantity,condition,available_quantity`,
+      { headers: auth }
     );
-    const sellerData = await sellerRes.json();
-    const sellerId   = sellerData.results?.[0]?.seller?.id;
+    if (!detalhesRes.ok) throw new Error(`Items detail error: ${detalhesRes.status}`);
+    const detalhesData = await detalhesRes.json();
 
-    let url = sellerId
-      ? `https://api.mercadolibre.com/sites/MLB/search?seller_id=${sellerId}&limit=${limite}&offset=${offset}&sort=sold_quantity_desc`
-      : `https://api.mercadolibre.com/sites/MLB/search?nickname=${SELLER_NICKNAME}&limit=${limite}&offset=${offset}&sort=sold_quantity_desc`;
-
-    if (busca)                   url += `&q=${encodeURIComponent(busca)}`;
-    if (categoria === 'cds')     url += '&category=MLB1144';
-    if (categoria === 'dvds')    url += '&category=MLB1649';
-    if (categoria === 'blurays') url += '&q=blu-ray';
-
-    const response = await fetch(url, { headers: { Authorization: `Bearer ${token}` } });
-    if (!response.ok) throw new Error(`ML API error: ${response.status}`);
-
-    const data    = await response.json();
-    const produtos = (data.results || []).map((item: any) => ({
-      id:             item.id,
-      titulo:         item.title,
-      preco:          item.price,
-      preco_original: item.original_price,
-      foto:           (item.thumbnail || '').replace('http://', 'https://').replace('-I.jpg', '-O.jpg'),
-      link:           item.permalink,
-      vendidos:       item.sold_quantity || 0,
-      condicao:       item.condition,
-      disponivel:     item.available_quantity > 0,
-    }));
+    const produtos = detalhesData
+      .filter((d: any) => d.code === 200)
+      .map((d: any) => {
+        const item = d.body;
+        return {
+          id:             item.id,
+          titulo:         item.title,
+          preco:          item.price,
+          preco_original: item.original_price,
+          foto:           (item.thumbnail || '').replace('http://', 'https://').replace('-I.jpg', '-O.jpg'),
+          link:           item.permalink,
+          vendidos:       item.sold_quantity || 0,
+          condicao:       item.condition,
+          disponivel:     item.available_quantity > 0,
+        };
+      });
 
     return res.status(200).json({
       produtos,
-      total:  data.paging?.total || 0,
+      total:  idsData.paging?.total || 0,
       pagina: parseInt(pagina),
-      limite: parseInt(limite),
+      limite,
     });
 
   } catch (err: any) {
-    return res.status(500).json({ erro: err.message || 'Erro ao buscar produtos' });
+    return res.status(500).json({ erro: err.message });
   }
 }
