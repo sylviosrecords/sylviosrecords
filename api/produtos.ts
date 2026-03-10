@@ -1,7 +1,32 @@
 const SELLER_NICKNAME = 'sylviosrecords';
+const ML_APP_ID       = process.env.ML_APP_ID;
+const ML_SECRET       = process.env.ML_SECRET;
+
+let cachedToken: string | null = null;
+let tokenExpiry: number        = 0;
+
+async function getAccessToken(): Promise<string> {
+  if (cachedToken && Date.now() < tokenExpiry) return cachedToken;
+
+  const res  = await fetch('https://api.mercadolibre.com/oauth/token', {
+    method:  'POST',
+    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+    body:    new URLSearchParams({
+      grant_type:    'client_credentials',
+      client_id:     ML_APP_ID!,
+      client_secret: ML_SECRET!,
+    }),
+  });
+
+  if (!res.ok) throw new Error(`Token error: ${res.status}`);
+  const data    = await res.json();
+  cachedToken   = data.access_token;
+  tokenExpiry   = Date.now() + (data.expires_in - 60) * 1000;
+  return cachedToken!;
+}
 
 export default async function handler(req: any, res: any) {
-  res.setHeader('Access-Control-Allow-Origin', '*');
+  res.setHeader('Access-Control-Allow-Origin',  '*');
   res.setHeader('Access-Control-Allow-Methods', 'GET, OPTIONS');
   res.setHeader('Cache-Control', 's-maxage=300, stale-while-revalidate=600');
 
@@ -11,33 +36,29 @@ export default async function handler(req: any, res: any) {
   const offset = (parseInt(pagina) - 1) * parseInt(limite);
 
   try {
-    // Busca pelo seller_id em vez de nickname (mais confiável)
-    // Primeiro busca o seller_id pelo nickname
-    const sellerRes  = await fetch(`https://api.mercadolibre.com/sites/MLB/search?nickname=${SELLER_NICKNAME}&limit=1`);
+    const token = await getAccessToken();
+
+    // Busca seller_id pelo nickname
+    const sellerRes  = await fetch(
+      `https://api.mercadolibre.com/sites/MLB/search?nickname=${SELLER_NICKNAME}&limit=1`,
+      { headers: { Authorization: `Bearer ${token}` } }
+    );
     const sellerData = await sellerRes.json();
     const sellerId   = sellerData.results?.[0]?.seller?.id;
 
-    let url: string;
+    let url = sellerId
+      ? `https://api.mercadolibre.com/sites/MLB/search?seller_id=${sellerId}&limit=${limite}&offset=${offset}&sort=sold_quantity_desc`
+      : `https://api.mercadolibre.com/sites/MLB/search?nickname=${SELLER_NICKNAME}&limit=${limite}&offset=${offset}&sort=sold_quantity_desc`;
 
-    if (sellerId) {
-      // Usa seller_id direto — muito mais confiável
-      url = `https://api.mercadolibre.com/sites/MLB/search?seller_id=${sellerId}&limit=${limite}&offset=${offset}&sort=sold_quantity_desc`;
-    } else {
-      // Fallback: busca por nickname
-      url = `https://api.mercadolibre.com/sites/MLB/search?nickname=${SELLER_NICKNAME}&limit=${limite}&offset=${offset}&sort=sold_quantity_desc`;
-    }
-
-    if (busca)               url += `&q=${encodeURIComponent(busca)}`;
+    if (busca)                   url += `&q=${encodeURIComponent(busca)}`;
     if (categoria === 'cds')     url += '&category=MLB1144';
     if (categoria === 'dvds')    url += '&category=MLB1649';
     if (categoria === 'blurays') url += '&q=blu-ray';
 
-    const response = await fetch(url, { headers: { 'Accept': 'application/json' } });
+    const response = await fetch(url, { headers: { Authorization: `Bearer ${token}` } });
     if (!response.ok) throw new Error(`ML API error: ${response.status}`);
 
-    const data = await response.json();
-
-    // Retorna também debug info para diagnóstico
+    const data    = await response.json();
     const produtos = (data.results || []).map((item: any) => ({
       id:             item.id,
       titulo:         item.title,
@@ -52,10 +73,9 @@ export default async function handler(req: any, res: any) {
 
     return res.status(200).json({
       produtos,
-      total:    data.paging?.total || 0,
-      pagina:   parseInt(pagina),
-      limite:   parseInt(limite),
-      _debug:   { sellerId, urlUsada: url, totalML: data.paging?.total }
+      total:  data.paging?.total || 0,
+      pagina: parseInt(pagina),
+      limite: parseInt(limite),
     });
 
   } catch (err: any) {
