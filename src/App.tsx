@@ -601,9 +601,8 @@ export default function App() {
   return (
     <>
       <style>{`
-        @import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:ital,wght@0,400;0,600;1,400&display=swap');
         .font-bebas { font-family: 'Bebas Neue', sans-serif; letter-spacing: 0.04em; }
-        body { font-family: 'DM Sans', sans-serif; }
+        body { font-family: 'DM Sans', system-ui, sans-serif; }
         .sr-gradient { background: linear-gradient(135deg, #e63946 0%, #1d3557 100%); }
         .sr-gradient-text {
           background: linear-gradient(135deg, #e63946 0%, #4895ef 100%);
