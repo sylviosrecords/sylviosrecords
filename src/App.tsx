@@ -116,16 +116,32 @@ function useProduto(slug: string) {
   return { produto, loading, error };
 }
 
+function SkeletonCard() {
+  return (
+    <div className="flex flex-col rounded-2xl overflow-hidden bg-zinc-900 border border-white/6">
+      <div className="aspect-square skeleton"/>
+      <div className="p-3 flex flex-col gap-2">
+        <div className="skeleton h-3 w-full rounded"/>
+        <div className="skeleton h-3 w-3/4 rounded"/>
+        <div className="skeleton h-4 w-1/2 rounded mt-1"/>
+      </div>
+    </div>
+  );
+}
+
 function ProdutoCard({ p, navigate }: { p: Produto; navigate: (path: string) => void }) {
-  const [imgOk, setImgOk] = useState(true);
+  const [imgOk,     setImgOk]     = useState(true);
+  const [imgLoaded, setImgLoaded] = useState(false);
   return (
     <div onClick={() => navigate(`/produto/${p.id}`)}
       className="group flex flex-col rounded-2xl overflow-hidden bg-zinc-900 border border-white/6 hover:border-red-500/40 transition-all hover:-translate-y-2 hover:shadow-2xl hover:shadow-red-950/30 duration-300 cursor-pointer">
       <div className="relative aspect-square bg-zinc-800 overflow-hidden">
+        {!imgLoaded && <div className="absolute inset-0 skeleton"/>}
         {imgOk && p.foto
-          ? <img src={p.foto} alt={p.titulo}
-              className="w-full h-full object-contain p-2 group-hover:scale-105 transition-transform duration-500"
-              onError={() => setImgOk(false)}/>
+          ? <img src={p.foto} alt={p.titulo} loading="lazy"
+              className={`w-full h-full object-contain p-2 group-hover:scale-105 transition-all duration-500 ${imgLoaded ? 'opacity-100' : 'opacity-0'}`}
+              onLoad={() => setImgLoaded(true)}
+              onError={() => { setImgOk(false); setImgLoaded(true); }}/>
           : <div className="w-full h-full flex items-center justify-center"><Disc className="w-12 h-12 text-zinc-700"/></div>
         }
         {p.preco_original && p.preco_original > p.preco && (
@@ -430,8 +446,8 @@ function PaginaCatalogo({ navigate }: { navigate: (path: string) => void }) {
             ))}
           </div>
           {loading ? (
-            <div className="flex items-center justify-center py-32 gap-3">
-              <Loader2 className="w-8 h-8 animate-spin text-red-500"/><span className="text-zinc-500">Buscando produtos...</span>
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
+              {Array.from({length:20}).map((_,i) => <SkeletonCard key={i}/>)}
             </div>
           ) : error ? (
             <div className="text-center py-32">
@@ -601,6 +617,15 @@ export default function App() {
         ::-webkit-scrollbar { width: 6px; }
         ::-webkit-scrollbar-track { background: #080808; }
         ::-webkit-scrollbar-thumb { background: #e63946; border-radius: 3px; }
+        .skeleton {
+          background: linear-gradient(90deg, #1a1a1a 25%, #252525 50%, #1a1a1a 75%);
+          background-size: 200% 100%;
+          animation: shimmer 1.4s infinite;
+        }
+        @keyframes shimmer {
+          0%   { background-position: 200% 0; }
+          100% { background-position: -200% 0; }
+        }
       `}</style>
 
       {route.startsWith('/produto/') && (

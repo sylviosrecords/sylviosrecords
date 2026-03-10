@@ -1,21 +1,57 @@
 <!doctype html>
-<html lang="en">
+<html lang="pt-BR">
   <head>
     <meta charset="UTF-8" />
+    <link rel="icon" type="image/png" href="https://lh3.googleusercontent.com/d/1q6YyW7bYCceOyChffF9LhNuVLhmrGjGA" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Sylvios Records | CDs, DVDs e Blu-rays Originais desde 2005</title>
-    <meta name="description" content="Loja especializada em mídias físicas originais no Mercado Livre. Rock, Metal, MPB e raridades. Mais de 15.000 vendas e 19 anos de tradição." />
-    <meta name="keywords" content="CDs originais, DVDs raros, Blu-ray colecionador, Rock, Metal, MPB, Mercado Livre, Sylvios Records" />
-    
-    <!-- Open Graph (Para aparecer bonito no WhatsApp/Redes Sociais) -->
-    <meta property="og:title" content="Sylvios Records - A sua paixão por mídia física vive aqui" />
-    <meta property="og:description" content="Especialistas em CDs, DVDs e Blu-rays originais. Confira nossa coleção no Mercado Livre." />
-    <meta property="og:image" content="https://lh3.googleusercontent.com/d/1q6YyW7bYCceOyChffF9LhNuVLhmrGjGA" />
-    <meta property="og:type" content="website" />
+
+    <!-- SEO -->
+    <title>Sylvios Records – CDs, DVDs e Blu-rays Originais</title>
+    <meta name="description" content="CDs, DVDs e Blu-rays 100% originais. Rock, Metal, MPB e muito mais. Mercado Líder Platinum desde 2005." />
+
+    <!-- Preload fonte crítica -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" crossorigin />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link rel="preload" as="style"
+      href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@400;600&display=swap" />
+    <link rel="stylesheet"
+      href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@400;600&display=swap"
+      media="print" onload="this.media='all'" />
+
+    <!-- CSS crítico inline — evita FOUC -->
+    <style>
+      *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+      html { scroll-behavior: smooth; }
+      body {
+        background: #080808;
+        color: #f4f4f5;
+        font-family: 'DM Sans', system-ui, -apple-system, sans-serif;
+        -webkit-font-smoothing: antialiased;
+      }
+      /* Evita flash branco */
+      #root { min-height: 100vh; background: #080808; }
+      /* Skeleton base */
+      .skeleton {
+        background: linear-gradient(90deg, #1a1a1a 25%, #252525 50%, #1a1a1a 75%);
+        background-size: 200% 100%;
+        animation: shimmer 1.4s infinite;
+        border-radius: 8px;
+      }
+      @keyframes shimmer {
+        0%   { background-position: 200% 0; }
+        100% { background-position: -200% 0; }
+      }
+    </style>
+
+    <!-- Open Graph -->
+    <meta property="og:title"       content="Sylvios Records – Mídias Físicas Originais" />
+    <meta property="og:description" content="CDs, DVDs e Blu-rays 100% originais desde 2005." />
+    <meta property="og:image"       content="https://lh3.googleusercontent.com/d/1q6YyW7bYCceOyChffF9LhNuVLhmrGjGA" />
+    <meta property="og:url"         content="https://sylviosrecords.com" />
+    <meta property="og:type"        content="website" />
   </head>
   <body>
     <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>
-
