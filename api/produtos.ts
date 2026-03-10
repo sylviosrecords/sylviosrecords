@@ -1,5 +1,15 @@
 const SELLER_ID = '78078427';
 
+// Categorias do ML Brasil
+const CATEGORIA_IDS: Record<string, string> = {
+  cds:     'MLB1144',  // Música
+  dvds:    'MLB1649',  // Filmes Físicos
+  blurays: 'MLB1649',  // Blu-rays ficam em Filmes também
+};
+
+// Palavras-chave para filtrar blu-rays (subcategoria)
+const BLURAY_KEYWORDS = ['blu-ray', 'blu ray', 'bluray', 'bly-ray'];
+
 let cachedToken: string | null = null;
 let tokenExpiry: number        = 0;
 
@@ -28,7 +38,7 @@ export default async function handler(req: any, res: any) {
 
   if (req.method === 'OPTIONS') return res.status(200).end();
 
-  const { busca, pagina = '1', ordem = 'sold_quantity_desc' } = req.query;
+  const { categoria = 'todos', busca, pagina = '1' } = req.query;
   const limite = 20;
   const offset = (parseInt(pagina) - 1) * limite;
 
@@ -36,21 +46,33 @@ export default async function handler(req: any, res: any) {
     const token = await getAccessToken();
     const auth  = { Authorization: `Bearer ${token}` };
 
-    // Busca IDs dos itens
-    let idsUrl = `https://api.mercadolibre.com/users/${SELLER_ID}/items/search?limit=${limite}&offset=${offset}&sort_by=${ordem}`;
-    if (busca) idsUrl += `&q=${encodeURIComponent(busca)}`;
+    // Monta URL de busca de IDs
+    let idsUrl = `https://api.mercadolibre.com/users/${SELLER_ID}/items/search?limit=50&offset=${offset}`;
+
+    // Para CDs e DVDs/Blurays, usa busca por texto para filtrar
+    const termoBusca = busca
+      ? String(busca)
+      : categoria === 'cds'
+        ? 'cd'
+        : categoria === 'dvds'
+          ? 'dvd'
+          : categoria === 'blurays'
+            ? 'blu-ray'
+            : '';
+
+    if (termoBusca) idsUrl += `&q=${encodeURIComponent(termoBusca)}`;
 
     const idsRes  = await fetch(idsUrl, { headers: auth });
     if (!idsRes.ok) throw new Error(`Items search error: ${idsRes.status}`);
     const idsData = await idsRes.json();
 
-    const ids: string[] = idsData.results || [];
+    const ids: string[] = (idsData.results || []).slice(0, 20);
     if (!ids.length) {
       return res.status(200).json({ produtos: [], total: idsData.paging?.total || 0, pagina: parseInt(pagina), limite });
     }
 
-    // Busca detalhes dos itens em lote (máx 20 por vez)
-    const detalhesRes  = await fetch(
+    // Busca detalhes em lote
+    const detalhesRes = await fetch(
       `https://api.mercadolibre.com/items?ids=${ids.join(',')}&attributes=id,title,price,original_price,thumbnail,permalink,sold_quantity,condition,available_quantity`,
       { headers: auth }
     );
