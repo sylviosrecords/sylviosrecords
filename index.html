@@ -9,46 +9,22 @@
     <title>Sylvios Records – CDs, DVDs e Blu-rays Originais</title>
     <meta name="description" content="CDs, DVDs e Blu-rays 100% originais. Rock, Metal, MPB e muito mais. Mercado Líder Platinum desde 2005." />
 
-    <!-- Preload fonte crítica -->
-    <link rel="preconnect" href="https://fonts.googleapis.com" crossorigin />
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link rel="preload" as="style"
-      href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@400;600&display=swap" />
-    <link rel="stylesheet"
-      href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@400;600&display=swap"
-      media="print" onload="this.media='all'" />
-
-    <!-- CSS crítico inline — evita FOUC -->
-    <style>
-      *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-      html { scroll-behavior: smooth; }
-      body {
-        background: #080808;
-        color: #f4f4f5;
-        font-family: 'DM Sans', system-ui, -apple-system, sans-serif;
-        -webkit-font-smoothing: antialiased;
-      }
-      /* Evita flash branco */
-      #root { min-height: 100vh; background: #080808; }
-      /* Skeleton base */
-      .skeleton {
-        background: linear-gradient(90deg, #1a1a1a 25%, #252525 50%, #1a1a1a 75%);
-        background-size: 200% 100%;
-        animation: shimmer 1.4s infinite;
-        border-radius: 8px;
-      }
-      @keyframes shimmer {
-        0%   { background-position: 200% 0; }
-        100% { background-position: -200% 0; }
-      }
-    </style>
-
     <!-- Open Graph -->
     <meta property="og:title"       content="Sylvios Records – Mídias Físicas Originais" />
     <meta property="og:description" content="CDs, DVDs e Blu-rays 100% originais desde 2005." />
     <meta property="og:image"       content="https://lh3.googleusercontent.com/d/1q6YyW7bYCceOyChffF9LhNuVLhmrGjGA" />
-    <meta property="og:url"         content="https://sylviosrecords.com" />
+    <meta property="og:url"         content="https://sylviosrecords.com.br" />
     <meta property="og:type"        content="website" />
+
+    <!-- Fonte preload -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" crossorigin />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@400;600&display=swap" />
+
+    <!-- Evita fundo branco antes do JS carregar -->
+    <style>
+      html, body, #root { background: #080808; min-height: 100vh; }
+    </style>
   </head>
   <body>
     <div id="root"></div>
