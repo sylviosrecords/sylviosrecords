@@ -11,10 +11,23 @@ export default async function handler(req: any, res: any) {
   const offset = (parseInt(pagina) - 1) * parseInt(limite);
 
   try {
-    let url = `https://api.mercadolibre.com/sites/MLB/search?nickname=${SELLER_NICKNAME}&limit=${limite}&offset=${offset}&sort=sold_quantity_desc`;
+    // Busca pelo seller_id em vez de nickname (mais confiável)
+    // Primeiro busca o seller_id pelo nickname
+    const sellerRes  = await fetch(`https://api.mercadolibre.com/sites/MLB/search?nickname=${SELLER_NICKNAME}&limit=1`);
+    const sellerData = await sellerRes.json();
+    const sellerId   = sellerData.results?.[0]?.seller?.id;
 
-    if (busca) url += `&q=${encodeURIComponent(busca)}`;
+    let url: string;
 
+    if (sellerId) {
+      // Usa seller_id direto — muito mais confiável
+      url = `https://api.mercadolibre.com/sites/MLB/search?seller_id=${sellerId}&limit=${limite}&offset=${offset}&sort=sold_quantity_desc`;
+    } else {
+      // Fallback: busca por nickname
+      url = `https://api.mercadolibre.com/sites/MLB/search?nickname=${SELLER_NICKNAME}&limit=${limite}&offset=${offset}&sort=sold_quantity_desc`;
+    }
+
+    if (busca)               url += `&q=${encodeURIComponent(busca)}`;
     if (categoria === 'cds')     url += '&category=MLB1144';
     if (categoria === 'dvds')    url += '&category=MLB1649';
     if (categoria === 'blurays') url += '&q=blu-ray';
@@ -24,6 +37,7 @@ export default async function handler(req: any, res: any) {
 
     const data = await response.json();
 
+    // Retorna também debug info para diagnóstico
     const produtos = (data.results || []).map((item: any) => ({
       id:             item.id,
       titulo:         item.title,
@@ -38,9 +52,10 @@ export default async function handler(req: any, res: any) {
 
     return res.status(200).json({
       produtos,
-      total:  data.paging?.total || 0,
-      pagina: parseInt(pagina),
-      limite: parseInt(limite),
+      total:    data.paging?.total || 0,
+      pagina:   parseInt(pagina),
+      limite:   parseInt(limite),
+      _debug:   { sellerId, urlUsada: url, totalML: data.paging?.total }
     });
 
   } catch (err: any) {
