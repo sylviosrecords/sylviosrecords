@@ -1,14 +1,11 @@
-const SELLER_ID = '78078427';
-
-// Categorias do ML Brasil
-const CATEGORIA_IDS: Record<string, string> = {
-  cds:     'MLB1144',  // Música
-  dvds:    'MLB1649',  // Filmes Físicos
-  blurays: 'MLB1649',  // Blu-rays ficam em Filmes também
-};
-
-// Palavras-chave para filtrar blu-rays (subcategoria)
-const BLURAY_KEYWORDS = ['blu-ray', 'blu ray', 'bluray', 'bly-ray'];
+function slugify(text: string): string {
+  return text
+    .toLowerCase()
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-+|-+$/g, '');
+}
 
 let cachedToken: string | null = null;
 let tokenExpiry: number        = 0;
@@ -34,74 +31,76 @@ async function getAccessToken(): Promise<string> {
 export default async function handler(req: any, res: any) {
   res.setHeader('Access-Control-Allow-Origin',  '*');
   res.setHeader('Access-Control-Allow-Methods', 'GET, OPTIONS');
-  res.setHeader('Cache-Control', 's-maxage=300, stale-while-revalidate=600');
+  res.setHeader('Cache-Control', 's-maxage=3600, stale-while-revalidate=7200');
 
   if (req.method === 'OPTIONS') return res.status(200).end();
 
-  const { categoria = 'todos', busca, pagina = '1' } = req.query;
-  const limite = 20;
-  const offset = (parseInt(pagina) - 1) * limite;
+  const { id } = req.query; // MLB id ou slug
+  if (!id) return res.status(400).json({ erro: 'ID obrigatório' });
 
   try {
     const token = await getAccessToken();
     const auth  = { Authorization: `Bearer ${token}` };
 
-    // Monta URL de busca de IDs
-    let idsUrl = `https://api.mercadolibre.com/users/${SELLER_ID}/items/search?limit=50&offset=${offset}&status=active`;
+    // Se vier um slug (não começa com MLB), busca pelo slug
+    let mlbId = String(id);
 
-    // Para CDs e DVDs/Blurays, usa busca por texto para filtrar
-    const termoBusca = busca
-      ? String(busca)
-      : categoria === 'cds'
-        ? 'cd'
-        : categoria === 'dvds'
-          ? 'dvd'
-          : categoria === 'blurays'
-            ? 'blu-ray'
-            : '';
+    if (!mlbId.toUpperCase().startsWith('MLB')) {
+      // Busca o item pelo slug — precisa encontrar o ID real
+      // Estratégia: busca nos itens do seller e acha o que bate com o slug
+      const searchRes  = await fetch(
+        `https://api.mercadolibre.com/users/78078427/items/search?status=active&limit=50`,
+        { headers: auth }
+      );
+      const searchData = await searchRes.json();
+      const ids: string[] = searchData.results || [];
 
-    if (termoBusca) idsUrl += `&q=${encodeURIComponent(termoBusca)}`;
+      if (!ids.length) return res.status(404).json({ erro: 'Produto não encontrado' });
 
-    const idsRes  = await fetch(idsUrl, { headers: auth });
-    if (!idsRes.ok) throw new Error(`Items search error: ${idsRes.status}`);
-    const idsData = await idsRes.json();
+      // Busca detalhes em lote para achar o slug
+      const detRes  = await fetch(
+        `https://api.mercadolibre.com/items?ids=${ids.join(',')}&attributes=id,title`,
+        { headers: auth }
+      );
+      const detData = await detRes.json();
 
-    const ids: string[] = (idsData.results || []).slice(0, 20);
-    if (!ids.length) {
-      return res.status(200).json({ produtos: [], total: idsData.paging?.total || 0, pagina: parseInt(pagina), limite });
+      const match = detData
+        .filter((d: any) => d.code === 200)
+        .find((d: any) => slugify(d.body.title) === mlbId);
+
+      if (!match) return res.status(404).json({ erro: 'Produto não encontrado' });
+      mlbId = match.body.id;
     }
 
-    // Busca detalhes em lote
-    const detalhesRes = await fetch(
-      `https://api.mercadolibre.com/items?ids=${ids.join(',')}&attributes=id,title,price,original_price,thumbnail,permalink,sold_quantity,condition,available_quantity`,
+    // Busca detalhes completos do item
+    const itemRes  = await fetch(
+      `https://api.mercadolibre.com/items/${mlbId}`,
       { headers: auth }
     );
-    if (!detalhesRes.ok) throw new Error(`Items detail error: ${detalhesRes.status}`);
-    const detalhesData = await detalhesRes.json();
+    if (!itemRes.ok) return res.status(404).json({ erro: 'Produto não encontrado' });
+    const item = await itemRes.json();
 
-    const produtos = detalhesData
-      .filter((d: any) => d.code === 200)
-      .map((d: any) => {
-        const item = d.body;
-        return {
-          id:             item.id,
-          titulo:         item.title,
-          preco:          item.price,
-          preco_original: item.original_price,
-          foto:           (item.thumbnail || '').replace('http://', 'https://').replace('-I.jpg', '-O.jpg'),
-          link:           item.permalink,
-          vendidos:       item.sold_quantity || 0,
-          condicao:       item.condition,
-          disponivel:     item.available_quantity > 0,
-        };
-      });
+    // Busca imagens adicionais
+    const fotos = (item.pictures || [])
+      .map((p: any) => p.url?.replace('http://', 'https://') || '')
+      .filter(Boolean);
 
-    return res.status(200).json({
-      produtos,
-      total:  idsData.paging?.total || 0,
-      pagina: parseInt(pagina),
-      limite,
-    });
+    const produto = {
+      id:             item.id,
+      titulo:         item.title,
+      slug:           slugify(item.title),
+      preco:          item.price,
+      preco_original: item.original_price,
+      foto:           fotos[0] || (item.thumbnail || '').replace('http://', 'https://').replace('-I.jpg', '-O.jpg'),
+      fotos,
+      link:           item.permalink,
+      vendidos:       item.sold_quantity || 0,
+      condicao:       item.condition,
+      disponivel:     item.available_quantity > 0,
+      estoque:        item.available_quantity,
+    };
+
+    return res.status(200).json(produto);
 
   } catch (err: any) {
     return res.status(500).json({ erro: err.message });
