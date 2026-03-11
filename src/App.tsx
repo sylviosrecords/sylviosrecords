@@ -9,17 +9,16 @@ import {
   Disc, Film, Package, ShieldCheck, Truck, History,
   ExternalLink, ChevronRight, ChevronLeft, Star,
   Music, Loader2, Search, TrendingUp, ChevronDown,
-  X, ArrowLeft, ShoppingCart, ImageOff, BookOpen, Sparkles
+  X, ArrowLeft, ShoppingCart, ImageOff, BookOpen, Sparkles, Clock, Calendar
 } from 'lucide-react';
 import colecoesData from './colecoes.json';
+import artigosData  from './artigos.json';
 
 const STORE_NAME = "Sylvios Records";
 const STORE_LINK = "https://www.mercadolivre.com.br/pagina/sylviosrecords";
 const STORE_LOGO = "https://lh3.googleusercontent.com/d/1q6YyW7bYCceOyChffF9LhNuVLhmrGjGA";
 const LINKS = {
   ALL:    "https://lista.mercadolivre.com.br/pagina/sylviosrecords/",
-  MUSIC:  "https://lista.mercadolivre.com.br/pagina/sylviosrecords/lista/musica-filmes-seriados/musica/",
-  MOVIES: "https://lista.mercadolivre.com.br/pagina/sylviosrecords/lista/musica-filmes-seriados/filmes-fisicos/",
 };
 const GENRES = ['Rock','Metal','Grunge','Punk','Clássico','MPB','Moda de Viola','Jazz','Blues'];
 const CATEGORIAS = [
@@ -35,6 +34,7 @@ const FAQ = [
   { q:"Entregam para todo o Brasil?", a:"Sim! Vendemos pelo Mercado Livre com frete calculado no checkout para todo o Brasil." },
 ];
 
+// ── Tipos ─────────────────────────────────────────────────────────────────────
 interface Produto {
   id: string; titulo: string; slug?: string;
   preco: number; preco_original: number | null;
@@ -42,29 +42,43 @@ interface Produto {
   link: string; vendidos: number;
   condicao: string; disponivel: boolean; estoque?: number;
 }
-
 interface Colecao {
-  slug: string;
-  titulo: string;
-  subtitulo: string;
-  descricao: string;
-  ids: string[];
+  slug: string; titulo: string; subtitulo: string; descricao: string; ids: string[];
+}
+interface Artigo {
+  slug: string; titulo: string; resumo: string; categoria: string;
+  autor: string; data: string; tempoLeitura: string;
+  imagemCapa: string; conteudo: string; produtosRelacionados: string[];
 }
 
 const colecoes: Colecao[] = colecoesData as Colecao[];
+const artigos:  Artigo[]  = artigosData  as Artigo[];
 
+// ── Helpers ───────────────────────────────────────────────────────────────────
 function slugify(text: string): string {
   return text.toLowerCase()
     .normalize('NFD').replace(/[\u0300-\u036f]/g,'')
     .replace(/[^a-z0-9]+/g,'-').replace(/^-+|-+$/g,'');
 }
-
-// Extrai o ID do ML de uma string que pode ser "MLB123456" ou "MLB123456-cd-titulo"
 function extrairIdML(slug: string): string {
   const match = slug.match(/^(MLB\d+)/i);
   return match ? match[1] : slug;
 }
 
+// Converte markdown simples (### h3, **bold**, *italic*, \n\n) em JSX
+function renderMarkdown(texto: string) {
+  return texto.split('\n\n').map((bloco, i) => {
+    if (bloco.startsWith('### ')) {
+      return <h3 key={i} className="font-bebas text-2xl text-white mt-8 mb-3">{bloco.replace('### ','')}</h3>;
+    }
+    const html = bloco
+      .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
+      .replace(/\*(.+?)\*/g, '<em>$1</em>');
+    return <p key={i} className="text-zinc-400 leading-relaxed mb-4" dangerouslySetInnerHTML={{__html: html}}/>;
+  });
+}
+
+// ── Roteamento ────────────────────────────────────────────────────────────────
 function useRoute() {
   const [route, setRoute] = useState(window.location.pathname);
   useEffect(() => {
@@ -83,6 +97,7 @@ function useRoute() {
 const fmt  = (v: number) => v.toLocaleString('pt-BR', { style:'currency', currency:'BRL' });
 const disc = (o: number, c: number) => Math.round(((o-c)/o)*100);
 
+// ── Hooks de dados ────────────────────────────────────────────────────────────
 function useProdutos(categoria: string, busca: string, pagina: number) {
   const [produtos, setProdutos] = useState<Produto[]>([]);
   const [total,    setTotal]    = useState(0);
@@ -147,7 +162,7 @@ function useDescricao(id: string) {
         if (!res.ok) return;
         const data = await res.json();
         if (!cancelado) setDescricao(data.descricao || '');
-      } catch { /* silencioso */ }
+      } catch { }
       finally { if (!cancelado) setLoading(false); }
     };
     carregar();
@@ -179,6 +194,7 @@ function useProdutosColecao(ids: string[]) {
   return { produtos, loading, error };
 }
 
+// ── Componentes reutilizáveis ─────────────────────────────────────────────────
 function SkeletonCard() {
   return (
     <div className="flex flex-col rounded-2xl overflow-hidden bg-zinc-900 border border-white/6">
@@ -229,221 +245,6 @@ function ProdutoCard({ p, navigate }: { p: Produto; navigate: (path: string) => 
   );
 }
 
-function PaginaProduto({ slugComposto, navigate }: { slugComposto: string; navigate: (path: string) => void }) {
-  const { produto, loading, error } = useProduto(slugComposto);
-  const [fotoIdx, setFotoIdx] = useState(0);
-  const fotos = produto?.fotos?.length ? produto.fotos : produto?.foto ? [produto.foto] : [];
-  const { descricao, loading: descLoading } = useDescricao(produto?.id || '');
-
-  // SEO: atualiza title da página
-  useEffect(() => {
-    if (produto?.titulo) {
-      document.title = `${produto.titulo} — ${STORE_NAME}`;
-      // Meta description
-      let meta = document.querySelector('meta[name="description"]') as HTMLMetaElement;
-      if (!meta) { meta = document.createElement('meta'); meta.name = 'description'; document.head.appendChild(meta); }
-      meta.content = `Compre ${produto.titulo} no Mercado Livre com envio seguro. Mídia física original — ${STORE_NAME}.`;
-    }
-    return () => { document.title = STORE_NAME; };
-  }, [produto?.titulo]);
-
-  if (loading) return (
-    <div className="min-h-screen bg-[#080808] flex items-center justify-center">
-      <Loader2 className="w-10 h-10 animate-spin text-red-500"/>
-    </div>
-  );
-  if (error || !produto) return (
-    <div className="min-h-screen bg-[#080808] flex flex-col items-center justify-center gap-6">
-      <p className="text-zinc-400">Produto não encontrado.</p>
-      <button onClick={() => navigate('/')}
-        className="flex items-center gap-2 sr-gradient text-white px-6 py-3 rounded-full font-bold">
-        <ArrowLeft className="w-4 h-4"/> Voltar ao catálogo
-      </button>
-    </div>
-  );
-
-  return (
-    <div className="min-h-screen bg-[#080808] text-zinc-100 pt-24 pb-20 px-6">
-      <div className="max-w-5xl mx-auto">
-        <button onClick={() => navigate('/')}
-          className="flex items-center gap-2 text-zinc-500 hover:text-white transition-colors mb-10 text-sm group">
-          <ArrowLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform"/> Voltar ao catálogo
-        </button>
-        <div className="grid md:grid-cols-2 gap-12 items-start">
-          <div>
-            <div className="aspect-square rounded-3xl overflow-hidden bg-zinc-900 border border-white/8 mb-4 relative">
-              {fotos.length > 0
-                ? <img src={fotos[fotoIdx]} alt={produto.titulo} className="w-full h-full object-contain p-4"/>
-                : <div className="w-full h-full flex items-center justify-center"><ImageOff className="w-16 h-16 text-zinc-700"/></div>
-              }
-              {produto.preco_original && produto.preco_original > produto.preco && (
-                <span className="absolute top-4 left-4 bg-red-600 text-white text-sm font-black px-3 py-1 rounded-full">
-                  -{disc(produto.preco_original, produto.preco)}%
-                </span>
-              )}
-            </div>
-            {fotos.length > 1 && (
-              <div className="flex gap-2 overflow-x-auto pb-1">
-                {fotos.map((f, i) => (
-                  <button key={i} onClick={() => setFotoIdx(i)}
-                    className={`flex-none w-16 h-16 rounded-xl overflow-hidden border-2 transition-all ${
-                      i === fotoIdx ? 'border-red-500' : 'border-white/10 hover:border-white/30'
-                    }`}>
-                    <img src={f} alt="" className="w-full h-full object-contain p-1"/>
-                  </button>
-                ))}
-              </div>
-            )}
-          </div>
-          <div className="flex flex-col gap-6">
-            <span className={`inline-flex self-start px-3 py-1 rounded-full text-xs font-bold uppercase tracking-widest ${
-              produto.condicao === 'new'
-                ? 'bg-blue-600/20 text-blue-400 border border-blue-500/30'
-                : 'bg-zinc-800 text-zinc-400 border border-zinc-700'
-            }`}>{produto.condicao === 'new' ? 'Novo' : 'Usado'}</span>
-
-            <h1 className="font-bebas text-4xl md:text-5xl leading-tight text-white">{produto.titulo}</h1>
-
-            <div>
-              {produto.preco_original && produto.preco_original > produto.preco && (
-                <p className="text-zinc-500 text-lg line-through">{fmt(produto.preco_original)}</p>
-              )}
-              <p className="text-4xl font-bold sr-gradient-text">{fmt(produto.preco)}</p>
-              {produto.preco_original && produto.preco_original > produto.preco && (
-                <p className="text-green-400 text-sm mt-1">Você economiza {fmt(produto.preco_original - produto.preco)}</p>
-              )}
-            </div>
-
-            {produto.estoque !== undefined && produto.estoque <= 5 && produto.estoque > 0 && (
-              <p className="text-yellow-500 text-sm font-semibold">
-                ⚠️ Apenas {produto.estoque} {produto.estoque === 1 ? 'unidade' : 'unidades'} disponível
-              </p>
-            )}
-            {produto.vendidos > 0 && <p className="text-zinc-500 text-sm">{produto.vendidos} vendidos</p>}
-
-            {/* Descrição automática gerada por IA */}
-            <div className="p-5 rounded-2xl bg-white/[0.03] border border-white/8">
-              <div className="flex items-center gap-2 mb-3">
-                <Sparkles className="w-4 h-4 text-red-400"/>
-                <span className="text-xs font-bold uppercase tracking-widest text-zinc-500">Sobre este produto</span>
-              </div>
-              {descLoading ? (
-                <div className="flex flex-col gap-2">
-                  <div className="skeleton h-3 w-full rounded"/>
-                  <div className="skeleton h-3 w-5/6 rounded"/>
-                  <div className="skeleton h-3 w-4/6 rounded"/>
-                </div>
-              ) : descricao ? (
-                <p className="text-zinc-300 text-sm leading-relaxed">{descricao}</p>
-              ) : (
-                <p className="text-zinc-500 text-sm leading-relaxed">
-                  Mídia física original. Confira as fotos e a descrição completa no anúncio do Mercado Livre.
-                </p>
-              )}
-            </div>
-
-            <div className="flex flex-col gap-2 p-4 rounded-2xl bg-white/4 border border-white/8">
-              {[['✅','Produto 100% original'],['📦','Embalagem reforçada para envio seguro'],['🏆','Vendedor Mercado Líder Platinum']].map(([emoji, texto]) => (
-                <p key={texto} className="text-sm text-zinc-400">{emoji} {texto}</p>
-              ))}
-            </div>
-
-            <a href={produto.link} target="_blank" rel="noopener noreferrer"
-              className="sr-gradient text-white px-8 py-5 rounded-2xl font-bold text-lg flex items-center justify-center gap-3 hover:opacity-90 transition-all shadow-xl shadow-red-950/30 active:scale-95">
-              <ShoppingCart className="w-6 h-6"/> Comprar no Mercado Livre <ExternalLink className="w-5 h-5"/>
-            </a>
-            <p className="text-zinc-600 text-xs text-center">Você será redirecionado para o Mercado Livre para finalizar a compra com segurança.</p>
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-}
-
-function PaginaColecao({ slug, navigate }: { slug: string; navigate: (path: string) => void }) {
-  const colecao = colecoes.find(c => c.slug === slug);
-
-  useEffect(() => {
-    if (colecao) {
-      document.title = `${colecao.titulo} — ${STORE_NAME}`;
-      let meta = document.querySelector('meta[name="description"]') as HTMLMetaElement;
-      if (!meta) { meta = document.createElement('meta'); meta.name = 'description'; document.head.appendChild(meta); }
-      meta.content = `${colecao.subtitulo}. Confira a seleção completa na ${STORE_NAME}.`;
-    }
-    return () => { document.title = STORE_NAME; };
-  }, [colecao]);
-
-  const { produtos, loading, error } = useProdutosColecao(colecao?.ids || []);
-
-  if (!colecao) return (
-    <div className="min-h-screen bg-[#080808] flex flex-col items-center justify-center gap-6">
-      <p className="text-zinc-400">Coleção não encontrada.</p>
-      <button onClick={() => navigate('/')} className="flex items-center gap-2 sr-gradient text-white px-6 py-3 rounded-full font-bold">
-        <ArrowLeft className="w-4 h-4"/> Voltar ao catálogo
-      </button>
-    </div>
-  );
-
-  const temProdutosReais = colecao.ids.some(id => /^MLB\d+/i.test(id));
-
-  return (
-    <div className="min-h-screen bg-[#080808] text-zinc-100 pt-24 pb-20 px-6">
-      <div className="max-w-6xl mx-auto">
-        <button onClick={() => navigate('/')}
-          className="flex items-center gap-2 text-zinc-500 hover:text-white transition-colors mb-10 text-sm group">
-          <ArrowLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform"/> Voltar ao catálogo
-        </button>
-
-        {/* Cabeçalho editorial */}
-        <div className="mb-12 max-w-3xl">
-          <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-red-500/10 border border-red-500/20 mb-4">
-            <BookOpen className="w-3 h-3 text-red-400"/>
-            <span className="text-red-400 text-xs font-bold uppercase tracking-widest">Coleção Especial</span>
-          </div>
-          <h1 className="font-bebas text-5xl md:text-7xl leading-tight text-white mb-4">{colecao.titulo}</h1>
-          <p className="text-zinc-400 text-lg leading-relaxed">{colecao.descricao}</p>
-        </div>
-
-        {/* Produtos da coleção */}
-        {!temProdutosReais ? (
-          <div className="text-center py-20 border border-dashed border-white/10 rounded-3xl">
-            <Disc className="w-12 h-12 text-zinc-700 mx-auto mb-4"/>
-            <p className="text-zinc-500 mb-2">Produtos em breve</p>
-            <p className="text-zinc-700 text-sm">Esta coleção está sendo organizada.</p>
-          </div>
-        ) : loading ? (
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
-            {Array.from({length: colecao.ids.length || 6}).map((_,i) => <SkeletonCard key={i}/>)}
-          </div>
-        ) : error ? (
-          <div className="text-center py-20">
-            <p className="text-zinc-500 mb-4">Não foi possível carregar os produtos.</p>
-            <a href={STORE_LINK} target="_blank" rel="noopener noreferrer"
-              className="inline-flex items-center gap-2 sr-gradient text-white px-6 py-3 rounded-full font-semibold">
-              Ver no Mercado Livre <ExternalLink className="w-4 h-4"/>
-            </a>
-          </div>
-        ) : (
-          <motion.div initial={{opacity:0,y:10}} animate={{opacity:1,y:0}} transition={{duration:0.3}}
-            className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
-            {produtos.map(p => <ProdutoCard key={p.id} p={p} navigate={navigate}/>)}
-          </motion.div>
-        )}
-
-        {/* CTA final */}
-        {produtos.length > 0 && (
-          <div className="mt-12 text-center">
-            <a href={STORE_LINK} target="_blank" rel="noopener noreferrer"
-              className="inline-flex items-center gap-3 sr-gradient text-white px-8 py-4 rounded-full font-bold hover:opacity-90 transition-all shadow-xl shadow-red-950/30">
-              Ver catálogo completo no ML <ExternalLink className="w-5 h-5"/>
-            </a>
-          </div>
-        )}
-      </div>
-    </div>
-  );
-}
-
 function FAQItem({ q, a }: { q: string; a: string }) {
   const [open, setOpen] = useState(false);
   return (
@@ -481,10 +282,332 @@ function GenreTicker() {
   );
 }
 
-function SecaoColecoes({ navigate }: { navigate: (path: string) => void }) {
-  const colecoesDestaque = colecoes.slice(0, 8);
+// ── Navbar secundária (produto/coleção/artigo) ────────────────────────────────
+function NavSecundaria({ navigate }: { navigate: (path: string) => void }) {
   return (
-    <section className="py-24 px-6 bg-white/[0.015] border-y border-white/6">
+    <nav className="fixed top-0 w-full z-50 bg-[#080808]/92 backdrop-blur-xl border-b border-white/6 py-3">
+      <div className="max-w-7xl mx-auto px-6 flex items-center justify-between">
+        <button onClick={() => navigate('/')} className="flex items-center gap-3 group">
+          <div className="relative w-10 h-10 flex-shrink-0">
+            <div className="absolute inset-0 sr-gradient rounded-full opacity-25 blur-lg"/>
+            <img src={STORE_LOGO} alt={STORE_NAME} className="relative w-full h-full object-contain" referrerPolicy="no-referrer"
+              onError={e=>{(e.currentTarget as HTMLImageElement).style.display='none'}}/>
+          </div>
+          <span className="font-bebas text-xl tracking-widest sr-gradient-text">{STORE_NAME.toUpperCase()}</span>
+        </button>
+        <a href={STORE_LINK} target="_blank" rel="noopener noreferrer"
+          className="sr-gradient text-white px-4 py-2 rounded-full text-sm font-bold flex items-center gap-2 hover:opacity-90">
+          Ver Loja <ExternalLink className="w-4 h-4"/>
+        </a>
+      </div>
+    </nav>
+  );
+}
+
+// ── Página Produto ────────────────────────────────────────────────────────────
+function PaginaProduto({ slugComposto, navigate }: { slugComposto: string; navigate: (path: string) => void }) {
+  const { produto, loading, error } = useProduto(slugComposto);
+  const [fotoIdx, setFotoIdx] = useState(0);
+  const fotos = produto?.fotos?.length ? produto.fotos : produto?.foto ? [produto.foto] : [];
+  const { descricao, loading: descLoading } = useDescricao(produto?.id || '');
+
+  useEffect(() => {
+    if (produto?.titulo) {
+      document.title = `${produto.titulo} — ${STORE_NAME}`;
+      let meta = document.querySelector('meta[name="description"]') as HTMLMetaElement;
+      if (!meta) { meta = document.createElement('meta'); meta.name = 'description'; document.head.appendChild(meta); }
+      meta.content = `Compre ${produto.titulo} no Mercado Livre com envio seguro. Mídia física original — ${STORE_NAME}.`;
+    }
+    return () => { document.title = STORE_NAME; };
+  }, [produto?.titulo]);
+
+  if (loading) return (
+    <div className="min-h-screen bg-[#080808] flex items-center justify-center">
+      <Loader2 className="w-10 h-10 animate-spin text-red-500"/>
+    </div>
+  );
+  if (error || !produto) return (
+    <div className="min-h-screen bg-[#080808] flex flex-col items-center justify-center gap-6">
+      <p className="text-zinc-400">Produto não encontrado.</p>
+      <button onClick={() => navigate('/')} className="flex items-center gap-2 sr-gradient text-white px-6 py-3 rounded-full font-bold">
+        <ArrowLeft className="w-4 h-4"/> Voltar ao catálogo
+      </button>
+    </div>
+  );
+
+  return (
+    <div className="min-h-screen bg-[#080808] text-zinc-100 pt-24 pb-20 px-6">
+      <div className="max-w-5xl mx-auto">
+        <button onClick={() => navigate('/')}
+          className="flex items-center gap-2 text-zinc-500 hover:text-white transition-colors mb-10 text-sm group">
+          <ArrowLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform"/> Voltar ao catálogo
+        </button>
+        <div className="grid md:grid-cols-2 gap-12 items-start">
+          <div>
+            <div className="aspect-square rounded-3xl overflow-hidden bg-zinc-900 border border-white/8 mb-4 relative">
+              {fotos.length > 0
+                ? <img src={fotos[fotoIdx]} alt={produto.titulo} className="w-full h-full object-contain p-4"/>
+                : <div className="w-full h-full flex items-center justify-center"><ImageOff className="w-16 h-16 text-zinc-700"/></div>
+              }
+              {produto.preco_original && produto.preco_original > produto.preco && (
+                <span className="absolute top-4 left-4 bg-red-600 text-white text-sm font-black px-3 py-1 rounded-full">
+                  -{disc(produto.preco_original, produto.preco)}%
+                </span>
+              )}
+            </div>
+            {fotos.length > 1 && (
+              <div className="flex gap-2 overflow-x-auto pb-1">
+                {fotos.map((f, i) => (
+                  <button key={i} onClick={() => setFotoIdx(i)}
+                    className={`flex-none w-16 h-16 rounded-xl overflow-hidden border-2 transition-all ${i === fotoIdx ? 'border-red-500' : 'border-white/10 hover:border-white/30'}`}>
+                    <img src={f} alt="" className="w-full h-full object-contain p-1"/>
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
+          <div className="flex flex-col gap-6">
+            <span className={`inline-flex self-start px-3 py-1 rounded-full text-xs font-bold uppercase tracking-widest ${
+              produto.condicao === 'new' ? 'bg-blue-600/20 text-blue-400 border border-blue-500/30' : 'bg-zinc-800 text-zinc-400 border border-zinc-700'
+            }`}>{produto.condicao === 'new' ? 'Novo' : 'Usado'}</span>
+
+            <h1 className="font-bebas text-4xl md:text-5xl leading-tight text-white">{produto.titulo}</h1>
+
+            <div>
+              {produto.preco_original && produto.preco_original > produto.preco && (
+                <p className="text-zinc-500 text-lg line-through">{fmt(produto.preco_original)}</p>
+              )}
+              <p className="text-4xl font-bold sr-gradient-text">{fmt(produto.preco)}</p>
+              {produto.preco_original && produto.preco_original > produto.preco && (
+                <p className="text-green-400 text-sm mt-1">Você economiza {fmt(produto.preco_original - produto.preco)}</p>
+              )}
+            </div>
+
+            {produto.estoque !== undefined && produto.estoque <= 5 && produto.estoque > 0 && (
+              <p className="text-yellow-500 text-sm font-semibold">⚠️ Apenas {produto.estoque} {produto.estoque === 1 ? 'unidade' : 'unidades'} disponível</p>
+            )}
+            {produto.vendidos > 0 && <p className="text-zinc-500 text-sm">{produto.vendidos} vendidos</p>}
+
+            <div className="p-5 rounded-2xl bg-white/[0.03] border border-white/8">
+              <div className="flex items-center gap-2 mb-3">
+                <Sparkles className="w-4 h-4 text-blue-400"/>
+                <span className="text-blue-400 text-xs font-bold uppercase tracking-widest">Sobre este produto</span>
+              </div>
+              {descLoading
+                ? <div className="space-y-2"><div className="skeleton h-3 w-full rounded"/><div className="skeleton h-3 w-4/5 rounded"/><div className="skeleton h-3 w-3/4 rounded"/></div>
+                : descricao
+                  ? <p className="text-zinc-400 text-sm leading-relaxed">{descricao}</p>
+                  : <p className="text-zinc-600 text-sm italic">Descrição não disponível.</p>
+              }
+            </div>
+
+            <div className="flex flex-col gap-2 p-4 rounded-2xl bg-white/4 border border-white/8">
+              {[['✅','Produto 100% original'],['📦','Embalagem reforçada para envio seguro'],['🏆','Vendedor Mercado Líder Platinum']].map(([emoji, texto]) => (
+                <p key={texto} className="text-sm text-zinc-400">{emoji} {texto}</p>
+              ))}
+            </div>
+
+            <a href={produto.link} target="_blank" rel="noopener noreferrer"
+              className="sr-gradient text-white px-8 py-5 rounded-2xl font-bold text-lg flex items-center justify-center gap-3 hover:opacity-90 transition-all shadow-xl shadow-red-950/30 active:scale-95">
+              <ShoppingCart className="w-6 h-6"/> Comprar no Mercado Livre <ExternalLink className="w-5 h-5"/>
+            </a>
+            <p className="text-zinc-600 text-xs text-center">Você será redirecionado para o Mercado Livre para finalizar a compra com segurança.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ── Página Coleção ────────────────────────────────────────────────────────────
+function PaginaColecao({ slug, navigate }: { slug: string; navigate: (path: string) => void }) {
+  const colecao = colecoes.find(c => c.slug === slug);
+  useEffect(() => {
+    if (colecao) {
+      document.title = `${colecao.titulo} — ${STORE_NAME}`;
+      let meta = document.querySelector('meta[name="description"]') as HTMLMetaElement;
+      if (!meta) { meta = document.createElement('meta'); meta.name = 'description'; document.head.appendChild(meta); }
+      meta.content = `${colecao.subtitulo}. Confira a seleção completa na ${STORE_NAME}.`;
+    }
+    return () => { document.title = STORE_NAME; };
+  }, [colecao]);
+
+  const { produtos, loading, error } = useProdutosColecao(colecao?.ids || []);
+
+  if (!colecao) return (
+    <div className="min-h-screen bg-[#080808] flex flex-col items-center justify-center gap-6">
+      <p className="text-zinc-400">Coleção não encontrada.</p>
+      <button onClick={() => navigate('/')} className="flex items-center gap-2 sr-gradient text-white px-6 py-3 rounded-full font-bold">
+        <ArrowLeft className="w-4 h-4"/> Voltar
+      </button>
+    </div>
+  );
+
+  const temProdutosReais = colecao.ids.some(id => /^MLB\d+/i.test(id));
+
+  return (
+    <div className="min-h-screen bg-[#080808] text-zinc-100 pt-24 pb-20 px-6">
+      <div className="max-w-6xl mx-auto">
+        <button onClick={() => navigate('/')}
+          className="flex items-center gap-2 text-zinc-500 hover:text-white transition-colors mb-10 text-sm group">
+          <ArrowLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform"/> Voltar ao catálogo
+        </button>
+        <div className="mb-12 max-w-3xl">
+          <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-red-500/10 border border-red-500/20 mb-4">
+            <BookOpen className="w-3 h-3 text-red-400"/>
+            <span className="text-red-400 text-xs font-bold uppercase tracking-widest">Coleção Especial</span>
+          </div>
+          <h1 className="font-bebas text-5xl md:text-7xl leading-tight text-white mb-4">{colecao.titulo}</h1>
+          <p className="text-zinc-400 text-lg leading-relaxed">{colecao.descricao}</p>
+        </div>
+
+        {!temProdutosReais ? (
+          <div className="text-center py-20 border border-dashed border-white/10 rounded-3xl">
+            <Disc className="w-12 h-12 text-zinc-700 mx-auto mb-4"/>
+            <p className="text-zinc-500 mb-2">Produtos em breve</p>
+          </div>
+        ) : loading ? (
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
+            {Array.from({length: colecao.ids.length || 6}).map((_,i) => <SkeletonCard key={i}/>)}
+          </div>
+        ) : error ? (
+          <div className="text-center py-20">
+            <p className="text-zinc-500 mb-4">Não foi possível carregar os produtos.</p>
+            <a href={STORE_LINK} target="_blank" rel="noopener noreferrer"
+              className="inline-flex items-center gap-2 sr-gradient text-white px-6 py-3 rounded-full font-semibold">
+              Ver no Mercado Livre <ExternalLink className="w-4 h-4"/>
+            </a>
+          </div>
+        ) : (
+          <motion.div initial={{opacity:0,y:10}} animate={{opacity:1,y:0}} transition={{duration:0.3}}
+            className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
+            {produtos.map(p => <ProdutoCard key={p.id} p={p} navigate={navigate}/>)}
+          </motion.div>
+        )}
+
+        {produtos.length > 0 && (
+          <div className="mt-12 text-center">
+            <a href={STORE_LINK} target="_blank" rel="noopener noreferrer"
+              className="inline-flex items-center gap-3 sr-gradient text-white px-8 py-4 rounded-full font-bold hover:opacity-90 transition-all shadow-xl shadow-red-950/30">
+              Ver catálogo completo no ML <ExternalLink className="w-5 h-5"/>
+            </a>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+// ── Página Artigo ─────────────────────────────────────────────────────────────
+function PaginaArtigo({ slug, navigate }: { slug: string; navigate: (path: string) => void }) {
+  const artigo = artigos.find(a => a.slug === slug);
+  const { produtos, loading } = useProdutosColecao(artigo?.produtosRelacionados || []);
+
+  useEffect(() => {
+    if (artigo) {
+      document.title = `${artigo.titulo} — ${STORE_NAME}`;
+      let meta = document.querySelector('meta[name="description"]') as HTMLMetaElement;
+      if (!meta) { meta = document.createElement('meta'); meta.name = 'description'; document.head.appendChild(meta); }
+      meta.content = artigo.resumo;
+      // Open Graph dinâmico
+      const setOG = (prop: string, content: string) => {
+        let el = document.querySelector(`meta[property="${prop}"]`) as HTMLMetaElement;
+        if (!el) { el = document.createElement('meta'); el.setAttribute('property', prop); document.head.appendChild(el); }
+        el.content = content;
+      };
+      setOG('og:title',       artigo.titulo);
+      setOG('og:description', artigo.resumo);
+      setOG('og:image',       artigo.imagemCapa);
+      setOG('og:url',         `https://sylviosrecords.com.br/artigo/${artigo.slug}`);
+    }
+    return () => { document.title = STORE_NAME; };
+  }, [artigo]);
+
+  if (!artigo) return (
+    <div className="min-h-screen bg-[#080808] flex flex-col items-center justify-center gap-6">
+      <p className="text-zinc-400">Artigo não encontrado.</p>
+      <button onClick={() => navigate('/')} className="flex items-center gap-2 sr-gradient text-white px-6 py-3 rounded-full font-bold">
+        <ArrowLeft className="w-4 h-4"/> Voltar
+      </button>
+    </div>
+  );
+
+  return (
+    <div className="min-h-screen bg-[#080808] text-zinc-100 pt-24 pb-20">
+
+      {/* Capa do artigo */}
+      <div className="relative h-[50vh] min-h-[340px] overflow-hidden">
+        <img src={artigo.imagemCapa} alt={artigo.titulo} className="w-full h-full object-cover"/>
+        <div className="absolute inset-0 bg-gradient-to-t from-[#080808] via-[#080808]/60 to-transparent"/>
+        <div className="absolute bottom-0 left-0 right-0 px-6 pb-10 max-w-4xl mx-auto">
+          <span className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-red-500/20 border border-red-500/30 text-red-400 text-xs font-bold uppercase tracking-widest mb-4">
+            {artigo.categoria}
+          </span>
+          <h1 className="font-bebas text-4xl md:text-6xl leading-tight text-white">{artigo.titulo}</h1>
+        </div>
+      </div>
+
+      <div className="max-w-4xl mx-auto px-6">
+
+        {/* Meta do artigo */}
+        <div className="flex flex-wrap items-center gap-4 py-6 border-b border-white/8 mb-10">
+          <button onClick={() => navigate('/')}
+            className="flex items-center gap-2 text-zinc-500 hover:text-white transition-colors text-sm group">
+            <ArrowLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform"/> Voltar
+          </button>
+          <div className="flex items-center gap-4 ml-auto text-zinc-500 text-sm">
+            <span className="flex items-center gap-1.5"><Calendar className="w-3.5 h-3.5"/>{artigo.data}</span>
+            <span className="flex items-center gap-1.5"><Clock className="w-3.5 h-3.5"/>{artigo.tempoLeitura} de leitura</span>
+            <span className="text-zinc-600">por <span className="text-zinc-400">{artigo.autor}</span></span>
+          </div>
+        </div>
+
+        {/* Resumo destacado */}
+        <p className="text-xl text-zinc-300 leading-relaxed mb-10 pb-10 border-b border-white/8 italic">
+          {artigo.resumo}
+        </p>
+
+        {/* Conteúdo do artigo */}
+        <article className="prose-custom mb-16">
+          {renderMarkdown(artigo.conteudo)}
+        </article>
+
+        {/* Produtos relacionados */}
+        {artigo.produtosRelacionados.length > 0 && (
+          <div className="border-t border-white/8 pt-12">
+            <div className="flex items-center gap-2 mb-2">
+              <ShoppingCart className="w-4 h-4 text-red-400"/>
+              <span className="text-red-400 text-xs font-bold uppercase tracking-widest">Disponível no catálogo</span>
+            </div>
+            <h2 className="font-bebas text-4xl text-white mb-8">Produtos do Artigo</h2>
+            {loading ? (
+              <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
+                {Array.from({length:3}).map((_,i) => <SkeletonCard key={i}/>)}
+              </div>
+            ) : produtos.length > 0 ? (
+              <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
+                {produtos.map(p => <ProdutoCard key={p.id} p={p} navigate={navigate}/>)}
+              </div>
+            ) : (
+              <p className="text-zinc-600 text-sm">Produtos temporariamente indisponíveis.</p>
+            )}
+            <div className="mt-10 text-center">
+              <a href={STORE_LINK} target="_blank" rel="noopener noreferrer"
+                className="inline-flex items-center gap-3 sr-gradient text-white px-8 py-4 rounded-full font-bold hover:opacity-90 transition-all shadow-xl shadow-red-950/30">
+                Ver catálogo completo <ExternalLink className="w-5 h-5"/>
+              </a>
+            </div>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+// ── Seção Coleções (home) ─────────────────────────────────────────────────────
+function SecaoColecoes({ navigate }: { navigate: (path: string) => void }) {
+  return (
+    <section id="colecoes" className="py-24 px-6 bg-white/[0.015] border-y border-white/6">
       <div className="max-w-7xl mx-auto">
         <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-10">
           <div>
@@ -497,17 +620,12 @@ function SecaoColecoes({ navigate }: { navigate: (path: string) => void }) {
           </div>
         </div>
         <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
-          {colecoesDestaque.map((c, i) => (
+          {colecoes.map((c, i) => (
             <motion.button key={c.slug} whileHover={{ y: -6 }} transition={{ duration: 0.2 }}
               onClick={() => navigate(`/colecao/${c.slug}`)}
               className="text-left p-6 rounded-2xl bg-zinc-900 border border-white/6 hover:border-red-500/40 transition-all group cursor-pointer">
-              <div className={`w-10 h-10 rounded-xl sr-gradient flex items-center justify-center mb-4 shadow-lg shadow-red-950/30`}>
-                {[
-                  <Film className="w-5 h-5 text-white"/>,
-                  <Music className="w-5 h-5 text-white"/>,
-                  <Star className="w-5 h-5 text-white"/>,
-                  <Disc className="w-5 h-5 text-white"/>
-                ][i % 4]}
+              <div className="w-10 h-10 rounded-xl sr-gradient flex items-center justify-center mb-4 shadow-lg shadow-red-950/30">
+                {[<Film className="w-5 h-5 text-white"/>,<Music className="w-5 h-5 text-white"/>,<Star className="w-5 h-5 text-white"/>,<Disc className="w-5 h-5 text-white"/>][i % 4]}
               </div>
               <h3 className="font-bebas text-xl text-white leading-tight mb-2 group-hover:text-red-400 transition-colors">{c.titulo}</h3>
               <p className="text-zinc-600 text-xs leading-relaxed line-clamp-2">{c.subtitulo}</p>
@@ -522,6 +640,52 @@ function SecaoColecoes({ navigate }: { navigate: (path: string) => void }) {
   );
 }
 
+// ── Seção Artigos (home) ──────────────────────────────────────────────────────
+function SecaoArtigos({ navigate }: { navigate: (path: string) => void }) {
+  return (
+    <section id="artigos" className="py-24 px-6">
+      <div className="max-w-7xl mx-auto">
+        <div className="mb-10">
+          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-red-500/10 border border-red-500/20 mb-3">
+            <BookOpen className="w-3 h-3 text-red-400"/>
+            <span className="text-red-400 text-xs font-bold uppercase tracking-widest">Guias & Artigos</span>
+          </div>
+          <h2 className="font-bebas text-5xl md:text-6xl text-white">Para quem <span className="sr-gradient-text">entende</span></h2>
+          <p className="text-zinc-500 text-sm mt-2">Conteúdo editorial sobre música, cinema e colecionismo</p>
+        </div>
+        <div className="grid md:grid-cols-2 gap-6">
+          {artigos.map(artigo => (
+            <motion.button key={artigo.slug} whileHover={{ y: -4 }} transition={{ duration: 0.2 }}
+              onClick={() => navigate(`/artigo/${artigo.slug}`)}
+              className="text-left rounded-3xl overflow-hidden bg-zinc-900 border border-white/6 hover:border-red-500/40 transition-all group cursor-pointer">
+              <div className="relative h-48 overflow-hidden">
+                <img src={artigo.imagemCapa} alt={artigo.titulo}
+                  className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"/>
+                <div className="absolute inset-0 bg-gradient-to-t from-zinc-900 to-transparent"/>
+                <span className="absolute top-4 left-4 px-3 py-1 rounded-full bg-red-500/20 border border-red-500/30 text-red-400 text-xs font-bold uppercase tracking-widest">
+                  {artigo.categoria}
+                </span>
+              </div>
+              <div className="p-6">
+                <h3 className="font-bebas text-2xl text-white leading-tight mb-3 group-hover:text-red-400 transition-colors">
+                  {artigo.titulo}
+                </h3>
+                <p className="text-zinc-500 text-sm leading-relaxed line-clamp-2 mb-4">{artigo.resumo}</p>
+                <div className="flex items-center justify-between text-xs text-zinc-600">
+                  <span className="flex items-center gap-1.5"><Calendar className="w-3 h-3"/>{artigo.data}</span>
+                  <span className="flex items-center gap-1.5"><Clock className="w-3 h-3"/>{artigo.tempoLeitura}</span>
+                  <span className="flex items-center gap-1 text-red-500 font-bold">Ler artigo <ChevronRight className="w-3 h-3"/></span>
+                </div>
+              </div>
+            </motion.button>
+          ))}
+        </div>
+      </div>
+    </section>
+  );
+}
+
+// ── Página Catálogo (home) ────────────────────────────────────────────────────
 function PaginaCatalogo({ navigate }: { navigate: (path: string) => void }) {
   const [scrolled,   setScrolled]   = useState(false);
   const [categoria,  setCategoria]  = useState('todos');
@@ -561,7 +725,7 @@ function PaginaCatalogo({ navigate }: { navigate: (path: string) => void }) {
             </div>
           </button>
           <div className="hidden md:flex items-center gap-8 text-sm font-medium text-zinc-500">
-            {[['#catalogo','Catálogo'],['#colecoes','Coleções'],['#sobre','Sobre'],['#faq','FAQ']].map(([href,label]) => (
+            {[['#catalogo','Catálogo'],['#colecoes','Coleções'],['#artigos','Artigos'],['#sobre','Sobre'],['#faq','FAQ']].map(([href,label]) => (
               <a key={href} href={href} className="hover:text-white transition-colors relative group">
                 {label}<span className="absolute -bottom-1 left-0 w-0 h-px sr-gradient group-hover:w-full transition-all duration-300"/>
               </a>
@@ -574,13 +738,11 @@ function PaginaCatalogo({ navigate }: { navigate: (path: string) => void }) {
         </div>
       </nav>
 
+      {/* Hero */}
       <section className="relative min-h-screen flex items-center pt-28 pb-0 overflow-hidden">
         <div className="absolute inset-0 z-0 pointer-events-none">
           <div className="absolute top-1/2 -translate-y-1/2 -left-40 w-[600px] h-[600px] bg-red-700/10 rounded-full blur-[140px]"/>
           <div className="absolute top-1/3 -right-40 w-[500px] h-[500px] bg-blue-700/10 rounded-full blur-[140px]"/>
-          <div className="absolute right-0 top-1/2 -translate-y-1/2 w-[55vw] opacity-[0.04] pointer-events-none">
-            <img src={STORE_LOGO} alt="" className="w-full h-full object-contain" referrerPolicy="no-referrer"/>
-          </div>
           <div className="absolute right-[8%] top-1/2 -translate-y-1/2 hidden lg:block">
             <div className="relative w-[360px] h-[360px] float">
               <div className="absolute inset-0 rounded-full bg-gradient-to-br from-zinc-800 to-zinc-950 border border-white/5 spin-vinyl shadow-2xl shadow-black/60"/>
@@ -636,6 +798,7 @@ function PaginaCatalogo({ navigate }: { navigate: (path: string) => void }) {
 
       <GenreTicker/>
 
+      {/* Catálogo */}
       <section id="catalogo" className="py-24 px-6">
         <div className="max-w-7xl mx-auto">
           <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-10">
@@ -716,11 +879,13 @@ function PaginaCatalogo({ navigate }: { navigate: (path: string) => void }) {
         </div>
       </section>
 
-      {/* Seção de Coleções */}
-      <div id="colecoes">
-        <SecaoColecoes navigate={navigate}/>
-      </div>
+      {/* Coleções */}
+      <SecaoColecoes navigate={navigate}/>
 
+      {/* Artigos */}
+      <SecaoArtigos navigate={navigate}/>
+
+      {/* Garantia */}
       <section className="py-24 px-6 bg-white/[0.015] border-y border-white/6">
         <div className="max-w-7xl mx-auto">
           <div className="text-center mb-14">
@@ -735,9 +900,6 @@ function PaginaCatalogo({ navigate }: { navigate: (path: string) => void }) {
             ].map((f,i)=>(
               <motion.div key={i} whileHover={{y:-6}}
                 className={`relative p-8 rounded-3xl bg-gradient-to-br ${f.from} to-transparent border ${f.border} transition-all overflow-hidden`}>
-                <div className="absolute -right-4 -bottom-4 w-24 h-24 opacity-5">
-                  <img src={STORE_LOGO} alt="" className="w-full h-full object-contain" referrerPolicy="no-referrer"/>
-                </div>
                 <div className="sr-gradient-text mb-5">{f.icon}</div>
                 <h3 className="font-bebas text-2xl text-white mb-3">{f.title}</h3>
                 <p className="text-zinc-500 text-sm leading-relaxed">{f.desc}</p>
@@ -747,11 +909,9 @@ function PaginaCatalogo({ navigate }: { navigate: (path: string) => void }) {
         </div>
       </section>
 
+      {/* Sobre */}
       <section id="sobre" className="py-24 px-6 relative overflow-hidden">
         <div className="absolute inset-0 sr-gradient opacity-95"/>
-        <div className="absolute right-0 top-1/2 -translate-y-1/2 w-[400px] opacity-10 pointer-events-none">
-          <img src={STORE_LOGO} alt="" className="w-full h-full object-contain spin-vinyl" referrerPolicy="no-referrer"/>
-        </div>
         <div className="relative z-10 max-w-7xl mx-auto">
           <div className="max-w-2xl">
             <h2 className="font-bebas text-6xl text-white mb-8">Nossa História</h2>
@@ -775,6 +935,7 @@ function PaginaCatalogo({ navigate }: { navigate: (path: string) => void }) {
         </div>
       </section>
 
+      {/* FAQ */}
       <section id="faq" className="py-24 px-6 bg-white/[0.015] border-t border-white/6">
         <div className="max-w-3xl mx-auto">
           <div className="text-center mb-14">
@@ -785,13 +946,13 @@ function PaginaCatalogo({ navigate }: { navigate: (path: string) => void }) {
         </div>
       </section>
 
+      {/* CTA */}
       <section className="py-28 px-6">
         <div className="max-w-4xl mx-auto text-center">
           <motion.div initial={{opacity:0,y:30}} whileInView={{opacity:1,y:0}} viewport={{once:true}}>
             <div className="relative w-28 h-28 mx-auto mb-10">
               <div className="absolute inset-0 sr-gradient rounded-full opacity-30 blur-2xl"/>
-              <img src={STORE_LOGO} alt={STORE_NAME}
-                className="relative w-full h-full object-contain drop-shadow-[0_0_30px_rgba(230,57,70,0.5)]"
+              <img src={STORE_LOGO} alt={STORE_NAME} className="relative w-full h-full object-contain drop-shadow-[0_0_30px_rgba(230,57,70,0.5)]"
                 referrerPolicy="no-referrer" onError={e=>{(e.currentTarget as HTMLImageElement).style.display='none'}}/>
             </div>
             <h2 className="font-bebas text-6xl md:text-8xl leading-none mb-6">
@@ -805,6 +966,7 @@ function PaginaCatalogo({ navigate }: { navigate: (path: string) => void }) {
         </div>
       </section>
 
+      {/* Footer */}
       <footer className="border-t border-white/6 py-10 px-6">
         <div className="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center gap-4 text-zinc-600 text-sm">
           <div className="flex items-center gap-3">
@@ -823,13 +985,19 @@ function PaginaCatalogo({ navigate }: { navigate: (path: string) => void }) {
   );
 }
 
+// ── App principal ─────────────────────────────────────────────────────────────
 export default function App() {
   const { route, navigate } = useRoute();
 
-  const isProduto  = route.startsWith('/produto/');
-  const isColecao  = route.startsWith('/colecao/');
-  const slugProduto  = isProduto ? route.replace('/produto/', '') : '';
-  const slugColecao  = isColecao  ? route.replace('/colecao/',  '') : '';
+  const isProduto = route.startsWith('/produto/');
+  const isColecao = route.startsWith('/colecao/');
+  const isArtigo  = route.startsWith('/artigo/');
+
+  const slugProduto = isProduto ? route.replace('/produto/', '') : '';
+  const slugColecao = isColecao ? route.replace('/colecao/', '') : '';
+  const slugArtigo  = isArtigo  ? route.replace('/artigo/',  '') : '';
+
+  const isSecundaria = isProduto || isColecao || isArtigo;
 
   return (
     <>
@@ -854,31 +1022,10 @@ export default function App() {
           background-size: 200% 100%;
           animation: shimmer 1.4s infinite;
         }
-        @keyframes shimmer {
-          0%   { background-position: 200% 0; }
-          100% { background-position: -200% 0; }
-        }
+        @keyframes shimmer { 0%{background-position:200% 0} 100%{background-position:-200% 0} }
       `}</style>
 
-      {/* Navbar para páginas de produto/coleção */}
-      {(isProduto || isColecao) && (
-        <nav className="fixed top-0 w-full z-50 bg-[#080808]/92 backdrop-blur-xl border-b border-white/6 py-3">
-          <div className="max-w-7xl mx-auto px-6 flex items-center justify-between">
-            <button onClick={() => navigate('/')} className="flex items-center gap-3 group">
-              <div className="relative w-10 h-10 flex-shrink-0">
-                <div className="absolute inset-0 sr-gradient rounded-full opacity-25 blur-lg"/>
-                <img src={STORE_LOGO} alt={STORE_NAME} className="relative w-full h-full object-contain" referrerPolicy="no-referrer"
-                  onError={e=>{(e.currentTarget as HTMLImageElement).style.display='none'}}/>
-              </div>
-              <span className="font-bebas text-xl tracking-widest sr-gradient-text">{STORE_NAME.toUpperCase()}</span>
-            </button>
-            <a href={STORE_LINK} target="_blank" rel="noopener noreferrer"
-              className="sr-gradient text-white px-4 py-2 rounded-full text-sm font-bold flex items-center gap-2 hover:opacity-90">
-              Ver Loja <ExternalLink className="w-4 h-4"/>
-            </a>
-          </div>
-        </nav>
-      )}
+      {isSecundaria && <NavSecundaria navigate={navigate}/>}
 
       <AnimatePresence mode="wait">
         {isProduto ? (
@@ -888,6 +1035,10 @@ export default function App() {
         ) : isColecao ? (
           <motion.div key="colecao" initial={{opacity:0}} animate={{opacity:1}} exit={{opacity:0}} transition={{duration:0.2}}>
             <PaginaColecao slug={slugColecao} navigate={navigate}/>
+          </motion.div>
+        ) : isArtigo ? (
+          <motion.div key="artigo" initial={{opacity:0}} animate={{opacity:1}} exit={{opacity:0}} transition={{duration:0.2}}>
+            <PaginaArtigo slug={slugArtigo} navigate={navigate}/>
           </motion.div>
         ) : (
           <motion.div key="catalogo" initial={{opacity:0}} animate={{opacity:1}} exit={{opacity:0}} transition={{duration:0.2}}>
