@@ -91,11 +91,11 @@
     "ids": ["MLB874509435", "MLB904940297", "MLB1776553134", "MLB765883458", "MLB817790075"]
   },
   {
-    "slug": "grunge-rock-alternativo-90s",
-    "titulo": "Grunge e Rock Alternativo dos Anos 90",
-    "subtitulo": "Nirvana, Pearl Jam, Soundgarden — o som que mudou o mundo",
-    "descricao": "Os anos 90 explodiram com uma raiva autêntica que o mundo nunca esperava. De Seattle para o planeta, o grunge e o rock alternativo derrubaram o glam metal e colocaram a realidade de volta à música. Esta seleção reúne os maiores álbuns desse movimento — obras que 30 anos depois voltaram a dominar o TikTok, o YouTube e as playlists de toda uma nova geração.",
-    "ids": ["MLB765883458", "MLB1776553134", "MLB1987915833", "MLB3839999592", "MLB2668879261", "MLB1776546799"]
+    "slug": "rock-pesado-alternativo-90s",
+    "titulo": "Rock Pesado e Alternativo dos Anos 90",
+    "subtitulo": "Iron Maiden, Guns N'Roses, Metallica, Black Sabbath — a década em que o rock foi mais longe",
+    "descricao": "Os anos 90 foram a década em que o rock pesado atingiu seu pico de popularidade mundial. Das arenas do Metallica aos shows apocalípticos do Iron Maiden, passando pelo caos do Guns N'Roses, esses discos definiram uma geração. Para quem sabe que o rock só entra de verdade em CD, com o volume no máximo e o encarte nas mãos.",
+    "ids": ["MLB3839999592", "MLB2668879261", "MLB1776546799", "MLB1914164061", "MLB765883458", "MLB1776553134"]
   },
   {
     "slug": "grandes-dramas-do-cinema-mundial",
@@ -105,10 +105,10 @@
     "ids": ["MLB1358608952", "MLB720143969", "MLB721585689", "MLB756169877", "MLB718690059", "MLB2650202162", "MLB4323799113"]
   },
   {
-    "slug": "cds-jazz-blues-classicos",
-    "titulo": "CDs de Jazz e Blues — Os Pais do Rock",
-    "subtitulo": "Miles Davis, B.B. King, Coltrane — a raiz de toda a música moderna",
-    "descricao": "Antes que existisse rock, existia o blues. Antes que o pop dominasse as paradas, era o jazz que movimentava os cabarés e clubes de Nova Orleans. O jazz e o blues são o DNA de toda a música popular do século XX — e ouvir Miles Davis, John Coltrane ou B.B. King em CD, com a reprodução lossless que o formato oferece, é uma experiência que transforma qualquer amante de música.",
-    "ids": ["MLB928422280", "MLB722795902", "MLB820096580", "MLB707244937", "MLB709864650"]
+    "slug": "cds-pop-internacional-decadas-de-ouro",
+    "titulo": "Pop Internacional das Décadas de Ouro",
+    "subtitulo": "ABBA, Madonna, Evanescence, A-ha e os grandes álbuns do pop mundial",
+    "descricao": "O pop internacional dos anos 80 e 90 definiu a forma como o mundo ouve música até hoje. De ABBA ao Evanescence, de A-ha ao Pearl Jam, esses álbuns são a trilha sonora de gerações inteiras. Em CD, com a qualidade de áudio que as plataformas de streaming não entregam, cada faixa soa como foi gravada no estúdio. Uma seleção essencial para quem não abre mão do original.",
+    "ids": ["MLB709864650", "MLB757797397", "MLB805034501", "MLB765857118", "MLB721585686", "MLB1980573374", "MLB711629736", "MLB901114240"]
   }
 ]
