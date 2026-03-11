@@ -53,7 +53,14 @@ Regras obrigatórias:
     return '';
   }
   const data = await res.json();
-  return data.candidates?.[0]?.content?.parts?.[0]?.text?.trim() || '';
+  const textoGemini = data.candidates?.[0]?.content?.parts?.[0]?.text?.trim() || '';
+  const finishReason = data.candidates?.[0]?.finishReason || 'UNKNOWN';
+  
+  if (finishReason !== 'STOP') {
+    return `DEBUG_GEMINI_CORTE [Motivo: ${finishReason}]: ${textoGemini}`;
+  }
+  
+  return textoGemini;
 }
 
 // Cache em memoria - evita chamadas repetidas a API num curto periodo do Serverless
