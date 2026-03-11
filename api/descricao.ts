@@ -26,10 +26,15 @@ async function gerarDescricaoGemini(titulo: string): Promise<string> {
   const apiKey = process.env.GEMINI_API_KEY;
   if (!apiKey) return '';
 
-  const prompt = `Você é um especialista em mídias físicas (CDs, DVDs, Blu-rays). 
-Escreva uma descrição editorial (1 parágrafo completo de 3 a 5 frases) em português para o produto: "${titulo}".
-Informe o tipo de mídia, gênero (musical ou cinematográfico), período/ano aproximado se souber, e uma curiosidade interessante.
-Não mencione preço nem condição do produto. Não use asteriscos, não use markdown e encerre o texto adequadamente com ponto final. Escreva de forma natural e envolvente.`;
+  const prompt = `Você é um especialista em mídias físicas (CDs, DVDs, Blu-rays).
+Descreva o produto: "${titulo}".
+Regras obrigatórias:
+1. Vá direto ao assunto. É PROIBIDO começar com verbos no imperativo ou clichês (ex: "Mergulhe", "Embarque", "Viaje", "Reviva", "Descubra"). Comece já falando sobre a obra.
+2. Informe o tipo de mídia, gênero, período/ano aproximado e uma curiosidade.
+3. Não cite preço nem condição.
+4. Escreva apenas 1 parágrafo curtos.
+5. Não use asteriscos ou formatação markdown.
+6. Termine todo o texto com um ponto final, fechando o raciocínio adequadamente.`;
 
   const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`;
 
