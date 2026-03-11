@@ -31,7 +31,7 @@ Escreva uma descricao editorial curta (3-4 frases) em portugues para o produto: 
 Informe o tipo de midia, genero (musical ou cinematografico), periodo/ano aproximado se souber, e uma curiosidade interessante.
 Nao mencione preco nem condicao do produto. Nao use asteriscos nem markdown. Escreva de forma natural e envolvente.`;
 
-  const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`;
+  const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent?key=${apiKey}`;
 
   const res = await fetch(url, {
     method: 'POST',
