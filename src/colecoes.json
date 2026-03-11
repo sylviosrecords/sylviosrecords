@@ -68,5 +68,26 @@
     "subtitulo": "A melhor qualidade de imagem e som para a sua coleção",
     "descricao": "Blu-ray é o topo da cadeia na mídia física. Imagem em Full HD ou 4K, som surround impecável — uma experiência que nenhum streaming consegue replicar. Esta seleção reúne os melhores títulos em Blu-ray disponíveis no catálogo, de filmes dramáticos a ação intensa.",
     "ids": ["MLB768005182", "MLB783352812", "MLB1097876030", "MLB1001681469", "MLB1556956162", "MLB3492738083", "MLB767388452"]
+  },
+  {
+    "slug": "trilhas-sonoras-inesqueciveis",
+    "titulo": "Trilhas Sonoras Inesquecíveis",
+    "subtitulo": "As músicas que contaram histórias eternas no cinema",
+    "descricao": "John Williams, Hans Zimmer, Vangelis. O coração de toda obra-prima cinematográfica repousa na sua trilha sonora. Selecionamos aqui discos que contém a atmosfera purista de clássicos do cinema, para o verdadeiro fã que deseja fechar os olhos e enxergar o filme na própria mente.",
+    "ids": ["MLB781462064", "MLB1610549538", "MLB715347586", "MLB720588723", "MLB794964940", "MLB845091771"]
+  },
+  {
+    "slug": "cinema-de-acao-brutal",
+    "titulo": "Cinema de Ação Brutal",
+    "subtitulo": "Adrenalina pura, efeitos práticos e heróis icônicos dos anos 80 e 90",
+    "descricao": "Nostalgia em alta octanagem. Uma coleção curada das melhores produções dos maiores astros de ação de Hollywood: Schwarzenegger, Stallone, Willis. Nada de tela verde abusiva, apenas suor de verdade e roteiros perfeitamente intensos.",
+    "ids": ["MLB1097876030", "MLB1001681469", "MLB768005182", "MLB3975064865", "MLB1674784699"]
+  },
+  {
+    "slug": "discoteca-basica-do-rock-classico",
+    "titulo": "Discoteca Básica do Rock Clássico",
+    "subtitulo": "A seleção fundamental para começar sua estante sagrada da música",
+    "descricao": "Todo prédio precisa de uma fundação impecável, e a sua coleção de Rock Clássico também. Aqui reúnem-se os bastiões de onde todo o comportamento jovem desviou rumo ao Heavy Metal e Hard Rock de hoje. Discos absolutos com arte de encarte imperdível.",
+    "ids": ["MLB874509435", "MLB904940297", "MLB1776553134", "MLB765883458", "MLB817790075"]
   }
 ]

@@ -95,4 +95,34 @@
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
+  <url>
+    <loc>https://sylviosrecords.com.br/colecao/trilhas-sonoras-inesqueciveis</loc>
+    <changefreq>weekly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  <url>
+    <loc>https://sylviosrecords.com.br/colecao/cinema-de-acao-brutal</loc>
+    <changefreq>weekly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  <url>
+    <loc>https://sylviosrecords.com.br/colecao/discoteca-basica-do-rock-classico</loc>
+    <changefreq>weekly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  <url>
+    <loc>https://sylviosrecords.com.br/artigo/trilhas-sonoras-cinema-dvd-cd</loc>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://sylviosrecords.com.br/artigo/discoteca-basica-do-rock</loc>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://sylviosrecords.com.br/artigo/cinema-de-acao-brutal</loc>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
 </urlset>
