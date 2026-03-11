@@ -3,17 +3,13 @@ export default async function handler(req, res) {
   const STORE_NAME = 'Sylvios Records';
   const STORE_LOGO = 'https://lh3.googleusercontent.com/d/1q6YyW7bYCceOyChffF9LhNuVLhmrGjGA';
   
-  // No Vercel Edge cru, garantindo que achamos a URL pelas tags reescritas
-  let urlPath = req.headers['x-now-route-matches'] 
-    || req.headers['x-invoke-path'] 
-    || req.headers['referer']
-    || req.url || '';
-    
-  if (urlPath && urlPath.startsWith('1=')) urlPath = '/' + urlPath.substring(2);
-  else if (urlPath.startsWith('http')) {
-    try { urlPath = new URL(urlPath).pathname; } catch(e) {}
-  }
-  if (!urlPath.startsWith('/')) urlPath = '/' + urlPath;
+  // Em JS bruto e simples. Lemos da URL que a Vercel chamou (/api/og.js?url=produto/MLB...)
+  // Req.url contém toda a string incluindo a query part
+  const parsedUrl = new URL(req.url, `http://${req.headers.host}`);
+  const queryUrl = parsedUrl.searchParams.get('url');
+  
+  let urlPath = queryUrl ? '/' + queryUrl : '/';
+
   
   let title = STORE_NAME;
   let description = 'CDs, DVDs e Blu-rays 100% originais. Rock, Metal, MPB e muito mais.';
