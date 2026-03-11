@@ -22,6 +22,7 @@ export function PaginaProduto({ slugComposto, navigate }: { slugComposto: string
         "@context": "https://schema.org/",
         "@type": "Product",
         "name": produto.titulo,
+        "sku": produto.id,
         "image": produto.foto,
         "description": `Compre ${produto.titulo} original no ${STORE_NAME}. Envio seguro via Mercado Livre.`,
         "offers": {

@@ -31,8 +31,31 @@ export function PaginaArtigo({ slug, navigate }: { slug: string; navigate: (path
       setOG('og:description', artigo.resumo);
       setOG('og:image',       artigo.imagemCapa);
       setOG('og:url',         `https://sylviosrecords.com.br/artigo/${artigo.slug}`);
+
+      // JSON-LD Schema para o Artigo
+      const jsonLd = {
+        "@context": "https://schema.org",
+        "@type": "Article",
+        "headline": artigo.titulo,
+        "image": artigo.imagemCapa,
+        "author": { "@type": "Person", "name": artigo.autor },
+        "publisher": { "@type": "Organization", "name": STORE_NAME },
+        "description": artigo.resumo
+      };
+      let scriptLd = document.getElementById('json-ld-article') as HTMLScriptElement;
+      if (!scriptLd) {
+        scriptLd = document.createElement('script');
+        scriptLd.id = 'json-ld-article';
+        scriptLd.type = 'application/ld+json';
+        document.head.appendChild(scriptLd);
+      }
+      scriptLd.textContent = JSON.stringify(jsonLd);
     }
-    return () => { document.title = STORE_NAME; };
+    return () => { 
+      document.title = STORE_NAME; 
+      const existingScript = document.getElementById('json-ld-article');
+      if (existingScript) existingScript.remove();
+    };
   }, [artigo]);
 
   if (!artigo) return (

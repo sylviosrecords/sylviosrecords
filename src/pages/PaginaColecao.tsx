@@ -27,8 +27,29 @@ export function PaginaColecao({ slug, navigate }: { slug: string; navigate: (pat
       setOG('og:title',       `${colecao.titulo} — ${STORE_NAME}`);
       setOG('og:description', colecao.descricao);
       setOG('og:url',         `https://sylviosrecords.com.br/colecao/${colecao.slug}`);
+
+      // JSON-LD Schema para Coleção
+      const jsonLd = {
+        "@context": "https://schema.org",
+        "@type": "CollectionPage",
+        "name": colecao.titulo,
+        "description": colecao.descricao,
+        "url": `https://sylviosrecords.com.br/colecao/${colecao.slug}`
+      };
+      let scriptLd = document.getElementById('json-ld-collection') as HTMLScriptElement;
+      if (!scriptLd) {
+        scriptLd = document.createElement('script');
+        scriptLd.id = 'json-ld-collection';
+        scriptLd.type = 'application/ld+json';
+        document.head.appendChild(scriptLd);
+      }
+      scriptLd.textContent = JSON.stringify(jsonLd);
     }
-    return () => { document.title = STORE_NAME; };
+    return () => { 
+      document.title = STORE_NAME; 
+      const existingScript = document.getElementById('json-ld-collection');
+      if (existingScript) existingScript.remove();
+    };
   }, [colecao]);
 
   const { produtos, loading, error } = useProdutosColecao(colecao?.ids || []);
