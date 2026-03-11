@@ -4,7 +4,7 @@
     "titulo": "Guia Definitivo: Os 5 Melhores DVDs do Quentin Tarantino para Colecionar",
     "resumo": "Descubra por que a filmografia de Quentin Tarantino é melhor apreciada na estética granulada e crua da mídia física, e conheça as edições obrigatórias para a sua prateleira.",
     "categoria": "Cinema",
-    "autor": "Sylvios Records",
+    "autor": "Eric Ramos",
     "data": "10 Mar 2026",
     "tempoLeitura": "4 min",
     "imagemCapa": "https://images.unsplash.com/photo-1536440136628-849c177e76a1?ixlib=rb-4.0.3&auto=format&fit=crop&w=1200&q=80",
@@ -20,7 +20,7 @@
     "titulo": "Do Vinil ao CD: A Sobrevivência e o Renascimento da Mídia Física no Século XXI",
     "resumo": "Na era da música intangível, por que estamos voltando a comprar CDs, discos de Vinil e fitas cassete? Entenda a magia da materialidade que o streaming não comprou.",
     "categoria": "Música",
-    "autor": "Sylvios Records",
+    "autor": "Rafael Vinicius",
     "data": "05 Fev 2026",
     "tempoLeitura": "5 min",
     "imagemCapa": "https://images.unsplash.com/photo-1614613535308-eb5fbd3d2c17?ixlib=rb-4.0.3&auto=format&fit=crop&w=1200&q=80",
@@ -36,7 +36,7 @@
     "titulo": "Noite de Sustos: Os Maiores Clássicos do Terror em Edições Definitivas",
     "resumo": "De produções trash a obras-primas psicológicas, veja a curadoria dos melhores DVDs de terror que todo fã precisa ter na coleção particular.",
     "categoria": "Cinema",
-    "autor": "Sylvios Records",
+    "autor": "Eric Ramos",
     "data": "15 Mar 2026",
     "tempoLeitura": "8 min",
     "imagemCapa": "https://images.unsplash.com/photo-1505635552518-3448ff116af3?ixlib=rb-4.0.3&auto=format&fit=crop&w=1200&q=80",
@@ -52,7 +52,7 @@
     "titulo": "Binge-Watching Clássico: Por Que Você Precisa Ter Suas Séries Favoritas em DVD e Blu-ray",
     "resumo": "Sua série preferida pode sumir da Netflix amanhã. Entenda por que colecionar boxes físicos é a única forma de garantir acesso vitalício e material inédito.",
     "categoria": "TV",
-    "autor": "Sylvios Records",
+    "autor": "Rafael Vinicius",
     "data": "12 Mar 2026",
     "tempoLeitura": "7 min",
     "imagemCapa": "https://images.unsplash.com/photo-1594908900066-3f47337549d8?ixlib=rb-4.0.3&auto=format&fit=crop&w=1200&q=80",
@@ -68,7 +68,7 @@
     "titulo": "De volta à Era de Ouro: Como começar uma coleção de Clássicos do Cinema em DVD",
     "resumo": "Aprenda a escolher, avaliar e conservar as edições em DVD dos maiores filmes da Era de Ouro de Hollywood, de Casablanca a Poderoso Chefão.",
     "categoria": "Cinema",
-    "autor": "Sylvios Records",
+    "autor": "Eric Ramos",
     "data": "20 Mar 2026",
     "tempoLeitura": "8 min",
     "imagemCapa": "https://images.unsplash.com/photo-1485846234645-a62644f84728?ixlib=rb-4.0.3&auto=format&fit=crop&w=1200&q=80",
@@ -85,7 +85,7 @@
     "titulo": "A Era de Ouro do Rock Nacional e MPB: O Ressurgimento do Colecionismo de Mídia Física no Brasil",
     "resumo": "De Legião Urbana aos mestres da Tropicália, explore o fascínio crescente pelas tiragens originais de CDs da nossa música dos anos 80 e 90 e descubra como iniciar o seu acervo verde e amarelo.",
     "categoria": "Música",
-    "autor": "Sylvios Records",
+    "autor": "Rafael Vinicius",
     "data": "18 Mar 2026",
     "tempoLeitura": "7 min",
     "imagemCapa": "https://images.unsplash.com/photo-1514525253161-7a46d19cd819?auto=format&fit=crop&w=1200&q=80",
@@ -102,7 +102,7 @@
     "titulo": "A Alma do Cinema: Por Que Colecionar Trilhas Sonoras em Mídia Física?",
     "resumo": "Uma boa trilha sonora é capaz de eternizar um filme. Descubra a mágica de possuir os temas de John Williams, Ennio Morricone e Hans Zimmer em qualidade pura de estúdio.",
     "categoria": "Música",
-    "autor": "Sylvios Records",
+    "autor": "Eric Ramos",
     "data": "25 Mar 2026",
     "tempoLeitura": "9 min",
     "imagemCapa": "https://images.unsplash.com/photo-1478737270239-2f02b77fc618?auto=format&fit=crop&w=1200&q=80",
@@ -118,7 +118,7 @@
     "titulo": "Discoteca Básica do Rock: 5 Álbuns Obrigatórios na Sua Prateleira",
     "resumo": "Todo bom colecionador precisa ter uma fundação sólida. Conheça a Discoteca Básica do Rock Clássico que você precisa providenciar para o seu acervo pessoal hoje.",
     "categoria": "Música",
-    "autor": "Sylvios Records",
+    "autor": "Rafael Vinicius",
     "data": "02 Abr 2026",
     "tempoLeitura": "10 min",
     "imagemCapa": "https://images.unsplash.com/photo-1498038432885-c6f3f1b912ee?auto=format&fit=crop&w=1200&q=80",
@@ -143,6 +143,55 @@
       "MLB1097876030",
       "MLB1001681469",
       "MLB768005182"
+    ]
+  }
+  ,
+  {
+    "slug": "grunge-30-anos-nirvana-soundgarden-pearl-jam",
+    "titulo": "30 Anos do Grunge: Como Nirvana, Pearl Jam e Soundgarden Ainda Dominam as Playlists",
+    "resumo": "Em 2024 o grunge completou 30 anos do seu boom cultural. Entenda por que esses álbuns viraram febre novamente no YouTube e TikTok — e por que você precisa tê-los em CD.",
+    "categoria": "Música",
+    "autor": "Eric Ramos",
+    "data": "05 Abr 2026",
+    "tempoLeitura": "8 min",
+    "imagemCapa": "https://images.unsplash.com/photo-1516450360452-9312f5e86fc7?auto=format&fit=crop&w=1200&q=80",
+    "conteudo": "Existe algo muito peculiar acontecendo nas plataformas digitais. O algoritmo do TikTok está empurrando clipes ao vivo de *Smells Like Teen Spirit* para adolescentes de 15 anos que nem tinham nascido quando Kurt Cobain virou história. O YouTube mostra shows do Soundgarden de 1992 para jovens que descobriram Chris Cornell por covers de cantoras pop.\n\nO grunge ressurgiu. E desta vez chegou para toda uma nova geração que nunca viu um show ao vivo desses artistas.\n\n### Por Que o Grunge Voltou?\n\nOs analistas de tendências culturais apontam para uma convergência de fatores. Primeiro, a geração Z identificou no grunge o mesmo espírito anti-establishment que sente ao questionar as redes sociais, o capitalismo de vigilância e a hiperprodutividade tóxica. Cobain canalizou raiva autêntica — e raiva autêntica não expira.\n\nSegundo, a estética visual do grunge — flanelas xadrez, cabelos desgrenhados, poses de não-ligar — voltou absolutamente em alta na moda. O que era descaso virou estilo deliberado. E a trilha sonora para esse visual so pode ser o grunge original.\n\nTerceiro: os documentários. *Montage of Heck* (sobre Kurt Cobain), a série *Singles* no Paramount+ e os inúmeros documentários sobre o Seattle Sound no YouTube geraram ondas de novos fãs a cada lançamento.\n\n### Nirvana — Nevermind 30 Anos\n\nA edição de 30 anos do *Nevermind* (1991) lançada em box set é um caso de escola do que uma edição física pode oferecer que o streaming nunca conseguirá. Quatro discos de conteúdo: o álbum remasterizado, demos de home recording, ensaios com a banda em 1991, e a gravação completa do show histórico no Paramount Theatre de Seattle.\n\nEsses registros mostram o *Nevermind* sendo construído — as versões embrionárias de *Come as You Are* e *Lithium* que soam reveladoras para quem pensava conhecer as músicas de cor. Material que existe exclusivamente em mídia física.\n\n### Pearl Jam — Ten: A Obra Que Não Envelheceu\n\nSe Nirvana foi o trovão, Pearl Jam foi a tempestade que ficou. *Ten* (1991) é o álbum de estreia mais vendido do grunge e provavelmente o mais coeso artisticamente. *Alive*, *Even Flow*, *Black* — cada faixa é um monumento de composição.\n\nEddie Vedder tem 59 anos e ainda toca com a intensidade de um jovem de Seattle com raiva do mundo. A discografia completa do Pearl Jam em mídia física é um dos alvos mais buscados por colecionadores brasileiros — e aparece regularmente no nosso catálogo.\n\n### Soundgarden — Superunknown: O Mais Complexo do Grunge\n\nEnquanto Nirvana era simples e direto e Pearl Jam era emocional e grandioso, Soundgarden era a camada intelectual do movimento. *Superunknown* (1994) tem mudanças de compasso irregulares, letras herméticas e sonoridade que vai do metal ao psicodélico em sequência natural.\n\nChris Cornell era tecnicamente o melhor vocalista de toda a cena de Seattle — um barítono com extensão de tenor que usava a voz como instrumento de precisão cirúrgica. Possuir *Superunknown* em CD é ter a prova física de que o rock pode ser ao mesmo tempo visceral e cerebral.\n\n### A Mídia Física Como Preservação\n\nMuitas das raridades do movimento grunge — faces B, EPs japoneses exclusivos, gravações ao vivo de shows pequenos em Seattle — só circulam em mídia física de colecionador. O streaming homogeneizou o catálogo disponível; o CD guarda as pontas soltas que os algoritmos nunca alcançarão.\n\nVeja abaixo os títulos do grunge e do rock alternativo dos anos 90 disponíveis no nosso catálogo.",
+    "produtosRelacionados": [
+      "MLB765883458",
+      "MLB1776553134",
+      "MLB1987915833"
+    ]
+  },
+  {
+    "slug": "miyazaki-studio-ghibli-cinema-japones",
+    "titulo": "O Mundo de Miyazaki: Por Que o Studio Ghibli Conquistou o Mundo e Como Colecionar Seus Filmes",
+    "resumo": "De A Viagem de Chihiro a O Menino e a Garça, a obra de Hayao Miyazaki é fenômeno global viral em 2024. Descubra a história do estúdio e como montar sua coleção em mídia física.",
+    "categoria": "Cinema",
+    "autor": "Rafael Vinicius",
+    "data": "08 Abr 2026",
+    "tempoLeitura": "9 min",
+    "imagemCapa": "https://images.unsplash.com/photo-1578632767115-351597cf2477?auto=format&fit=crop&w=1200&q=80",
+    "conteudo": "Em 2023, Hayao Miyazaki lançou *O Menino e a Garça* — seu 'último filme' (que ele prometeu ser o último ao menos três vezes). O mundo parou. Críticos choraram nas sessões de pré-estreia. O filme venceu o Oscar de Animação de 2024. Miyazaki, com 83 anos, confirmou novamente uma verdade que o mundo do entretenimento ainda tenta rebater: grandes obras humanas são insubstituíveis por inteligência artificial e fórmulas corporativas.\n\nO fenômeno Ghibli nas redes em 2024 foi absoluto. Filtros de Instagram inspirados em *A Viagem de Chihiro*. Análises de 2 horas no YouTube explorando o simbolismo de *Nausicaä do Vale do Vento*. TikToks virais de pessoas redescobrindo *Meu Vizinho Totoro* pela primeira vez na idade adulta.\n\n### Por Que o Ghibli É Diferente de Tudo\n\nA Walt Disney Pictures tentou comprar o Studio Ghibli nos anos 90. Miyazaki enviou de volta uma faca sem embainhada com um bilhete: *sem cortes*. Essa anedota resume o espírito da casa japonesa — intransigência artística total.\n\nOs filmes do Ghibli são feitos à mão, frame a frame, por artistas que passam anos desenvolvendo um único cenário. A cena de abertura de *A Cidade Encantada* — aquela sequência da família atravessando a vila abandonada — tem mais frames desenhados manualmente que qualquer sequência comparável de animação digital moderna.\n\nO resultado é uma textura visual única, orgânica, que telas OLED e projetores 4K captam com uma fidelidade que o streaming comprimido em 1080p simplesmente não consegue reproduzir.\n\n### A Trilha Sonora de Joe Hisaishi — Um Universo Paralelo\n\nNão existe Studio Ghibli sem Joe Hisaishi. O compositor que criou as trilhas de praticamente toda a filmografia de Miyazaki construiu uma linguagem musical própria — peças para piano solo que se transformam em orquestrações completas de 100 músicos, com a naturalidade da respiração.\n\nO tema de *Nausicaä*, a valsa de *Kiki's Delivery Service*, o épico sonoro de *Princesa Mononoke* — possuir esses trabalhos em CD é ter acesso à música separada das imagens. E frequentemente, escutar as trilhas do Ghibli sem o filme é descobrir uma nova dimensão emocional das composições.\n\n### A Questão do Streaming — Por Que o Ghibli Resistiu\n\nPor décadas, Miyazaki recusou-se a colocar seus filmes em plataformas de streaming. Quando finalmente cedeu (para o Netflix em territórios fora do Japão e para a HBO Max nos EUA), foi com a condição de que nenhuma edição digital seria a versão definitiva — as versões físicas japonesas em Blu-ray, com extras exclusivos e embalagens artesanais, permaneceram como o produto premium.\n\nSe você quer os filmes do Ghibli com extras dos diretores, storyboards originais de Miyazaki, curtas inéditos e embalagens colecionáveis, a mídia física é o único caminho.\n\n### Começando a Sua Coleção Ghibli\n\nPara o iniciante, *A Viagem de Chihiro* (2001) — o único anime a vencer o Oscar de Animação antes de *O Menino e a Garça* — é o ponto de partida obrigatório. Para quem quer ir além, *Nausicaä do Vale do Vento* (1984) é o documento de origem do universo Miyazaki, onde todos os temas filosóficos da sua obra foram semeados pela primeira vez.\n\nConfira os títulos de animação japonesa e cinema asiático disponíveis no nosso catálogo.",
+    "produtosRelacionados": [
+      "MLB820096580",
+      "MLB707244937",
+      "MLB928422280"
+    ]
+  },
+  {
+    "slug": "box-sets-edicoes-especiais-colecionar",
+    "titulo": "A Arte do Box Set: Por Que as Edições de Luxo São o Graal dos Colecionadores",
+    "resumo": "Super Deluxe, Anniversary Edition, Director's Cut. Os box sets transformaram a mídia física em objeto de desejo. Saiba como identificar, avaliar e caçar as melhores edições.",
+    "categoria": "Colecionismo",
+    "autor": "Rafael Vinicius",
+    "data": "15 Abr 2026",
+    "tempoLeitura": "10 min",
+    "imagemCapa": "https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?auto=format&fit=crop&w=1200&q=80",
+    "conteudo": "Existe uma categoria especial de mídia física que transcende a simples reprodução de conteúdo: o **Box Set de Luxo**. Esses objetos — parte produto cultural, parte obra de arte tridimensional — são o topo absoluto do colecionismo audiovisual, e seu mercado de revenda cresce a taxas de dois dígitos por ano no Brasil.\n\n### O Que Faz Um Box Set de Luxo?\n\nA diferença entre um Box Set comum e uma edição de luxo está nos camadas. Um box comum reúne os discos de uma série ou saga em embalagem unificada. Uma edição de luxo adiciona:\n\n**Conteúdo exclusivo jamais lançado digitalmente** — demos de estúdio, ensaios, cortes alternativos de cenas, shows ao vivo inéditos. O box Super Deluxe do *Nevermind* do Nirvana tem 70 faixas de material que não existe em nenhuma plataforma. O box do *OK Computer* do Radiohead inclui uma caixa de papelão com acabamento especial contendo um livro de 48 páginas com arte original de Thom Yorke.\n\n**Objetos físicos colecionáveis** — postais, pôsteres dobrados, réplicas em escala reduzida de cenários, patches bordados, fitas VHS decorativas (mesmo sem conteúdo), fichas de personagens. O box de *Stranger Things* da Netflix (disponível exclusivamente em mídia física) inclui réplicas dos props originais da série.\n\n**Embalagem como objeto de arte** — livros encadernados em couro, caixas de madeira, estojos de metal, caixas de papelão artesanal. O box de *The Dark Side of the Moon* do Pink Floyd comemora 50 anos do lançamento com um prisma de vidro real no interior da embalagem.\n\n### Como Identificar uma Boa Edição\n\nO primeiro sinal de qualidade é a numeração. Edições **limitadas e numeradas** — com o número impresso no verso ou gravado no encarte — são as mais valorizadas no mercado de revenda. Uma edição numerada de 5000 cópias de um álbum lendário pode triplicar de valor em 10 anos.\n\nO segundo sinal é o lacre original. Um box set original lacrado de fábrica é significativamente mais valioso que o mesmo item aberto. Colecionadores sérios têm dois exemplares de álbuns importantes: um para escutar e um lacrado para preservar.\n\n### O Mercado Brasileiro de Box Sets\n\nO Brasil tem uma cena de colecionismo de mídia física mais sofisticada do que muitos imaginam. Grupos no Facebook e Discord reúnem milhares de membros que trocam, vendem e avaliam edições de toda a história do rock, do jazz e do cinema. Leilões específicos de box sets raros alcançam valores surpreendentes.\n\nEm nossa loja você encontra regularmente box sets originais — lacrados ou em estado de conservação excelente — de artistas que marcaram a história da música e do cinema. Abaixo, uma seleção das edições mais buscadas disponíveis hoje.",
+    "produtosRelacionados": [
+      "MLB874509435",
+      "MLB904940297",
+      "MLB817790075"
     ]
   }
 ]

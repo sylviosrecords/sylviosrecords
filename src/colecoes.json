@@ -89,5 +89,26 @@
     "subtitulo": "A seleção fundamental para começar sua estante sagrada da música",
     "descricao": "Todo prédio precisa de uma fundação impecável, e a sua coleção de Rock Clássico também. Aqui reúnem-se os bastiões de onde todo o comportamento jovem desviou rumo ao Heavy Metal e Hard Rock de hoje. Discos absolutos com arte de encarte imperdível.",
     "ids": ["MLB874509435", "MLB904940297", "MLB1776553134", "MLB765883458", "MLB817790075"]
+  },
+  {
+    "slug": "grunge-rock-alternativo-90s",
+    "titulo": "Grunge e Rock Alternativo dos Anos 90",
+    "subtitulo": "Nirvana, Pearl Jam, Soundgarden — o som que mudou o mundo",
+    "descricao": "Os anos 90 explodiram com uma raiva autêntica que o mundo nunca esperava. De Seattle para o planeta, o grunge e o rock alternativo derrubaram o glam metal e colocaram a realidade de volta à música. Esta seleção reúne os maiores álbuns desse movimento — obras que 30 anos depois voltaram a dominar o TikTok, o YouTube e as playlists de toda uma nova geração.",
+    "ids": ["MLB765883458", "MLB1776553134", "MLB1987915833", "MLB3839999592", "MLB2668879261", "MLB1776546799"]
+  },
+  {
+    "slug": "grandes-dramas-do-cinema-mundial",
+    "titulo": "Grandes Dramas do Cinema Mundial",
+    "subtitulo": "Obras-primas do drama que marcaram a história — de Hollywood à Europa",
+    "descricao": "O cinema de drama é a forma mais elevada da arte cinematográfica. Personagens complexos, dilemas morais genuínos, atuações que ficam gravadas na memória para sempre. Esta seleção reúne alguns dos grandes dramas disponíveis em mídia física — do noir clássico americano ao cinema europeu de autor. Para quem sabe que a melhor companhia numa noite de chuva é um grande filme.",
+    "ids": ["MLB1358608952", "MLB720143969", "MLB721585689", "MLB756169877", "MLB718690059", "MLB2650202162", "MLB4323799113"]
+  },
+  {
+    "slug": "cds-jazz-blues-classicos",
+    "titulo": "CDs de Jazz e Blues — Os Pais do Rock",
+    "subtitulo": "Miles Davis, B.B. King, Coltrane — a raiz de toda a música moderna",
+    "descricao": "Antes que existisse rock, existia o blues. Antes que o pop dominasse as paradas, era o jazz que movimentava os cabarés e clubes de Nova Orleans. O jazz e o blues são o DNA de toda a música popular do século XX — e ouvir Miles Davis, John Coltrane ou B.B. King em CD, com a reprodução lossless que o formato oferece, é uma experiência que transforma qualquer amante de música.",
+    "ids": ["MLB928422280", "MLB722795902", "MLB820096580", "MLB707244937", "MLB709864650"]
   }
 ]
