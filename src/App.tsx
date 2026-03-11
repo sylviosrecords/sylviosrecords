@@ -80,9 +80,9 @@ function renderMarkdown(texto: string) {
 
 // ── Roteamento ────────────────────────────────────────────────────────────────
 function useRoute() {
-  const [route, setRoute] = useState(window.location.pathname);
+  const [route, setRoute] = useState(window.location.pathname + window.location.search);
   useEffect(() => {
-    const fn = () => setRoute(window.location.pathname);
+    const fn = () => setRoute(window.location.pathname + window.location.search);
     window.addEventListener('popstate', fn);
     return () => window.removeEventListener('popstate', fn);
   }, []);
@@ -123,6 +123,32 @@ function useProdutos(categoria: string, busca: string, pagina: number) {
     carregar();
     return () => { cancelado = true; };
   }, [categoria, busca, pagina]);
+  return { produtos, total, loading, error, limite };
+}
+
+function useBuscaPesquisa(q: string, sort: string, pagina: number) {
+  const [produtos, setProdutos] = useState<Produto[]>([]);
+  const [total,    setTotal]    = useState(0);
+  const [loading,  setLoading]  = useState(true);
+  const [error,    setError]    = useState(false);
+  const limite = 20;
+  useEffect(() => {
+    if (!q) { setLoading(false); return; }
+    let cancelado = false;
+    const carregar = async () => {
+      setLoading(true); setError(false);
+      try {
+        const params = new URLSearchParams({ q, sort, pagina: String(pagina) });
+        const res  = await fetch(`/api/busca?${params}`);
+        if (!res.ok) throw new Error();
+        const data = await res.json();
+        if (!cancelado) { setProdutos(data.produtos || []); setTotal(data.total || 0); }
+      } catch { if (!cancelado) setError(true); }
+      finally  { if (!cancelado) setLoading(false); }
+    };
+    carregar();
+    return () => { cancelado = true; };
+  }, [q, sort, pagina]);
   return { produtos, total, loading, error, limite };
 }
 
@@ -282,22 +308,30 @@ function GenreTicker() {
   );
 }
 
-// ── Navbar secundária (produto/coleção/artigo) ────────────────────────────────
+// ── Navbar secundária (produto/coleção/artigo/busca) ────────────────────────────────
 function NavSecundaria({ navigate }: { navigate: (path: string) => void }) {
+  const [buscaInput, setBuscaInput] = useState('');
   return (
     <nav className="fixed top-0 w-full z-50 bg-[#080808]/92 backdrop-blur-xl border-b border-white/6 py-3">
-      <div className="max-w-7xl mx-auto px-6 flex items-center justify-between">
-        <button onClick={() => navigate('/')} className="flex items-center gap-3 group">
-          <div className="relative w-10 h-10 flex-shrink-0">
+      <div className="max-w-7xl mx-auto px-6 flex items-center justify-between gap-4">
+        <button onClick={() => navigate('/')} className="flex items-center gap-3 group shrink-0">
+          <div className="relative w-10 h-10 shrink-0">
             <div className="absolute inset-0 sr-gradient rounded-full opacity-25 blur-lg"/>
             <img src={STORE_LOGO} alt={STORE_NAME} className="relative w-full h-full object-contain" referrerPolicy="no-referrer"
               onError={e=>{(e.currentTarget as HTMLImageElement).style.display='none'}}/>
           </div>
-          <span className="font-bebas text-xl tracking-widest sr-gradient-text">{STORE_NAME.toUpperCase()}</span>
+          <span className="hidden sm:block font-bebas text-xl tracking-widest sr-gradient-text">{STORE_NAME.toUpperCase()}</span>
         </button>
+        <div className="flex-1 max-w-sm relative hidden sm:block">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-500"/>
+          <form onSubmit={e => { e.preventDefault(); if (buscaInput) navigate(`/busca?q=${encodeURIComponent(buscaInput)}`); }}>
+            <input type="text" value={buscaInput} onChange={e => setBuscaInput(e.target.value)} placeholder="Buscar discos, filmes..."
+              className="w-full pl-9 pr-4 py-2 bg-white/5 border border-white/10 rounded-full text-sm text-white placeholder-zinc-500 focus:outline-none focus:border-red-500/50 transition-colors"/>
+          </form>
+        </div>
         <a href={STORE_LINK} target="_blank" rel="noopener noreferrer"
-          className="sr-gradient text-white px-4 py-2 rounded-full text-sm font-bold flex items-center gap-2 hover:opacity-90">
-          Ver Loja <ExternalLink className="w-4 h-4"/>
+          className="shrink-0 sr-gradient text-white px-4 py-2 rounded-full text-sm font-bold flex items-center gap-2 hover:opacity-90">
+          <span className="hidden sm:inline">Ver Loja</span> <ExternalLink className="w-4 h-4"/>
         </a>
       </div>
     </nav>
@@ -1140,6 +1174,95 @@ function PaginaCatalogo({ navigate }: { navigate: (path: string) => void }) {
   );
 }
 
+// ── Página Busca ───────────────────────────────────────────────────────────────
+function PaginaBusca({ buscaQuery, navigate }: { buscaQuery: string; navigate: (path: string) => void }) {
+  const [sort, setSort] = useState('relevance');
+  const [pagina, setPagina] = useState(1);
+  const { produtos, total, loading, error, limite } = useBuscaPesquisa(buscaQuery, sort, pagina);
+  const totalPaginas = Math.ceil(total / limite);
+
+  useEffect(() => {
+    document.title = `Busca: ${buscaQuery} — ${STORE_NAME}`;
+    setPagina(1);
+  }, [buscaQuery]);
+
+  return (
+    <div className="min-h-screen bg-[#080808] text-zinc-100 pt-28 pb-20 px-6">
+      <div className="max-w-7xl mx-auto">
+        <div className="mb-10">
+          <button onClick={() => navigate('/')}
+            className="flex items-center gap-2 text-zinc-500 hover:text-white transition-colors mb-4 text-sm group">
+            <ArrowLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform"/> Voltar para Home
+          </button>
+          <h1 className="font-bebas text-5xl md:text-6xl text-white">
+            Resultados para <span className="sr-gradient-text">"{buscaQuery}"</span>
+          </h1>
+          {!loading && <p className="text-zinc-500 text-sm mt-2">{total.toLocaleString('pt-BR')} produtos encontrados</p>}
+        </div>
+
+        {/* Filtros de Ordenação */}
+        <div className="flex gap-2 mb-8 overflow-x-auto pb-2 scroll-smooth [&::-webkit-scrollbar]:hidden">
+          {[
+            { id: 'relevance', label: 'Mais Relevantes' },
+            { id: 'price_asc', label: 'Menor Preço' },
+            { id: 'price_desc', label: 'Maior Preço' }
+          ].map(opt => (
+            <button key={opt.id} onClick={() => { setSort(opt.id); setPagina(1); }}
+              className={`flex-none px-4 py-2 rounded-full text-sm font-semibold transition-all ${
+                sort === opt.id ? 'sr-gradient text-white shadow-lg shadow-red-950/30' : 'bg-white/5 border border-white/10 text-zinc-400 hover:bg-white/10 hover:text-white'
+              }`}>{opt.label}
+            </button>
+          ))}
+        </div>
+
+        {loading ? (
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
+            {Array.from({length:10}).map((_,i) => <SkeletonCard key={i}/>)}
+          </div>
+        ) : error ? (
+          <div className="text-center py-32"><p className="text-zinc-500">Erro ao carregar os resultados.</p></div>
+        ) : produtos.length === 0 ? (
+          <div className="text-center py-32">
+            <Search className="w-12 h-12 text-zinc-700 mx-auto mb-4"/>
+            <p className="text-zinc-500">Nenhum produto encontrado na loja oficial para "{buscaQuery}".</p>
+          </div>
+        ) : (
+          <>
+            <motion.div key={`${buscaQuery}-${sort}-${pagina}`}
+              initial={{opacity:0,y:10}} animate={{opacity:1,y:0}} transition={{duration:0.3}}
+              className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
+              {produtos.map(p => <ProdutoCard key={p.id} p={p} navigate={navigate}/>)}
+            </motion.div>
+            {totalPaginas > 1 && (
+              <div className="flex items-center justify-center gap-3 mt-14">
+                <button onClick={()=>{setPagina(p=>Math.max(1,p-1));window.scrollTo({top:0,behavior:'smooth'});}} disabled={pagina===1}
+                  className="w-10 h-10 rounded-full bg-white/5 border border-white/10 flex items-center justify-center hover:bg-white/10 disabled:opacity-30 transition-all">
+                  <ChevronLeft className="w-5 h-5"/>
+                </button>
+                <div className="flex gap-2">
+                  {Array.from({length:Math.min(totalPaginas,5)},(_,i)=>{
+                    const p = pagina<=3 ? i+1 : pagina-2+i;
+                    if (p<1||p>totalPaginas) return null;
+                    return (
+                      <button key={p} onClick={()=>{setPagina(p);window.scrollTo({top:0,behavior:'smooth'});}}
+                        className={`w-10 h-10 rounded-full text-sm font-bold transition-all ${p===pagina?'sr-gradient text-white shadow-lg':'bg-white/5 border border-white/10 text-zinc-400 hover:bg-white/10'}`}>{p}
+                      </button>
+                    );
+                  })}
+                </div>
+                <button onClick={()=>{setPagina(p=>Math.min(totalPaginas,p+1));window.scrollTo({top:0,behavior:'smooth'});}} disabled={pagina===totalPaginas}
+                  className="w-10 h-10 rounded-full bg-white/5 border border-white/10 flex items-center justify-center hover:bg-white/10 disabled:opacity-30 transition-all">
+                  <ChevronRight className="w-5 h-5"/>
+                </button>
+              </div>
+            )}
+          </>
+        )}
+      </div>
+    </div>
+  );
+}
+
 // ── App principal ─────────────────────────────────────────────────────────────
 export default function App() {
   const { route, navigate } = useRoute();
@@ -1147,14 +1270,16 @@ export default function App() {
   const isProduto = route.startsWith('/produto/');
   const isColecao = route.startsWith('/colecao/');
   const isArtigo  = route.startsWith('/artigo/');
+  const isBusca   = route.startsWith('/busca');
   const isColecoesList = route === '/colecoes';
   const isBlogList = route === '/blog';
 
   const slugProduto = isProduto ? route.replace('/produto/', '') : '';
   const slugColecao = isColecao ? route.replace('/colecao/', '') : '';
   const slugArtigo  = isArtigo  ? route.replace('/artigo/',  '') : '';
+  const buscaQuery  = isBusca   ? new URLSearchParams(route.split('?')[1]).get('q') || '' : '';
 
-  const isSecundaria = isProduto || isColecao || isArtigo || isColecoesList || isBlogList;
+  const isSecundaria = isProduto || isColecao || isArtigo || isColecoesList || isBlogList || isBusca;
 
   return (
     <>
@@ -1204,6 +1329,10 @@ export default function App() {
         ) : isBlogList ? (
           <motion.div key="bloglist" initial={{opacity:0}} animate={{opacity:1}} exit={{opacity:0}} transition={{duration:0.2}}>
             <PaginaBlogList navigate={navigate}/>
+          </motion.div>
+        ) : isBusca ? (
+          <motion.div key="busca" initial={{opacity:0}} animate={{opacity:1}} exit={{opacity:0}} transition={{duration:0.2}}>
+            <PaginaBusca buscaQuery={buscaQuery} navigate={navigate}/>
           </motion.div>
         ) : (
           <motion.div key="catalogo" initial={{opacity:0}} animate={{opacity:1}} exit={{opacity:0}} transition={{duration:0.2}}>
