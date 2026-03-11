@@ -9,8 +9,9 @@ import {
   Disc, Film, Package, ShieldCheck, Truck, History,
   ExternalLink, ChevronRight, ChevronLeft, Star,
   Music, Loader2, Search, TrendingUp, ChevronDown,
-  X, ArrowLeft, ShoppingCart, ImageOff
+  X, ArrowLeft, ShoppingCart, ImageOff, BookOpen, Sparkles
 } from 'lucide-react';
+import colecoesData from './colecoes.json';
 
 const STORE_NAME = "Sylvios Records";
 const STORE_LINK = "https://www.mercadolivre.com.br/pagina/sylviosrecords";
@@ -42,10 +43,26 @@ interface Produto {
   condicao: string; disponivel: boolean; estoque?: number;
 }
 
+interface Colecao {
+  slug: string;
+  titulo: string;
+  subtitulo: string;
+  descricao: string;
+  ids: string[];
+}
+
+const colecoes: Colecao[] = colecoesData as Colecao[];
+
 function slugify(text: string): string {
   return text.toLowerCase()
     .normalize('NFD').replace(/[\u0300-\u036f]/g,'')
     .replace(/[^a-z0-9]+/g,'-').replace(/^-+|-+$/g,'');
+}
+
+// Extrai o ID do ML de uma string que pode ser "MLB123456" ou "MLB123456-cd-titulo"
+function extrairIdML(slug: string): string {
+  const match = slug.match(/^(MLB\d+)/i);
+  return match ? match[1] : slug;
 }
 
 function useRoute() {
@@ -94,7 +111,8 @@ function useProdutos(categoria: string, busca: string, pagina: number) {
   return { produtos, total, loading, error, limite };
 }
 
-function useProduto(slug: string) {
+function useProduto(slugComposto: string) {
+  const id = extrairIdML(slugComposto);
   const [produto, setProduto] = useState<Produto | null>(null);
   const [loading, setLoading] = useState(true);
   const [error,   setError]   = useState(false);
@@ -103,7 +121,7 @@ function useProduto(slug: string) {
     const carregar = async () => {
       setLoading(true); setError(false);
       try {
-        const res  = await fetch(`/api/item?id=${encodeURIComponent(slug)}`);
+        const res  = await fetch(`/api/item?id=${encodeURIComponent(id)}`);
         if (!res.ok) throw new Error();
         const data = await res.json();
         if (!cancelado) setProduto(data);
@@ -112,8 +130,53 @@ function useProduto(slug: string) {
     };
     carregar();
     return () => { cancelado = true; };
-  }, [slug]);
+  }, [id]);
   return { produto, loading, error };
+}
+
+function useDescricao(id: string) {
+  const [descricao, setDescricao] = useState('');
+  const [loading,   setLoading]   = useState(false);
+  useEffect(() => {
+    if (!id) return;
+    let cancelado = false;
+    const carregar = async () => {
+      setLoading(true);
+      try {
+        const res  = await fetch(`/api/descricao?id=${encodeURIComponent(id)}`);
+        if (!res.ok) return;
+        const data = await res.json();
+        if (!cancelado) setDescricao(data.descricao || '');
+      } catch { /* silencioso */ }
+      finally { if (!cancelado) setLoading(false); }
+    };
+    carregar();
+    return () => { cancelado = true; };
+  }, [id]);
+  return { descricao, loading };
+}
+
+function useProdutosColecao(ids: string[]) {
+  const [produtos, setProdutos] = useState<Produto[]>([]);
+  const [loading,  setLoading]  = useState(true);
+  const [error,    setError]    = useState(false);
+  const idsValidos = ids.filter(id => /^MLB\d+/i.test(id));
+  useEffect(() => {
+    if (!idsValidos.length) { setLoading(false); return; }
+    let cancelado = false;
+    const carregar = async () => {
+      setLoading(true); setError(false);
+      try {
+        const res  = await fetch(`/api/colecao?ids=${idsValidos.join(',')}`);
+        const data = await res.json();
+        if (!cancelado) setProdutos(data.produtos || []);
+      } catch { if (!cancelado) setError(true); }
+      finally  { if (!cancelado) setLoading(false); }
+    };
+    carregar();
+    return () => { cancelado = true; };
+  }, [idsValidos.join(',')]);
+  return { produtos, loading, error };
 }
 
 function SkeletonCard() {
@@ -132,8 +195,9 @@ function SkeletonCard() {
 function ProdutoCard({ p, navigate }: { p: Produto; navigate: (path: string) => void }) {
   const [imgOk,     setImgOk]     = useState(true);
   const [imgLoaded, setImgLoaded] = useState(false);
+  const urlProduto = `/produto/${p.id}-${slugify(p.titulo)}`;
   return (
-    <div onClick={() => navigate(`/produto/${p.id}`)}
+    <div onClick={() => navigate(urlProduto)}
       className="group flex flex-col rounded-2xl overflow-hidden bg-zinc-900 border border-white/6 hover:border-red-500/40 transition-all hover:-translate-y-2 hover:shadow-2xl hover:shadow-red-950/30 duration-300 cursor-pointer">
       <div className="relative aspect-square bg-zinc-800 overflow-hidden">
         {!imgLoaded && <div className="absolute inset-0 skeleton"/>}
@@ -165,10 +229,23 @@ function ProdutoCard({ p, navigate }: { p: Produto; navigate: (path: string) => 
   );
 }
 
-function PaginaProduto({ slug, navigate }: { slug: string; navigate: (path: string) => void }) {
-  const { produto, loading, error } = useProduto(slug);
+function PaginaProduto({ slugComposto, navigate }: { slugComposto: string; navigate: (path: string) => void }) {
+  const { produto, loading, error } = useProduto(slugComposto);
   const [fotoIdx, setFotoIdx] = useState(0);
   const fotos = produto?.fotos?.length ? produto.fotos : produto?.foto ? [produto.foto] : [];
+  const { descricao, loading: descLoading } = useDescricao(produto?.id || '');
+
+  // SEO: atualiza title da página
+  useEffect(() => {
+    if (produto?.titulo) {
+      document.title = `${produto.titulo} — ${STORE_NAME}`;
+      // Meta description
+      let meta = document.querySelector('meta[name="description"]') as HTMLMetaElement;
+      if (!meta) { meta = document.createElement('meta'); meta.name = 'description'; document.head.appendChild(meta); }
+      meta.content = `Compre ${produto.titulo} no Mercado Livre com envio seguro. Mídia física original — ${STORE_NAME}.`;
+    }
+    return () => { document.title = STORE_NAME; };
+  }, [produto?.titulo]);
 
   if (loading) return (
     <div className="min-h-screen bg-[#080808] flex items-center justify-center">
@@ -244,6 +321,27 @@ function PaginaProduto({ slug, navigate }: { slug: string; navigate: (path: stri
             )}
             {produto.vendidos > 0 && <p className="text-zinc-500 text-sm">{produto.vendidos} vendidos</p>}
 
+            {/* Descrição automática gerada por IA */}
+            <div className="p-5 rounded-2xl bg-white/[0.03] border border-white/8">
+              <div className="flex items-center gap-2 mb-3">
+                <Sparkles className="w-4 h-4 text-red-400"/>
+                <span className="text-xs font-bold uppercase tracking-widest text-zinc-500">Sobre este produto</span>
+              </div>
+              {descLoading ? (
+                <div className="flex flex-col gap-2">
+                  <div className="skeleton h-3 w-full rounded"/>
+                  <div className="skeleton h-3 w-5/6 rounded"/>
+                  <div className="skeleton h-3 w-4/6 rounded"/>
+                </div>
+              ) : descricao ? (
+                <p className="text-zinc-300 text-sm leading-relaxed">{descricao}</p>
+              ) : (
+                <p className="text-zinc-500 text-sm leading-relaxed">
+                  Mídia física original. Confira as fotos e a descrição completa no anúncio do Mercado Livre.
+                </p>
+              )}
+            </div>
+
             <div className="flex flex-col gap-2 p-4 rounded-2xl bg-white/4 border border-white/8">
               {[['✅','Produto 100% original'],['📦','Embalagem reforçada para envio seguro'],['🏆','Vendedor Mercado Líder Platinum']].map(([emoji, texto]) => (
                 <p key={texto} className="text-sm text-zinc-400">{emoji} {texto}</p>
@@ -257,6 +355,90 @@ function PaginaProduto({ slug, navigate }: { slug: string; navigate: (path: stri
             <p className="text-zinc-600 text-xs text-center">Você será redirecionado para o Mercado Livre para finalizar a compra com segurança.</p>
           </div>
         </div>
+      </div>
+    </div>
+  );
+}
+
+function PaginaColecao({ slug, navigate }: { slug: string; navigate: (path: string) => void }) {
+  const colecao = colecoes.find(c => c.slug === slug);
+
+  useEffect(() => {
+    if (colecao) {
+      document.title = `${colecao.titulo} — ${STORE_NAME}`;
+      let meta = document.querySelector('meta[name="description"]') as HTMLMetaElement;
+      if (!meta) { meta = document.createElement('meta'); meta.name = 'description'; document.head.appendChild(meta); }
+      meta.content = `${colecao.subtitulo}. Confira a seleção completa na ${STORE_NAME}.`;
+    }
+    return () => { document.title = STORE_NAME; };
+  }, [colecao]);
+
+  const { produtos, loading, error } = useProdutosColecao(colecao?.ids || []);
+
+  if (!colecao) return (
+    <div className="min-h-screen bg-[#080808] flex flex-col items-center justify-center gap-6">
+      <p className="text-zinc-400">Coleção não encontrada.</p>
+      <button onClick={() => navigate('/')} className="flex items-center gap-2 sr-gradient text-white px-6 py-3 rounded-full font-bold">
+        <ArrowLeft className="w-4 h-4"/> Voltar ao catálogo
+      </button>
+    </div>
+  );
+
+  const temProdutosReais = colecao.ids.some(id => /^MLB\d+/i.test(id));
+
+  return (
+    <div className="min-h-screen bg-[#080808] text-zinc-100 pt-24 pb-20 px-6">
+      <div className="max-w-6xl mx-auto">
+        <button onClick={() => navigate('/')}
+          className="flex items-center gap-2 text-zinc-500 hover:text-white transition-colors mb-10 text-sm group">
+          <ArrowLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform"/> Voltar ao catálogo
+        </button>
+
+        {/* Cabeçalho editorial */}
+        <div className="mb-12 max-w-3xl">
+          <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-red-500/10 border border-red-500/20 mb-4">
+            <BookOpen className="w-3 h-3 text-red-400"/>
+            <span className="text-red-400 text-xs font-bold uppercase tracking-widest">Coleção Especial</span>
+          </div>
+          <h1 className="font-bebas text-5xl md:text-7xl leading-tight text-white mb-4">{colecao.titulo}</h1>
+          <p className="text-zinc-400 text-lg leading-relaxed">{colecao.descricao}</p>
+        </div>
+
+        {/* Produtos da coleção */}
+        {!temProdutosReais ? (
+          <div className="text-center py-20 border border-dashed border-white/10 rounded-3xl">
+            <Disc className="w-12 h-12 text-zinc-700 mx-auto mb-4"/>
+            <p className="text-zinc-500 mb-2">Produtos em breve</p>
+            <p className="text-zinc-700 text-sm">Esta coleção está sendo organizada.</p>
+          </div>
+        ) : loading ? (
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
+            {Array.from({length: colecao.ids.length || 6}).map((_,i) => <SkeletonCard key={i}/>)}
+          </div>
+        ) : error ? (
+          <div className="text-center py-20">
+            <p className="text-zinc-500 mb-4">Não foi possível carregar os produtos.</p>
+            <a href={STORE_LINK} target="_blank" rel="noopener noreferrer"
+              className="inline-flex items-center gap-2 sr-gradient text-white px-6 py-3 rounded-full font-semibold">
+              Ver no Mercado Livre <ExternalLink className="w-4 h-4"/>
+            </a>
+          </div>
+        ) : (
+          <motion.div initial={{opacity:0,y:10}} animate={{opacity:1,y:0}} transition={{duration:0.3}}
+            className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
+            {produtos.map(p => <ProdutoCard key={p.id} p={p} navigate={navigate}/>)}
+          </motion.div>
+        )}
+
+        {/* CTA final */}
+        {produtos.length > 0 && (
+          <div className="mt-12 text-center">
+            <a href={STORE_LINK} target="_blank" rel="noopener noreferrer"
+              className="inline-flex items-center gap-3 sr-gradient text-white px-8 py-4 rounded-full font-bold hover:opacity-90 transition-all shadow-xl shadow-red-950/30">
+              Ver catálogo completo no ML <ExternalLink className="w-5 h-5"/>
+            </a>
+          </div>
+        )}
       </div>
     </div>
   );
@@ -299,6 +481,45 @@ function GenreTicker() {
   );
 }
 
+function SecaoColecoes({ navigate }: { navigate: (path: string) => void }) {
+  const colecoesDestaque = colecoes.slice(0, 4);
+  return (
+    <section className="py-24 px-6 bg-white/[0.015] border-y border-white/6">
+      <div className="max-w-7xl mx-auto">
+        <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-10">
+          <div>
+            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-blue-500/10 border border-blue-500/20 mb-3">
+              <BookOpen className="w-3 h-3 text-blue-400"/>
+              <span className="text-blue-400 text-xs font-bold uppercase tracking-widest">Coleções Especiais</span>
+            </div>
+            <h2 className="font-bebas text-5xl md:text-6xl text-white">Explore por <span className="sr-gradient-text">Tema</span></h2>
+            <p className="text-zinc-500 text-sm mt-2">Seleções editoriais para te ajudar a encontrar o que procura</p>
+          </div>
+        </div>
+        <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          {colecoesDestaque.map((c, i) => (
+            <motion.button key={c.slug} whileHover={{ y: -6 }} transition={{ duration: 0.2 }}
+              onClick={() => navigate(`/colecao/${c.slug}`)}
+              className="text-left p-6 rounded-2xl bg-zinc-900 border border-white/6 hover:border-red-500/40 transition-all group cursor-pointer">
+              <div className={`w-10 h-10 rounded-xl sr-gradient flex items-center justify-center mb-4 shadow-lg shadow-red-950/30`}>
+                {i === 0 ? <Film className="w-5 h-5 text-white"/> :
+                 i === 1 ? <Music className="w-5 h-5 text-white"/> :
+                 i === 2 ? <Star className="w-5 h-5 text-white"/> :
+                           <Disc className="w-5 h-5 text-white"/>}
+              </div>
+              <h3 className="font-bebas text-xl text-white leading-tight mb-2 group-hover:text-red-400 transition-colors">{c.titulo}</h3>
+              <p className="text-zinc-600 text-xs leading-relaxed line-clamp-2">{c.subtitulo}</p>
+              <div className="flex items-center gap-1 mt-4 text-red-500 text-xs font-bold">
+                Ver seleção <ChevronRight className="w-3 h-3"/>
+              </div>
+            </motion.button>
+          ))}
+        </div>
+      </div>
+    </section>
+  );
+}
+
 function PaginaCatalogo({ navigate }: { navigate: (path: string) => void }) {
   const [scrolled,   setScrolled]   = useState(false);
   const [categoria,  setCategoria]  = useState('todos');
@@ -338,7 +559,7 @@ function PaginaCatalogo({ navigate }: { navigate: (path: string) => void }) {
             </div>
           </button>
           <div className="hidden md:flex items-center gap-8 text-sm font-medium text-zinc-500">
-            {[['#catalogo','Catálogo'],['#sobre','Sobre'],['#faq','FAQ']].map(([href,label]) => (
+            {[['#catalogo','Catálogo'],['#colecoes','Coleções'],['#sobre','Sobre'],['#faq','FAQ']].map(([href,label]) => (
               <a key={href} href={href} className="hover:text-white transition-colors relative group">
                 {label}<span className="absolute -bottom-1 left-0 w-0 h-px sr-gradient group-hover:w-full transition-all duration-300"/>
               </a>
@@ -394,9 +615,8 @@ function PaginaCatalogo({ navigate }: { navigate: (path: string) => void }) {
               <a href="#catalogo" className="sr-gradient text-white px-8 py-4 rounded-2xl font-bold text-lg flex items-center gap-2 hover:opacity-90 transition-all shadow-xl shadow-red-950/30 active:scale-95">
                 Ver Catálogo <ChevronRight className="w-5 h-5"/>
               </a>
-              <a href={STORE_LINK} target="_blank" rel="noopener noreferrer"
-                className="px-8 py-4 rounded-2xl font-bold text-lg flex items-center gap-2 bg-white/5 border border-white/10 hover:bg-white/10 transition-all">
-                Loja no ML <ExternalLink className="w-5 h-5"/>
+              <a href="#colecoes" className="px-8 py-4 rounded-2xl font-bold text-lg flex items-center gap-2 bg-white/5 border border-white/10 hover:bg-white/10 transition-all">
+                Coleções <BookOpen className="w-5 h-5"/>
               </a>
             </motion.div>
             <motion.div initial={{opacity:0}} animate={{opacity:1}} transition={{delay:0.5}}
@@ -493,6 +713,11 @@ function PaginaCatalogo({ navigate }: { navigate: (path: string) => void }) {
           )}
         </div>
       </section>
+
+      {/* Seção de Coleções */}
+      <div id="colecoes">
+        <SecaoColecoes navigate={navigate}/>
+      </div>
 
       <section className="py-24 px-6 bg-white/[0.015] border-y border-white/6">
         <div className="max-w-7xl mx-auto">
@@ -598,6 +823,12 @@ function PaginaCatalogo({ navigate }: { navigate: (path: string) => void }) {
 
 export default function App() {
   const { route, navigate } = useRoute();
+
+  const isProduto  = route.startsWith('/produto/');
+  const isColecao  = route.startsWith('/colecao/');
+  const slugProduto  = isProduto ? route.replace('/produto/', '') : '';
+  const slugColecao  = isColecao  ? route.replace('/colecao/',  '') : '';
+
   return (
     <>
       <style>{`
@@ -627,7 +858,8 @@ export default function App() {
         }
       `}</style>
 
-      {route.startsWith('/produto/') && (
+      {/* Navbar para páginas de produto/coleção */}
+      {(isProduto || isColecao) && (
         <nav className="fixed top-0 w-full z-50 bg-[#080808]/92 backdrop-blur-xl border-b border-white/6 py-3">
           <div className="max-w-7xl mx-auto px-6 flex items-center justify-between">
             <button onClick={() => navigate('/')} className="flex items-center gap-3 group">
@@ -647,9 +879,13 @@ export default function App() {
       )}
 
       <AnimatePresence mode="wait">
-        {route.startsWith('/produto/') ? (
+        {isProduto ? (
           <motion.div key="produto" initial={{opacity:0}} animate={{opacity:1}} exit={{opacity:0}} transition={{duration:0.2}}>
-            <PaginaProduto slug={route.replace('/produto/','')} navigate={navigate}/>
+            <PaginaProduto slugComposto={slugProduto} navigate={navigate}/>
+          </motion.div>
+        ) : isColecao ? (
+          <motion.div key="colecao" initial={{opacity:0}} animate={{opacity:1}} exit={{opacity:0}} transition={{duration:0.2}}>
+            <PaginaColecao slug={slugColecao} navigate={navigate}/>
           </motion.div>
         ) : (
           <motion.div key="catalogo" initial={{opacity:0}} animate={{opacity:1}} exit={{opacity:0}} transition={{duration:0.2}}>

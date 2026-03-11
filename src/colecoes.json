@@ -1,0 +1,37 @@
+[
+  {
+    "slug": "melhores-series-dvd",
+    "titulo": "As Melhores Séries dos Anos 2000 em DVD",
+    "subtitulo": "Coleções completas das séries que definiram uma geração",
+    "descricao": "Antes do streaming, havia o DVD. As séries dos anos 2000 foram uma revolução na televisão, com roteiros cinematográficos e produção impecável. Se você quer rever esses clássicos com qualidade máxima — sem buffering, sem plataforma — o DVD é o caminho. Abaixo, uma seleção das mais procuradas.",
+    "ids": ["SUBSTITUA_COM_ID_1", "SUBSTITUA_COM_ID_2", "SUBSTITUA_COM_ID_3"]
+  },
+  {
+    "slug": "rock-anos-90-cds",
+    "titulo": "Os Melhores CDs de Rock dos Anos 90",
+    "subtitulo": "Grunge, britpop e alt-rock — os álbuns que moldaram uma geração",
+    "descricao": "Os anos 90 foram a última grande era do CD. Bandas como Nirvana, Pearl Jam, Oasis e Radiohead lançaram álbuns que ainda hoje são referência. Ter esses discos físicos é mais do que nostalgia — é ter o som da forma como foi masterizado originalmente.",
+    "ids": ["SUBSTITUA_COM_ID_1", "SUBSTITUA_COM_ID_2", "SUBSTITUA_COM_ID_3"]
+  },
+  {
+    "slug": "filmes-tarantino-dvd",
+    "titulo": "Filmes de Quentin Tarantino em DVD e Blu-ray",
+    "subtitulo": "A filmografia completa do mestre do cinema cult",
+    "descricao": "Quentin Tarantino é um dos diretores mais cultuados de todos os tempos. Seus filmes ganham uma nova dimensão quando assistidos sem interrupções e com qualidade de imagem superior. Colecionadores de cinema sabem: ter os filmes do Tarantino em mídia física é essencial.",
+    "ids": ["SUBSTITUA_COM_ID_1", "SUBSTITUA_COM_ID_2", "SUBSTITUA_COM_ID_3"]
+  },
+  {
+    "slug": "mpb-classicos-cds",
+    "titulo": "Clássicos da MPB em CD",
+    "subtitulo": "Chico, Caetano, Elis, Gil — a alma do Brasil em mídia física",
+    "descricao": "A Música Popular Brasileira tem um catálogo riquíssimo que vai de Elizeth Cardoso a Djavan, passando por Chico Buarque, Elis Regina e Gilberto Gil. Esses álbuns representam momentos únicos da história musical brasileira e se tornam cada vez mais raros nas lojas.",
+    "ids": ["SUBSTITUA_COM_ID_1", "SUBSTITUA_COM_ID_2", "SUBSTITUA_COM_ID_3"]
+  },
+  {
+    "slug": "box-colecoes-bluray",
+    "titulo": "Box Sets e Coleções em Blu-ray",
+    "subtitulo": "Franquias completas com a melhor qualidade de imagem disponível",
+    "descricao": "Para quem não abre mão da máxima qualidade, o Blu-ray ainda é o rei. Box sets com todas as temporadas ou sagas completas de filmes em Blu-ray são itens de colecionador cada vez mais valorizados.",
+    "ids": ["SUBSTITUA_COM_ID_1", "SUBSTITUA_COM_ID_2", "SUBSTITUA_COM_ID_3"]
+  }
+]
