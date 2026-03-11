@@ -94,6 +94,24 @@ function useRoute() {
   return { route, navigate };
 }
 
+// ── Feature 5: Favoritos via localStorage ──────────────────────────────────────
+function useFavoritos() {
+  const LS_KEY = 'sr_favoritos';
+  const [favoritos, setFavoritos] = useState<string[]>(() => {
+    try { return JSON.parse(localStorage.getItem(LS_KEY) || '[]'); } catch { return []; }
+  });
+  const toggle = (id: string) => {
+    setFavoritos(prev => {
+      const next = prev.includes(id) ? prev.filter(f => f !== id) : [...prev, id];
+      localStorage.setItem(LS_KEY, JSON.stringify(next));
+      return next;
+    });
+  };
+  const isFav = (id: string) => favoritos.includes(id);
+  return { favoritos, toggle, isFav };
+}
+const FavCtx = React.createContext<ReturnType<typeof useFavoritos>>({ favoritos:[], toggle:()=>{}, isFav:()=>false });
+
 const fmt  = (v: number) => v.toLocaleString('pt-BR', { style:'currency', currency:'BRL' });
 const disc = (o: number, c: number) => Math.round(((o-c)/o)*100);
 
@@ -237,10 +255,12 @@ function SkeletonCard() {
 function ProdutoCard({ p, navigate }: { key?: React.Key; p: Produto; navigate: (path: string) => void }) {
   const [imgOk,     setImgOk]     = useState(true);
   const [imgLoaded, setImgLoaded] = useState(false);
+  const { isFav, toggle } = React.useContext(FavCtx);
+  const fav = isFav(p.id);
   const urlProduto = `/produto/${p.id}-${slugify(p.titulo)}`;
   return (
     <div onClick={() => navigate(urlProduto)}
-      className="group flex flex-col rounded-2xl overflow-hidden bg-zinc-900 border border-white/6 hover:border-red-500/40 transition-all hover:-translate-y-2 hover:shadow-2xl hover:shadow-red-950/30 duration-300 cursor-pointer">
+      className="group flex flex-col rounded-2xl overflow-hidden bg-zinc-900 border border-white/6 hover:border-red-500/40 transition-all hover:-translate-y-2 hover:shadow-2xl hover:shadow-red-950/30 duration-300 cursor-pointer relative">
       <div className="relative aspect-square bg-zinc-800 overflow-hidden">
         {!imgLoaded && <div className="absolute inset-0 skeleton"/>}
         {imgOk && p.foto
@@ -258,6 +278,14 @@ function ProdutoCard({ p, navigate }: { key?: React.Key; p: Produto; navigate: (
         {p.condicao === 'new' && (
           <span className="absolute top-2 right-2 bg-blue-600/80 text-white text-[10px] font-bold px-2 py-0.5 rounded-full">NOVO</span>
         )}
+        <button onClick={e => { e.stopPropagation(); toggle(p.id); }}
+          className={`absolute bottom-2 right-2 w-7 h-7 rounded-full flex items-center justify-center transition-all shadow-md ${
+            fav ? 'bg-red-500 text-white' : 'bg-black/50 text-zinc-400 hover:text-red-400'
+          }`}>
+          <svg viewBox="0 0 24 24" className="w-3.5 h-3.5" fill={fav ? 'currentColor' : 'none'} stroke="currentColor" strokeWidth="2">
+            <path strokeLinecap="round" strokeLinejoin="round" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"/>
+          </svg>
+        </button>
       </div>
       <div className="p-3 flex flex-col flex-1">
         <p className="text-[11px] text-zinc-400 leading-tight line-clamp-2 min-h-[30px] mb-2 flex-1">{p.titulo}</p>
@@ -293,15 +321,17 @@ function FAQItem({ q, a }: { key?: React.Key; q: string; a: string }) {
   );
 }
 
-function GenreTicker() {
+// Feature 4: GenreTicker clicável
+function GenreTicker({ navigate }: { navigate: (path: string) => void }) {
   return (
     <div className="overflow-hidden border-y border-white/6 py-3 bg-white/[0.02]">
       <motion.div className="flex gap-10 whitespace-nowrap"
         animate={{ x: ['0%', '-50%'] }} transition={{ repeat: Infinity, duration: 22, ease: 'linear' }}>
         {[...GENRES,...GENRES,...GENRES,...GENRES].map((g, i) => (
-          <span key={i} className="text-xs font-black uppercase tracking-widest flex items-center gap-3 text-zinc-500">
+          <button key={i} onClick={() => navigate(`/busca?q=${encodeURIComponent(g)}`)}
+            className="text-xs font-black uppercase tracking-widest flex items-center gap-3 text-zinc-500 hover:text-red-400 transition-colors cursor-pointer">
             <span className="w-1 h-1 rounded-full bg-gradient-to-r from-red-500 to-blue-500 inline-block"/>{g}
-          </span>
+          </button>
         ))}
       </motion.div>
     </div>
@@ -380,6 +410,17 @@ function PaginaProduto({ slugComposto, navigate }: { slugComposto: string; navig
         document.head.appendChild(scriptLd);
       }
       scriptLd.textContent = JSON.stringify(jsonLd);
+
+      // OG dinâmico para compartilhamento no WhatsApp/redes sociais
+      const setOG = (prop: string, content: string) => {
+        let el = document.querySelector(`meta[property="${prop}"]`) as HTMLMetaElement;
+        if (!el) { el = document.createElement('meta'); el.setAttribute('property', prop); document.head.appendChild(el); }
+        el.content = content;
+      };
+      setOG('og:title',       `${produto.titulo} — ${STORE_NAME}`);
+      setOG('og:description', `Compre ${produto.titulo} original. Mídia física 100% original, envio seguro.`);
+      setOG('og:image',       produto.foto || '');
+      setOG('og:url',         produto.link);
     }
     
     return () => { 
@@ -496,6 +537,15 @@ function PaginaColecao({ slug, navigate }: { slug: string; navigate: (path: stri
       let meta = document.querySelector('meta[name="description"]') as HTMLMetaElement;
       if (!meta) { meta = document.createElement('meta'); meta.name = 'description'; document.head.appendChild(meta); }
       meta.content = `${colecao.subtitulo}. Confira a seleção completa na ${STORE_NAME}.`;
+      // OG dinâmico para compartilhamento no WhatsApp/redes sociais
+      const setOG = (prop: string, content: string) => {
+        let el = document.querySelector(`meta[property="${prop}"]`) as HTMLMetaElement;
+        if (!el) { el = document.createElement('meta'); el.setAttribute('property', prop); document.head.appendChild(el); }
+        el.content = content;
+      };
+      setOG('og:title',       `${colecao.titulo} — ${STORE_NAME}`);
+      setOG('og:description', colecao.descricao);
+      setOG('og:url',         `https://sylviosrecords.com.br/colecao/${colecao.slug}`);
     }
     return () => { document.title = STORE_NAME; };
   }, [colecao]);
@@ -667,6 +717,39 @@ function PaginaArtigo({ slug, navigate }: { slug: string; navigate: (path: strin
             </div>
           </div>
         )}
+
+        {/* Feature 1: Artigos Relacionados */}
+        {(() => {
+          const relacionados = artigos.filter(a => a.slug !== artigo.slug && a.categoria === artigo.categoria).slice(0, 3);
+          if (relacionados.length === 0) return null;
+          return (
+            <div className="border-t border-white/8 pt-12 mt-16">
+              <div className="flex items-center gap-2 mb-2">
+                <BookOpen className="w-4 h-4 text-blue-400"/>
+                <span className="text-blue-400 text-xs font-bold uppercase tracking-widest">Leia Também</span>
+              </div>
+              <h2 className="font-bebas text-4xl text-white mb-8">Artigos Relacionados</h2>
+              <div className="grid md:grid-cols-3 gap-6">
+                {relacionados.map(r => (
+                  <motion.button key={r.slug} whileHover={{ y: -4 }} transition={{ duration: 0.2 }}
+                    onClick={() => navigate(`/artigo/${r.slug}`)}
+                    className="text-left flex flex-col rounded-2xl overflow-hidden bg-zinc-900 border border-white/6 hover:border-red-500/40 transition-all group cursor-pointer">
+                    <div className="relative h-40 overflow-hidden">
+                      <img src={r.imagemCapa} alt={r.titulo} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"/>
+                      <div className="absolute inset-0 bg-gradient-to-t from-zinc-900 to-transparent"/>
+                    </div>
+                    <div className="p-5 flex flex-col flex-grow">
+                      <span className="text-red-400 text-[10px] font-bold uppercase tracking-widest mb-2">{r.categoria}</span>
+                      <h3 className="font-bebas text-xl text-white leading-tight mb-2 group-hover:text-red-400 transition-colors">{r.titulo}</h3>
+                      <p className="text-zinc-600 text-xs leading-relaxed line-clamp-2 flex-grow">{r.resumo}</p>
+                      <span className="text-zinc-500 text-[10px] mt-3 flex items-center gap-1"><Clock className="w-3 h-3"/>{r.tempoLeitura}</span>
+                    </div>
+                  </motion.button>
+                ))}
+              </div>
+            </div>
+          );
+        })()}
       </div>
     </div>
   );
@@ -828,6 +911,10 @@ function PaginaColecoesList({ navigate }: { navigate: (path: string) => void }) 
 
 // ── Pagina Blog List (Todos os Artigos) ───────────────────────────────────────
 function PaginaBlogList({ navigate }: { navigate: (path: string) => void }) {
+  const [catFiltro, setCatFiltro] = useState<string>('Todos');
+  const categorias = ['Todos', ...Array.from(new Set(artigos.map(a => a.categoria)))];
+  const artigosFiltrados = catFiltro === 'Todos' ? artigos : artigos.filter(a => a.categoria === catFiltro);
+
   useEffect(() => {
     document.title = `Blog e Artigos — ${STORE_NAME}`;
     return () => { document.title = STORE_NAME; };
@@ -844,17 +931,28 @@ function PaginaBlogList({ navigate }: { navigate: (path: string) => void }) {
           <h1 className="font-bebas text-5xl md:text-7xl text-white mb-4">Blog e <span className="sr-gradient-text">Artigos</span></h1>
           <p className="text-zinc-400 text-lg">Guias, curiosidades e listas essenciais para fãs e colecionadores.</p>
         </div>
+        {/* Feature 2: Tags de categoria clicáveis */}
+        <div className="flex flex-wrap gap-2 mb-10">
+          {categorias.map(cat => (
+            <button key={cat} onClick={() => setCatFiltro(cat)}
+              className={`px-4 py-2 rounded-full text-sm font-semibold transition-all ${
+                catFiltro === cat ? 'sr-gradient text-white shadow-lg shadow-red-950/30' : 'bg-white/5 border border-white/10 text-zinc-400 hover:bg-white/10 hover:text-white'
+              }`}>{cat}
+            </button>
+          ))}
+        </div>
         <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
-          {artigos.map(artigo => (
+          {artigosFiltrados.map(artigo => (
             <motion.button key={artigo.slug} whileHover={{ y: -6 }} transition={{ duration: 0.2 }}
               onClick={() => navigate(`/artigo/${artigo.slug}`)}
               className="text-left flex flex-col rounded-3xl overflow-hidden bg-zinc-900 border border-white/6 hover:border-red-500/40 transition-all group cursor-pointer h-full">
               <div className="relative h-56 overflow-hidden">
                 <img src={artigo.imagemCapa} alt={artigo.titulo} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"/>
                 <div className="absolute inset-0 bg-gradient-to-t from-zinc-900 to-transparent"/>
-                <span className="absolute top-4 left-4 px-3 py-1 rounded-full bg-red-500/20 border border-red-500/30 text-red-400 text-xs font-bold uppercase tracking-widest">
+                <button onClick={e => { e.stopPropagation(); setCatFiltro(artigo.categoria); }}
+                  className="absolute top-4 left-4 px-3 py-1 rounded-full bg-red-500/20 border border-red-500/30 text-red-400 text-xs font-bold uppercase tracking-widest hover:bg-red-500/40 transition-colors">
                   {artigo.categoria}
-                </span>
+                </button>
               </div>
               <div className="p-6 flex flex-col flex-grow">
                 <h3 className="font-bebas text-3xl text-white leading-tight mb-3 group-hover:text-red-400 transition-colors">
@@ -994,7 +1092,7 @@ function PaginaCatalogo({ navigate }: { navigate: (path: string) => void }) {
         </div>
       </section>
 
-      <GenreTicker/>
+      <GenreTicker navigate={navigate}/>
 
       {/* Catálogo */}
       <section id="catalogo" className="py-24 px-6">
@@ -1272,9 +1370,56 @@ function PaginaBusca({ buscaQuery, navigate }: { buscaQuery: string; navigate: (
   );
 }
 
+// ── Feature 6: Página Novidades ──────────────────────────────────────────────
+function PaginaNovidades({ navigate }: { navigate: (path: string) => void }) {
+  const [produtos, setProdutos] = useState<Produto[]>([]);
+  const [loading, setLoading]   = useState(true);
+
+  useEffect(() => {
+    document.title = `Novidades — ${STORE_NAME}`;
+    fetch('/api/produtos?offset=0&limit=20&sort=date_desc')
+      .then(r => r.json())
+      .then(d => { setProdutos(d.results || []); setLoading(false); })
+      .catch(() => setLoading(false));
+    return () => { document.title = STORE_NAME; };
+  }, []);
+
+  return (
+    <div className="min-h-screen bg-[#080808] text-zinc-100 pt-24 pb-20 px-6">
+      <div className="max-w-7xl mx-auto">
+        <button onClick={() => navigate('/')}
+          className="flex items-center gap-2 text-zinc-500 hover:text-white transition-colors mb-8 text-sm group">
+          <ArrowLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform"/> Voltar para Home
+        </button>
+        <div className="mb-12">
+          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-green-500/10 border border-green-500/20 mb-3">
+            <Star className="w-3 h-3 text-green-400"/>
+            <span className="text-green-400 text-xs font-bold uppercase tracking-widest">Recém Chegados</span>
+          </div>
+          <h1 className="font-bebas text-5xl md:text-7xl text-white mb-4">Novidades no <span className="sr-gradient-text">Catálogo</span></h1>
+          <p className="text-zinc-400 text-lg">Os produtos mais recentes adicionados à nossa loja.</p>
+        </div>
+        {loading ? (
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
+            {Array.from({length:20}).map((_,i) => <SkeletonCard key={i}/>)}
+          </div>
+        ) : produtos.length === 0 ? (
+          <div className="text-center py-32"><p className="text-zinc-500">Nenhuma novidade no momento.</p></div>
+        ) : (
+          <motion.div initial={{opacity:0,y:10}} animate={{opacity:1,y:0}} transition={{duration:0.3}}
+            className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
+            {produtos.map(p => <ProdutoCard key={p.id} p={p} navigate={navigate}/>)}
+          </motion.div>
+        )}
+      </div>
+    </div>
+  );
+}
+
 // ── App principal ─────────────────────────────────────────────────────────────
 export default function App() {
   const { route, navigate } = useRoute();
+  const favCtxValue = useFavoritos();
 
   const isProduto = route.startsWith('/produto/');
   const isColecao = route.startsWith('/colecao/');
@@ -1282,16 +1427,17 @@ export default function App() {
   const isBusca   = route.startsWith('/busca');
   const isColecoesList = route === '/colecoes';
   const isBlogList = route === '/blog';
+  const isNovidades = route === '/novidades';
 
   const slugProduto = isProduto ? route.replace('/produto/', '') : '';
   const slugColecao = isColecao ? route.replace('/colecao/', '') : '';
   const slugArtigo  = isArtigo  ? route.replace('/artigo/',  '') : '';
   const buscaQuery  = isBusca   ? new URLSearchParams(route.split('?')[1]).get('q') || '' : '';
 
-  const isSecundaria = isProduto || isColecao || isArtigo || isColecoesList || isBlogList || isBusca;
+  const isSecundaria = isProduto || isColecao || isArtigo || isColecoesList || isBlogList || isBusca || isNovidades;
 
   return (
-    <>
+    <FavCtx.Provider value={favCtxValue}>
       <style>{`
         .font-bebas { font-family: 'Bebas Neue', sans-serif; letter-spacing: 0.04em; }
         body { font-family: 'DM Sans', system-ui, sans-serif; }
@@ -1339,6 +1485,10 @@ export default function App() {
           <motion.div key="bloglist" initial={{opacity:0}} animate={{opacity:1}} exit={{opacity:0}} transition={{duration:0.2}}>
             <PaginaBlogList navigate={navigate}/>
           </motion.div>
+        ) : isNovidades ? (
+          <motion.div key="novidades" initial={{opacity:0}} animate={{opacity:1}} exit={{opacity:0}} transition={{duration:0.2}}>
+            <PaginaNovidades navigate={navigate}/>
+          </motion.div>
         ) : isBusca ? (
           <motion.div key="busca" initial={{opacity:0}} animate={{opacity:1}} exit={{opacity:0}} transition={{duration:0.2}}>
             <PaginaBusca buscaQuery={buscaQuery} navigate={navigate}/>
@@ -1349,6 +1499,6 @@ export default function App() {
           </motion.div>
         )}
       </AnimatePresence>
-    </>
+    </FavCtx.Provider>
   );
 }
