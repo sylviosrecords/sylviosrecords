@@ -208,7 +208,7 @@ function SkeletonCard() {
   );
 }
 
-function ProdutoCard({ p, navigate }: { p: Produto; navigate: (path: string) => void }) {
+function ProdutoCard({ p, navigate }: { key?: React.Key; p: Produto; navigate: (path: string) => void }) {
   const [imgOk,     setImgOk]     = useState(true);
   const [imgLoaded, setImgLoaded] = useState(false);
   const urlProduto = `/produto/${p.id}-${slugify(p.titulo)}`;
@@ -245,7 +245,7 @@ function ProdutoCard({ p, navigate }: { p: Produto; navigate: (path: string) => 
   );
 }
 
-function FAQItem({ q, a }: { q: string; a: string }) {
+function FAQItem({ q, a }: { key?: React.Key; q: string; a: string }) {
   const [open, setOpen] = useState(false);
   return (
     <div className="border-b border-white/8 cursor-pointer group" onClick={() => setOpen(!open)}>
@@ -606,8 +606,10 @@ function PaginaArtigo({ slug, navigate }: { slug: string; navigate: (path: strin
 
 // ── Seção Coleções (home) ─────────────────────────────────────────────────────
 function SecaoColecoes({ navigate }: { navigate: (path: string) => void }) {
+  const scrollRef = useRef<HTMLDivElement>(null);
+
   return (
-    <section id="colecoes" className="py-24 px-6 bg-white/[0.015] border-y border-white/6">
+    <section id="colecoes" className="py-24 px-6 bg-white/[0.015] border-y border-white/6 overflow-hidden">
       <div className="max-w-7xl mx-auto">
         <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-10">
           <div>
@@ -618,22 +620,37 @@ function SecaoColecoes({ navigate }: { navigate: (path: string) => void }) {
             <h2 className="font-bebas text-5xl md:text-6xl text-white">Explore por <span className="sr-gradient-text">Tema</span></h2>
             <p className="text-zinc-500 text-sm mt-2">Seleções editoriais para te ajudar a encontrar o que procura</p>
           </div>
+          <div className="flex items-center gap-4">
+            <button onClick={() => navigate('/colecoes')} className="text-blue-400 text-sm font-bold hover:text-white transition-colors">Ver Todas</button>
+            <div className="hidden md:flex gap-2">
+              <button aria-label="Anterior" onClick={() => scrollRef.current?.scrollBy({ left: -320, behavior: 'smooth' })} className="w-10 h-10 rounded-full border border-white/10 flex items-center justify-center hover:bg-white/10"><ChevronLeft className="w-5 h-5 text-white"/></button>
+              <button aria-label="Próximo" onClick={() => scrollRef.current?.scrollBy({ left:  320, behavior: 'smooth' })} className="w-10 h-10 rounded-full border border-white/10 flex items-center justify-center hover:bg-white/10"><ChevronRight className="w-5 h-5 text-white"/></button>
+            </div>
+          </div>
         </div>
-        <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
-          {colecoes.map((c, i) => (
-            <motion.button key={c.slug} whileHover={{ y: -6 }} transition={{ duration: 0.2 }}
-              onClick={() => navigate(`/colecao/${c.slug}`)}
-              className="text-left p-6 rounded-2xl bg-zinc-900 border border-white/6 hover:border-red-500/40 transition-all group cursor-pointer">
-              <div className="w-10 h-10 rounded-xl sr-gradient flex items-center justify-center mb-4 shadow-lg shadow-red-950/30">
-                {[<Film className="w-5 h-5 text-white"/>,<Music className="w-5 h-5 text-white"/>,<Star className="w-5 h-5 text-white"/>,<Disc className="w-5 h-5 text-white"/>][i % 4]}
-              </div>
-              <h3 className="font-bebas text-xl text-white leading-tight mb-2 group-hover:text-red-400 transition-colors">{c.titulo}</h3>
-              <p className="text-zinc-600 text-xs leading-relaxed line-clamp-2">{c.subtitulo}</p>
-              <div className="flex items-center gap-1 mt-4 text-red-500 text-xs font-bold">
-                Ver seleção <ChevronRight className="w-3 h-3"/>
-              </div>
-            </motion.button>
-          ))}
+        <div className="relative -mx-6 px-6">
+          <div ref={scrollRef} className="flex gap-4 overflow-x-auto snap-x snap-mandatory scroll-smooth pb-8 [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
+            {colecoes.slice(0, 8).map((c, i) => (
+              <motion.button key={c.slug} whileHover={{ y: -6 }} transition={{ duration: 0.2 }}
+                onClick={() => navigate(`/colecao/${c.slug}`)}
+                className="text-left p-6 rounded-2xl bg-zinc-900 border border-white/6 hover:border-red-500/40 transition-all group cursor-pointer snap-start min-w-[280px] w-[280px] sm:min-w-[300px] sm:w-[300px] flex-shrink-0 flex flex-col">
+                <div className="w-10 h-10 rounded-xl sr-gradient flex items-center justify-center mb-4 shadow-lg shadow-red-950/30">
+                  {[<Film className="w-5 h-5 text-white"/>,<Music className="w-5 h-5 text-white"/>,<Star className="w-5 h-5 text-white"/>,<Disc className="w-5 h-5 text-white"/>][i % 4]}
+                </div>
+                <h3 className="font-bebas text-xl text-white leading-tight mb-2 group-hover:text-red-400 transition-colors">{c.titulo}</h3>
+                <p className="text-zinc-600 text-xs leading-relaxed line-clamp-2 flex-grow">{c.subtitulo}</p>
+                <div className="flex items-center gap-1 mt-4 text-red-500 text-xs font-bold">
+                  Ver seleção <ChevronRight className="w-3 h-3"/>
+                </div>
+              </motion.button>
+            ))}
+            {colecoes.length > 8 && (
+              <button onClick={() => navigate('/colecoes')} className="text-left p-6 rounded-2xl bg-zinc-800/50 border border-white/10 hover:border-white/30 transition-all group cursor-pointer snap-start min-w-[280px] w-[280px] flex-shrink-0 flex flex-col items-center justify-center text-zinc-400 hover:text-white">
+                 <div className="w-12 h-12 rounded-full border border-white/10 flex items-center justify-center mb-4"><ChevronRight className="w-5 h-5"/></div>
+                 <span className="font-bebas tracking-wide text-xl">Ver Todas as Coleções</span>
+              </button>
+            )}
+          </div>
         </div>
       </div>
     </section>
@@ -642,38 +659,142 @@ function SecaoColecoes({ navigate }: { navigate: (path: string) => void }) {
 
 // ── Seção Artigos (home) ──────────────────────────────────────────────────────
 function SecaoArtigos({ navigate }: { navigate: (path: string) => void }) {
+  const scrollRef = useRef<HTMLDivElement>(null);
+
   return (
-    <section id="artigos" className="py-24 px-6">
+    <section id="artigos" className="py-24 px-6 overflow-hidden">
       <div className="max-w-7xl mx-auto">
-        <div className="mb-10">
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-red-500/10 border border-red-500/20 mb-3">
-            <BookOpen className="w-3 h-3 text-red-400"/>
-            <span className="text-red-400 text-xs font-bold uppercase tracking-widest">Guias & Artigos</span>
+        <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-10">
+          <div>
+            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-red-500/10 border border-red-500/20 mb-3">
+              <BookOpen className="w-3 h-3 text-red-400"/>
+              <span className="text-red-400 text-xs font-bold uppercase tracking-widest">Guias & Artigos</span>
+            </div>
+            <h2 className="font-bebas text-5xl md:text-6xl text-white">Para quem <span className="sr-gradient-text">entende</span></h2>
+            <p className="text-zinc-500 text-sm mt-2">Conteúdo editorial sobre música, cinema e colecionismo</p>
           </div>
-          <h2 className="font-bebas text-5xl md:text-6xl text-white">Para quem <span className="sr-gradient-text">entende</span></h2>
-          <p className="text-zinc-500 text-sm mt-2">Conteúdo editorial sobre música, cinema e colecionismo</p>
+          <div className="flex items-center gap-4">
+            <button onClick={() => navigate('/blog')} className="text-red-400 text-sm font-bold hover:text-white transition-colors">Ver Blog</button>
+            <div className="hidden md:flex gap-2">
+              <button aria-label="Anterior" onClick={() => scrollRef.current?.scrollBy({ left: -380, behavior: 'smooth' })} className="w-10 h-10 rounded-full border border-white/10 flex items-center justify-center hover:bg-white/10"><ChevronLeft className="w-5 h-5 text-white"/></button>
+              <button aria-label="Próximo" onClick={() => scrollRef.current?.scrollBy({ left:  380, behavior: 'smooth' })} className="w-10 h-10 rounded-full border border-white/10 flex items-center justify-center hover:bg-white/10"><ChevronRight className="w-5 h-5 text-white"/></button>
+            </div>
+          </div>
         </div>
-        <div className="grid md:grid-cols-2 gap-6">
+        <div className="relative -mx-6 px-6">
+          <div ref={scrollRef} className="flex gap-6 overflow-x-auto snap-x snap-mandatory scroll-smooth pb-8 [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
+            {artigos.slice(0, 5).map(artigo => (
+              <motion.button key={artigo.slug} whileHover={{ y: -4 }} transition={{ duration: 0.2 }}
+                onClick={() => navigate(`/artigo/${artigo.slug}`)}
+                className="text-left flex flex-col rounded-3xl overflow-hidden bg-zinc-900 border border-white/6 hover:border-red-500/40 transition-all group cursor-pointer snap-start min-w-[320px] w-[320px] sm:min-w-[380px] sm:w-[380px] flex-shrink-0">
+                <div className="relative h-48 overflow-hidden">
+                  <img src={artigo.imagemCapa} alt={artigo.titulo} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"/>
+                  <div className="absolute inset-0 bg-gradient-to-t from-zinc-900 to-transparent"/>
+                  <span className="absolute top-4 left-4 px-3 py-1 rounded-full bg-red-500/20 border border-red-500/30 text-red-400 text-xs font-bold uppercase tracking-widest">
+                    {artigo.categoria}
+                  </span>
+                </div>
+                <div className="p-6 flex flex-col flex-grow">
+                  <h3 className="font-bebas text-2xl text-white leading-tight mb-3 group-hover:text-red-400 transition-colors">
+                    {artigo.titulo}
+                  </h3>
+                  <p className="text-zinc-500 text-sm leading-relaxed line-clamp-2 mb-4 flex-grow">{artigo.resumo}</p>
+                  <div className="flex items-center justify-between text-xs text-zinc-600">
+                    <span className="flex items-center gap-1.5"><Calendar className="w-3 h-3"/>{artigo.data}</span>
+                    <span className="flex items-center gap-1.5"><Clock className="w-3 h-3"/>{artigo.tempoLeitura}</span>
+                  </div>
+                </div>
+              </motion.button>
+            ))}
+            {artigos.length > 5 && (
+              <button onClick={() => navigate('/blog')} className="text-left rounded-3xl bg-zinc-800/50 border border-white/10 hover:border-white/30 transition-all group cursor-pointer snap-start min-w-[320px] w-[320px] sm:min-w-[380px] sm:w-[380px] flex-shrink-0 flex flex-col items-center justify-center text-zinc-400 hover:text-white">
+                 <div className="w-16 h-16 rounded-full border border-white/10 flex items-center justify-center mb-6"><ChevronRight className="w-6 h-6"/></div>
+                 <span className="font-bebas tracking-wide text-2xl">Ler Mais no Blog</span>
+              </button>
+            )}
+          </div>
+        </div>
+      </div>
+    </section>
+  );
+}
+
+// ── Pagina Coleções List (Todas as Colecoes) ──────────────────────────────────
+function PaginaColecoesList({ navigate }: { navigate: (path: string) => void }) {
+  useEffect(() => {
+    document.title = `Todas as Coleções — ${STORE_NAME}`;
+    return () => { document.title = STORE_NAME; };
+  }, []);
+
+  return (
+    <div className="min-h-screen bg-[#080808] text-zinc-100 pt-24 pb-20 px-6">
+      <div className="max-w-7xl mx-auto">
+        <button onClick={() => navigate('/')}
+          className="flex items-center gap-2 text-zinc-500 hover:text-white transition-colors mb-8 text-sm group">
+          <ArrowLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform"/> Voltar para Home
+        </button>
+        <div className="mb-12">
+          <h1 className="font-bebas text-5xl md:text-7xl text-white mb-4">Todas as <span className="sr-gradient-text">Coleções</span></h1>
+          <p className="text-zinc-400 text-lg">Nossa curadoria completa de temas para os mais variados gostos.</p>
+        </div>
+        <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-6">
+          {colecoes.map((c, i) => (
+            <motion.button key={c.slug} whileHover={{ y: -6 }} transition={{ duration: 0.2 }}
+              onClick={() => navigate(`/colecao/${c.slug}`)}
+              className="text-left p-6 rounded-3xl bg-zinc-900/50 border border-white/6 hover:border-red-500/40 transition-all group cursor-pointer flex flex-col h-full">
+              <div className="w-12 h-12 rounded-2xl sr-gradient flex items-center justify-center mb-6 shadow-lg shadow-red-950/30">
+                {[<Film className="w-6 h-6 text-white"/>,<Music className="w-6 h-6 text-white"/>,<Star className="w-6 h-6 text-white"/>,<Disc className="w-6 h-6 text-white"/>][i % 4]}
+              </div>
+              <h3 className="font-bebas text-2xl text-white leading-tight mb-3 group-hover:text-red-400 transition-colors">{c.titulo}</h3>
+              <p className="text-zinc-500 text-sm leading-relaxed flex-grow">{c.subtitulo}</p>
+              <div className="flex items-center gap-1 mt-6 text-red-500 text-sm font-bold">
+                Ver seleção <ChevronRight className="w-4 h-4"/>
+              </div>
+            </motion.button>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ── Pagina Blog List (Todos os Artigos) ───────────────────────────────────────
+function PaginaBlogList({ navigate }: { navigate: (path: string) => void }) {
+  useEffect(() => {
+    document.title = `Blog e Artigos — ${STORE_NAME}`;
+    return () => { document.title = STORE_NAME; };
+  }, []);
+
+  return (
+    <div className="min-h-screen bg-[#080808] text-zinc-100 pt-24 pb-20 px-6">
+      <div className="max-w-7xl mx-auto">
+        <button onClick={() => navigate('/')}
+          className="flex items-center gap-2 text-zinc-500 hover:text-white transition-colors mb-8 text-sm group">
+          <ArrowLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform"/> Voltar para Home
+        </button>
+        <div className="mb-12">
+          <h1 className="font-bebas text-5xl md:text-7xl text-white mb-4">Blog e <span className="sr-gradient-text">Artigos</span></h1>
+          <p className="text-zinc-400 text-lg">Guias, curiosidades e listas essenciais para fãs e colecionadores.</p>
+        </div>
+        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
           {artigos.map(artigo => (
-            <motion.button key={artigo.slug} whileHover={{ y: -4 }} transition={{ duration: 0.2 }}
+            <motion.button key={artigo.slug} whileHover={{ y: -6 }} transition={{ duration: 0.2 }}
               onClick={() => navigate(`/artigo/${artigo.slug}`)}
-              className="text-left rounded-3xl overflow-hidden bg-zinc-900 border border-white/6 hover:border-red-500/40 transition-all group cursor-pointer">
-              <div className="relative h-48 overflow-hidden">
-                <img src={artigo.imagemCapa} alt={artigo.titulo}
-                  className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"/>
+              className="text-left flex flex-col rounded-3xl overflow-hidden bg-zinc-900 border border-white/6 hover:border-red-500/40 transition-all group cursor-pointer h-full">
+              <div className="relative h-56 overflow-hidden">
+                <img src={artigo.imagemCapa} alt={artigo.titulo} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"/>
                 <div className="absolute inset-0 bg-gradient-to-t from-zinc-900 to-transparent"/>
                 <span className="absolute top-4 left-4 px-3 py-1 rounded-full bg-red-500/20 border border-red-500/30 text-red-400 text-xs font-bold uppercase tracking-widest">
                   {artigo.categoria}
                 </span>
               </div>
-              <div className="p-6">
-                <h3 className="font-bebas text-2xl text-white leading-tight mb-3 group-hover:text-red-400 transition-colors">
+              <div className="p-6 flex flex-col flex-grow">
+                <h3 className="font-bebas text-3xl text-white leading-tight mb-3 group-hover:text-red-400 transition-colors">
                   {artigo.titulo}
                 </h3>
-                <p className="text-zinc-500 text-sm leading-relaxed line-clamp-2 mb-4">{artigo.resumo}</p>
-                <div className="flex items-center justify-between text-xs text-zinc-600">
-                  <span className="flex items-center gap-1.5"><Calendar className="w-3 h-3"/>{artigo.data}</span>
-                  <span className="flex items-center gap-1.5"><Clock className="w-3 h-3"/>{artigo.tempoLeitura}</span>
+                <p className="text-zinc-500 text-sm leading-relaxed mb-6 flex-grow">{artigo.resumo}</p>
+                <div className="flex items-center justify-between text-xs text-zinc-600 mt-auto">
+                  <span className="flex items-center gap-1.5"><Calendar className="w-3.5 h-3.5"/>{artigo.data}</span>
                   <span className="flex items-center gap-1 text-red-500 font-bold">Ler artigo <ChevronRight className="w-3 h-3"/></span>
                 </div>
               </div>
@@ -681,7 +802,7 @@ function SecaoArtigos({ navigate }: { navigate: (path: string) => void }) {
           ))}
         </div>
       </div>
-    </section>
+    </div>
   );
 }
 
@@ -992,12 +1113,14 @@ export default function App() {
   const isProduto = route.startsWith('/produto/');
   const isColecao = route.startsWith('/colecao/');
   const isArtigo  = route.startsWith('/artigo/');
+  const isColecoesList = route === '/colecoes';
+  const isBlogList = route === '/blog';
 
   const slugProduto = isProduto ? route.replace('/produto/', '') : '';
   const slugColecao = isColecao ? route.replace('/colecao/', '') : '';
   const slugArtigo  = isArtigo  ? route.replace('/artigo/',  '') : '';
 
-  const isSecundaria = isProduto || isColecao || isArtigo;
+  const isSecundaria = isProduto || isColecao || isArtigo || isColecoesList || isBlogList;
 
   return (
     <>
@@ -1039,6 +1162,14 @@ export default function App() {
         ) : isArtigo ? (
           <motion.div key="artigo" initial={{opacity:0}} animate={{opacity:1}} exit={{opacity:0}} transition={{duration:0.2}}>
             <PaginaArtigo slug={slugArtigo} navigate={navigate}/>
+          </motion.div>
+        ) : isColecoesList ? (
+          <motion.div key="colecoeslist" initial={{opacity:0}} animate={{opacity:1}} exit={{opacity:0}} transition={{duration:0.2}}>
+            <PaginaColecoesList navigate={navigate}/>
+          </motion.div>
+        ) : isBlogList ? (
+          <motion.div key="bloglist" initial={{opacity:0}} animate={{opacity:1}} exit={{opacity:0}} transition={{duration:0.2}}>
+            <PaginaBlogList navigate={navigate}/>
           </motion.div>
         ) : (
           <motion.div key="catalogo" initial={{opacity:0}} animate={{opacity:1}} exit={{opacity:0}} transition={{duration:0.2}}>
