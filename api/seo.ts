@@ -22,7 +22,12 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     if (match) {
       const mlbId = match[1];
       try {
-        const mlRes = await fetch(`https://api.mercadolibre.com/items/${mlbId}`);
+        const mlRes = await fetch(`https://api.mercadolibre.com/items/${mlbId}`, {
+          headers: {
+            'User-Agent': 'SylviosRecordsBot/1.0',
+            'Accept': 'application/json'
+          }
+        });
         if (mlRes.ok) {
           const mlData = await mlRes.json();
           title = `${mlData.title} — ${STORE_NAME}`;
@@ -32,9 +37,11 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
           } else {
             image = mlData.thumbnail;
           }
+        } else {
+          console.error('[SEO EDGE] ML API retornou status error:', mlRes.status);
         }
       } catch (e) {
-        // Fallback silencioso
+        console.error('[SEO EDGE] Fallback silencioso engatilhado:', e);
       }
     }
   } else if (urlPath.startsWith('/colecao/')) {
