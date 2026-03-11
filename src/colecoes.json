@@ -1,37 +1,37 @@
 [
   {
-    "slug": "melhores-series-dvd",
-    "titulo": "As Melhores Séries dos Anos 2000 em DVD",
-    "subtitulo": "Coleções completas das séries que definiram uma geração",
-    "descricao": "Antes do streaming, havia o DVD. As séries dos anos 2000 foram uma revolução na televisão, com roteiros cinematográficos e produção impecável. Se você quer rever esses clássicos com qualidade máxima — sem buffering, sem plataforma — o DVD é o caminho. Abaixo, uma seleção das mais procuradas.",
-    "ids": ["SUBSTITUA_COM_ID_1", "SUBSTITUA_COM_ID_2", "SUBSTITUA_COM_ID_3"]
-  },
-  {
-    "slug": "rock-anos-90-cds",
-    "titulo": "Os Melhores CDs de Rock dos Anos 90",
-    "subtitulo": "Grunge, britpop e alt-rock — os álbuns que moldaram uma geração",
-    "descricao": "Os anos 90 foram a última grande era do CD. Bandas como Nirvana, Pearl Jam, Oasis e Radiohead lançaram álbuns que ainda hoje são referência. Ter esses discos físicos é mais do que nostalgia — é ter o som da forma como foi masterizado originalmente.",
-    "ids": ["SUBSTITUA_COM_ID_1", "SUBSTITUA_COM_ID_2", "SUBSTITUA_COM_ID_3"]
-  },
-  {
     "slug": "filmes-tarantino-dvd",
-    "titulo": "Filmes de Quentin Tarantino em DVD e Blu-ray",
-    "subtitulo": "A filmografia completa do mestre do cinema cult",
-    "descricao": "Quentin Tarantino é um dos diretores mais cultuados de todos os tempos. Seus filmes ganham uma nova dimensão quando assistidos sem interrupções e com qualidade de imagem superior. Colecionadores de cinema sabem: ter os filmes do Tarantino em mídia física é essencial.",
-    "ids": ["SUBSTITUA_COM_ID_1", "SUBSTITUA_COM_ID_2", "SUBSTITUA_COM_ID_3"]
+    "titulo": "Filmes de Quentin Tarantino em DVD",
+    "subtitulo": "A filmografia do mestre do cinema cult",
+    "descricao": "Quentin Tarantino é um dos diretores mais cultuados de todos os tempos. Seus filmes ganham uma nova dimensão quando assistidos sem interrupções, com a qualidade de imagem e som de um DVD original. Colecionadores de cinema sabem: ter os filmes do Tarantino em mídia física é essencial.",
+    "ids": ["MLB1610549538", "MLB1358608952", "MLB2650202162", "MLB4323799113"]
   },
   {
-    "slug": "mpb-classicos-cds",
-    "titulo": "Clássicos da MPB em CD",
-    "subtitulo": "Chico, Caetano, Elis, Gil — a alma do Brasil em mídia física",
-    "descricao": "A Música Popular Brasileira tem um catálogo riquíssimo que vai de Elizeth Cardoso a Djavan, passando por Chico Buarque, Elis Regina e Gilberto Gil. Esses álbuns representam momentos únicos da história musical brasileira e se tornam cada vez mais raros nas lojas.",
-    "ids": ["SUBSTITUA_COM_ID_1", "SUBSTITUA_COM_ID_2", "SUBSTITUA_COM_ID_3"]
+    "slug": "al-pacino-dvd",
+    "titulo": "Os Melhores Filmes de Al Pacino em DVD",
+    "subtitulo": "Uma das maiores carreiras do cinema americano em mídia física",
+    "descricao": "Al Pacino é sinônimo de cinema de qualidade. De Scarface a Perfume de Mulher, sua carreira atravessa décadas com performances inesquecíveis. Se você é fã do ator — ou simplesmente aprecia grandes filmes — esta seleção é obrigatória.",
+    "ids": ["MLB720143969", "MLB721585689", "MLB4476260525", "MLB756169877", "MLB718690059"]
   },
   {
-    "slug": "box-colecoes-bluray",
-    "titulo": "Box Sets e Coleções em Blu-ray",
-    "subtitulo": "Franquias completas com a melhor qualidade de imagem disponível",
-    "descricao": "Para quem não abre mão da máxima qualidade, o Blu-ray ainda é o rei. Box sets com todas as temporadas ou sagas completas de filmes em Blu-ray são itens de colecionador cada vez mais valorizados.",
-    "ids": ["SUBSTITUA_COM_ID_1", "SUBSTITUA_COM_ID_2", "SUBSTITUA_COM_ID_3"]
+    "slug": "classicos-do-cinema-dvd",
+    "titulo": "Clássicos do Cinema em DVD",
+    "subtitulo": "Filmes que definiram gerações — de Casablanca a Doutor Jivago",
+    "descricao": "Antes do streaming, antes do DVD, havia o cinema de verdade. Filmes com roteiros impecáveis, atores lendários e histórias que resistem ao tempo. Esta seleção reúne alguns dos maiores clássicos da história do cinema disponíveis em DVD original.",
+    "ids": ["MLB715347586", "MLB714378563", "MLB730593576", "MLB845091771", "MLB794964940", "MLB757828406"]
+  },
+  {
+    "slug": "brad-pitt-dvd",
+    "titulo": "Os Melhores Filmes de Brad Pitt em DVD",
+    "subtitulo": "Do drama tenso ao thriller — a versatilidade de um ícone",
+    "descricao": "Brad Pitt é um dos atores mais versáteis de Hollywood. Os anos 90 e 2000 foram seu auge, com filmes que se tornaram referências absolutas do cinema moderno. Esta seleção reúne os títulos mais impactantes da sua carreira disponíveis em DVD.",
+    "ids": ["MLB3975064865", "MLB1040491254", "MLB1674784699", "MLB2974474825", "MLB716477104"]
+  },
+  {
+    "slug": "melhores-dvds-anos-90",
+    "titulo": "Os Melhores Filmes dos Anos 90 em DVD",
+    "subtitulo": "A era de ouro do cinema americano — antes do CGI dominar tudo",
+    "descricao": "Os anos 90 foram um período único no cinema: roteiros ousados, diretores inovadores e atores que marcaram época. De Trainspotting a Beleza Americana, passando por Os Intocáveis e Indochina — esta seleção é para quem sabe que o cinema de verdade tem cheiro de plástico e encarte impresso.",
+    "ids": ["MLB781462064", "MLB979844073", "MLB815771243", "MLB709267150", "MLB905027302", "MLB714382488", "MLB720588723"]
   }
 ]
