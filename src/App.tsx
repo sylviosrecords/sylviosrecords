@@ -880,6 +880,7 @@ function PaginaCatalogo({ navigate }: { navigate: (path: string) => void }) {
   const [categoria,  setCategoria]  = useState('todos');
   const [busca,      setBusca]      = useState('');
   const [buscaInput, setBuscaInput] = useState('');
+  const [navSearch,  setNavSearch]  = useState('');
   const [pagina,     setPagina]     = useState(1);
   const buscaTimer = useRef<ReturnType<typeof setTimeout>|null>(null);
   const { produtos, total, loading, error, limite } = useProdutos(categoria, busca, pagina);
@@ -901,29 +902,37 @@ function PaginaCatalogo({ navigate }: { navigate: (path: string) => void }) {
   return (
     <div className="min-h-screen bg-[#080808] text-zinc-100 overflow-x-hidden">
       <nav className={`fixed top-0 w-full z-50 transition-all duration-300 ${scrolled ? 'bg-[#080808]/92 backdrop-blur-xl border-b border-white/6 py-3' : 'bg-transparent py-5'}`}>
-        <div className="max-w-7xl mx-auto px-6 flex items-center justify-between">
-          <button onClick={() => navigate('/')} className="flex items-center gap-3 group">
+        <div className="max-w-7xl mx-auto px-6 flex items-center justify-between gap-4">
+          <button onClick={() => navigate('/')} className="flex items-center gap-3 group shrink-0">
             <div className="relative w-12 h-12 flex-shrink-0">
               <div className="absolute inset-0 sr-gradient rounded-full opacity-25 blur-lg group-hover:opacity-50 transition-opacity"/>
               <img src={STORE_LOGO} alt={STORE_NAME} className="relative w-full h-full object-contain drop-shadow-[0_0_12px_rgba(230,57,70,0.5)]"
                 referrerPolicy="no-referrer" onError={e=>{(e.currentTarget as HTMLImageElement).style.display='none'}}/>
             </div>
             <div>
-              <span className="font-bebas text-2xl tracking-widest sr-gradient-text">{STORE_NAME.toUpperCase()}</span>
-              <p className="text-zinc-600 text-[10px] uppercase tracking-widest -mt-1">Mídias Físicas · Desde 2005</p>
+              <span className="font-bebas text-2xl tracking-widest sr-gradient-text hidden sm:block">{STORE_NAME.toUpperCase()}</span>
             </div>
           </button>
-          <div className="hidden md:flex items-center gap-8 text-sm font-medium text-zinc-500">
+          
+          <div className="hidden lg:flex flex-1 justify-center items-center gap-8 text-sm font-medium text-zinc-500">
             {[['#catalogo','Catálogo'],['#colecoes','Coleções'],['#artigos','Artigos'],['#sobre','Sobre'],['#faq','FAQ']].map(([href,label]) => (
-              <a key={href} href={href} className="hover:text-white transition-colors relative group">
+              <a key={href} href={href} className="hover:text-white transition-colors relative group whitespace-nowrap">
                 {label}<span className="absolute -bottom-1 left-0 w-0 h-px sr-gradient group-hover:w-full transition-all duration-300"/>
               </a>
             ))}
           </div>
-          <a href={STORE_LINK} target="_blank" rel="noopener noreferrer"
-            className="sr-gradient text-white px-5 py-2.5 rounded-full text-sm font-bold flex items-center gap-2 hover:opacity-90 transition-opacity shadow-lg shadow-red-900/30 active:scale-95">
-            Ver Loja <ExternalLink className="w-4 h-4"/>
-          </a>
+
+          <div className="flex items-center gap-3 shrink-0">
+            <form onSubmit={e => { e.preventDefault(); if (navSearch) navigate(`/busca?q=${encodeURIComponent(navSearch)}`); }} className="relative hidden md:block group">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-500 group-focus-within:text-red-400 transition-colors"/>
+              <input type="text" value={navSearch} onChange={e => setNavSearch(e.target.value)} placeholder="Buscar Discos, Filmes..."
+                className="w-48 pl-9 pr-4 py-2 bg-white/5 border border-white/10 rounded-full text-sm text-white placeholder-zinc-500 focus:outline-none focus:border-red-500/50 focus:bg-white/10 lg:focus:w-64 transition-all duration-300"/>
+            </form>
+            <a href={STORE_LINK} target="_blank" rel="noopener noreferrer"
+              className="sr-gradient text-white px-5 py-2.5 rounded-full text-sm font-bold flex items-center gap-2 hover:opacity-90 transition-opacity shadow-lg shadow-red-900/30 active:scale-95">
+              <span className="hidden sm:inline">Ver Loja</span> <ExternalLink className="w-4 h-4"/>
+            </a>
+          </div>
         </div>
       </nav>
 
