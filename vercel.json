@@ -4,7 +4,7 @@
   "framework": "vite",
   "rewrites": [
     {
-      "source": "/produto/(.*)",
+      "source": "/(.*)",
       "has": [
         {
           "type": "header",
