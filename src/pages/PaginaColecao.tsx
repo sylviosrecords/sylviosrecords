@@ -1,7 +1,8 @@
 import { useEffect } from 'react';
 import { motion } from 'motion/react';
-import { ArrowLeft, BookOpen, Disc, ExternalLink, Film, Music, Star, ChevronRight } from 'lucide-react';
+import { ArrowLeft, BookOpen, Disc, Film, Music, Star, ChevronRight, ExternalLink } from 'lucide-react';
 import { STORE_NAME, STORE_LINK } from '../config';
+import { SEO } from '../components/SEO';
 import { useProdutosColecao } from '../hooks/useProdutos';
 import { SkeletonCard } from '../components/SkeletonCard';
 import { ProdutoCard } from '../components/ProdutoCard';
@@ -14,20 +15,6 @@ export function PaginaColecao({ slug, navigate }: { slug: string; navigate: (pat
   const colecao = colecoes.find(c => c.slug === slug);
   useEffect(() => {
     if (colecao) {
-      document.title = `${colecao.titulo} — ${STORE_NAME}`;
-      let meta = document.querySelector('meta[name="description"]') as HTMLMetaElement;
-      if (!meta) { meta = document.createElement('meta'); meta.name = 'description'; document.head.appendChild(meta); }
-      meta.content = `${colecao.subtitulo}. Confira a seleção completa na ${STORE_NAME}.`;
-      // OG dinâmico para compartilhamento no WhatsApp/redes sociais
-      const setOG = (prop: string, content: string) => {
-        let el = document.querySelector(`meta[property="${prop}"]`) as HTMLMetaElement;
-        if (!el) { el = document.createElement('meta'); el.setAttribute('property', prop); document.head.appendChild(el); }
-        el.content = content;
-      };
-      setOG('og:title',       `${colecao.titulo} — ${STORE_NAME}`);
-      setOG('og:description', colecao.descricao);
-      setOG('og:url',         `https://sylviosrecords.com.br/colecao/${colecao.slug}`);
-
       // JSON-LD Schema para Coleção
       const jsonLd = {
         "@context": "https://schema.org",
@@ -46,7 +33,6 @@ export function PaginaColecao({ slug, navigate }: { slug: string; navigate: (pat
       scriptLd.textContent = JSON.stringify(jsonLd);
     }
     return () => { 
-      document.title = STORE_NAME; 
       const existingScript = document.getElementById('json-ld-collection');
       if (existingScript) existingScript.remove();
     };
@@ -67,6 +53,11 @@ export function PaginaColecao({ slug, navigate }: { slug: string; navigate: (pat
 
   return (
     <div className="min-h-screen bg-[#080808] text-zinc-100 pt-24 pb-20 px-6">
+      <SEO 
+        title={colecao.titulo} 
+        description={colecao.descricao}
+        url={`https://sylviosrecords.com.br/colecao/${colecao.slug}`}
+      />
       <div className="max-w-6xl mx-auto">
         <button onClick={() => { if (window.history.length > 2) window.history.back(); else navigate('/colecoes'); }}
           className="flex items-center gap-2 text-zinc-500 hover:text-white transition-colors mb-10 text-sm group">

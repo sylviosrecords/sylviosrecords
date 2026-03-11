@@ -2,19 +2,16 @@ import { useEffect } from 'react';
 import { motion } from 'motion/react';
 import { ArrowLeft, ChevronRight, Disc, Film, Music, Star } from 'lucide-react';
 import { STORE_NAME } from '../config';
+import { SEO } from '../components/SEO';
 import colecoesData from '../colecoes.json';
 import type { Colecao } from '../types';
 
 const colecoes: Colecao[] = (colecoesData as Colecao[]).slice().reverse();
 
 export function PaginaColecoesList({ navigate }: { navigate: (path: string) => void }) {
-  useEffect(() => {
-    document.title = `Todas as Coleções — ${STORE_NAME}`;
-    return () => { document.title = STORE_NAME; };
-  }, []);
-
   return (
     <div className="min-h-screen bg-[#080808] text-zinc-100 pt-24 pb-20 px-6">
+      <SEO title="Todas as Coleções" url="https://sylviosrecords.com.br/colecoes" />
       <div className="max-w-7xl mx-auto">
         <button onClick={() => { if (window.history.length > 2) window.history.back(); else navigate('/'); }}
           className="flex items-center gap-2 text-zinc-500 hover:text-white transition-colors mb-8 text-sm group">

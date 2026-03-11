@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Loader2, ArrowLeft, ImageOff, Sparkles, ShoppingCart, ExternalLink } from 'lucide-react';
 import { STORE_NAME } from '../config';
+import { SEO } from '../components/SEO';
 import { useProduto, useDescricao } from '../hooks/useProdutos';
 import { fmt, disc } from '../utils';
 
@@ -12,10 +13,6 @@ export function PaginaProduto({ slugComposto, navigate }: { slugComposto: string
 
   useEffect(() => {
     if (produto?.titulo) {
-      document.title = `${produto.titulo} — ${STORE_NAME}`;
-      let meta = document.querySelector('meta[name="description"]') as HTMLMetaElement;
-      if (!meta) { meta = document.createElement('meta'); meta.name = 'description'; document.head.appendChild(meta); }
-      meta.content = `Compre ${produto.titulo} no Mercado Livre com envio seguro. Mídia física original — ${STORE_NAME}.`;
 
       // Injeção de Meta-Dados JSON-LD (Schema.org) para Rich Snippets no Google
       const jsonLd = {
@@ -46,21 +43,8 @@ export function PaginaProduto({ slugComposto, navigate }: { slugComposto: string
         document.head.appendChild(scriptLd);
       }
       scriptLd.textContent = JSON.stringify(jsonLd);
-
-      // OG dinâmico para compartilhamento no WhatsApp/redes sociais
-      const setOG = (prop: string, content: string) => {
-        let el = document.querySelector(`meta[property="${prop}"]`) as HTMLMetaElement;
-        if (!el) { el = document.createElement('meta'); el.setAttribute('property', prop); document.head.appendChild(el); }
-        el.content = content;
-      };
-      setOG('og:title',       `${produto.titulo} — ${STORE_NAME}`);
-      setOG('og:description', `Compre ${produto.titulo} original. Mídia física 100% original, envio seguro.`);
-      setOG('og:image',       produto.foto || '');
-      setOG('og:url',         produto.link);
     }
-    
     return () => { 
-      document.title = STORE_NAME; 
       const existingScript = document.getElementById('json-ld');
       if (existingScript) existingScript.remove();
     };
@@ -82,6 +66,13 @@ export function PaginaProduto({ slugComposto, navigate }: { slugComposto: string
 
   return (
     <div className="min-h-screen bg-[#080808] text-zinc-100 pt-24 pb-20 px-6">
+      <SEO 
+        title={produto.titulo} 
+        description={`Compre ${produto.titulo} original. Mídia física 100% original, envio seguro.`}
+        image={produto.foto}
+        url={produto.link}
+        type="product"
+      />
       <div className="max-w-5xl mx-auto">
         <button onClick={() => { if (window.history.length > 2) { window.history.back(); } else { navigate('/#catalogo'); } }}
           className="flex items-center gap-2 text-zinc-500 hover:text-white transition-colors mb-10 text-sm group">

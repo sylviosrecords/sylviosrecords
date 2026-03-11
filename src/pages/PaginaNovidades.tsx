@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { motion } from 'motion/react';
 import { ArrowLeft, Star } from 'lucide-react';
 import { STORE_NAME } from '../config';
+import { SEO } from '../components/SEO';
 import { SkeletonCard } from '../components/SkeletonCard';
 import { ProdutoCard } from '../components/ProdutoCard';
 import type { Produto } from '../types';
@@ -11,16 +12,15 @@ export function PaginaNovidades({ navigate }: { navigate: (path: string) => void
   const [loading, setLoading]   = useState(true);
 
   useEffect(() => {
-    document.title = `Novidades — ${STORE_NAME}`;
     fetch('/api/produtos?offset=0&limit=20&sort=date_desc')
       .then(r => r.json())
       .then(d => { setProdutos(d.results || []); setLoading(false); })
       .catch(() => setLoading(false));
-    return () => { document.title = STORE_NAME; };
   }, []);
 
   return (
     <div className="min-h-screen bg-[#080808] text-zinc-100 pt-24 pb-20 px-6">
+      <SEO title="Novidades" url="https://sylviosrecords.com.br/novidades" />
       <div className="max-w-7xl mx-auto">
         <button onClick={() => { if (window.history.length > 2) window.history.back(); else navigate('/'); }}
           className="flex items-center gap-2 text-zinc-500 hover:text-white transition-colors mb-8 text-sm group">

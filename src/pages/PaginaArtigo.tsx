@@ -1,8 +1,9 @@
 import { useEffect } from 'react';
 import { motion } from 'motion/react';
-import { ArrowLeft, Calendar, Clock, ShoppingCart, ExternalLink, BookOpen } from 'lucide-react';
+import { ArrowLeft, Calendar, Clock, ShoppingCart, BookOpen, ExternalLink } from 'lucide-react';
 import { STORE_NAME, STORE_LINK } from '../config';
 import { renderMarkdown } from '../utils';
+import { SEO } from '../components/SEO';
 import { useProdutosColecao } from '../hooks/useProdutos';
 import { SkeletonCard } from '../components/SkeletonCard';
 import { ProdutoCard } from '../components/ProdutoCard';
@@ -17,21 +18,6 @@ export function PaginaArtigo({ slug, navigate }: { slug: string; navigate: (path
 
   useEffect(() => {
     if (artigo) {
-      document.title = `${artigo.titulo} — ${STORE_NAME}`;
-      let meta = document.querySelector('meta[name="description"]') as HTMLMetaElement;
-      if (!meta) { meta = document.createElement('meta'); meta.name = 'description'; document.head.appendChild(meta); }
-      meta.content = artigo.resumo;
-      // Open Graph dinâmico
-      const setOG = (prop: string, content: string) => {
-        let el = document.querySelector(`meta[property="${prop}"]`) as HTMLMetaElement;
-        if (!el) { el = document.createElement('meta'); el.setAttribute('property', prop); document.head.appendChild(el); }
-        el.content = content;
-      };
-      setOG('og:title',       artigo.titulo);
-      setOG('og:description', artigo.resumo);
-      setOG('og:image',       artigo.imagemCapa);
-      setOG('og:url',         `https://sylviosrecords.com.br/artigo/${artigo.slug}`);
-
       // JSON-LD Schema para o Artigo
       const jsonLd = {
         "@context": "https://schema.org",
@@ -52,7 +38,6 @@ export function PaginaArtigo({ slug, navigate }: { slug: string; navigate: (path
       scriptLd.textContent = JSON.stringify(jsonLd);
     }
     return () => { 
-      document.title = STORE_NAME; 
       const existingScript = document.getElementById('json-ld-article');
       if (existingScript) existingScript.remove();
     };
@@ -69,7 +54,13 @@ export function PaginaArtigo({ slug, navigate }: { slug: string; navigate: (path
 
   return (
     <div className="min-h-screen bg-[#080808] text-zinc-100 pt-24 pb-20">
-
+      <SEO 
+        title={artigo.titulo} 
+        description={artigo.resumo}
+        image={artigo.imagemCapa}
+        url={`https://sylviosrecords.com.br/artigo/${artigo.slug}`}
+        type="article"
+      />
       {/* Capa do artigo */}
       <div className="relative h-[50vh] min-h-[340px] overflow-hidden">
         <img src={artigo.imagemCapa} alt={artigo.titulo} className="w-full h-full object-cover"/>

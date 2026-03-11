@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { motion } from 'motion/react';
 import { ArrowLeft, Heart } from 'lucide-react';
 import { STORE_NAME } from '../config';
+import { SEO } from '../components/SEO';
 import { FavCtx } from '../contexts/FavoritosContext';
 import { SkeletonCard } from '../components/SkeletonCard';
 import { ProdutoCard } from '../components/ProdutoCard';
@@ -27,6 +28,7 @@ export function PaginaFavoritos({ navigate }: { navigate: (path: string) => void
 
   return (
     <div className="min-h-screen bg-[#080808] text-zinc-100 pt-24 pb-20 px-6">
+      <SEO title="Meus Favoritos" url="https://sylviosrecords.com.br/favoritos" />
       <div className="max-w-7xl mx-auto">
         <button onClick={() => { if (window.history.length > 2) window.history.back(); else navigate('/'); }}
           className="flex items-center gap-2 text-zinc-500 hover:text-white transition-colors mb-8 text-sm group">
