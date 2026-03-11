@@ -43,7 +43,7 @@ Regras obrigatórias:
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({
       contents: [{ parts: [{ text: prompt }] }],
-      generationConfig: { maxOutputTokens: 600, temperature: 0.5 },
+      generationConfig: { temperature: 0.5 },
     }),
   });
 
@@ -54,11 +54,6 @@ Regras obrigatórias:
   }
   const data = await res.json();
   const textoGemini = data.candidates?.[0]?.content?.parts?.[0]?.text?.trim() || '';
-  const finishReason = data.candidates?.[0]?.finishReason || 'UNKNOWN';
-  
-  if (finishReason !== 'STOP') {
-    return `DEBUG_GEMINI_CORTE [Motivo: ${finishReason}]: ${textoGemini}`;
-  }
   
   return textoGemini;
 }
