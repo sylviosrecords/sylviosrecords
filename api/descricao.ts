@@ -31,16 +31,7 @@ Escreva uma descricao editorial curta (3-4 frases) em portugues para o produto: 
 Informe o tipo de midia, genero (musical ou cinematografico), periodo/ano aproximado se souber, e uma curiosidade interessante.
 Nao mencione preco nem condicao do produto. Nao use asteriscos nem markdown. Escreva de forma natural e envolvente.`;
 
-  const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent?key=${apiKey}`;
-
-  // Consulta os modelos disponiveis para esta chave
-  const listUrl = `https://generativelanguage.googleapis.com/v1beta/models?key=${apiKey}`;
-  const listRes = await fetch(listUrl);
-  if (listRes.ok) {
-    const listData = await listRes.json();
-    const models = listData.models.map((m: any) => m.name);
-    return `DEBUG_MODELS: ${models.join(', ')}`;
-  }
+  const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`;
 
   const res = await fetch(url, {
     method: 'POST',
@@ -54,7 +45,7 @@ Nao mencione preco nem condicao do produto. Nao use asteriscos nem markdown. Esc
   if (!res.ok) {
     const text = await res.text();
     console.error('Gemini API Error:', res.status, text);
-    return `ERRO_GEMINI: ${res.status} - ${text}`;
+    return '';
   }
   const data = await res.json();
   return data.candidates?.[0]?.content?.parts?.[0]?.text?.trim() || '';
