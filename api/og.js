@@ -46,31 +46,29 @@ export default async function handler(req, res) {
   let url = `https://sylviosrecords.com.br${urlPath}`;
 
   let errorTrace = '';
-  if (urlPath.startsWith('/produto/')) {
-    const match = urlPath.match(/\/produto\/(MLB\d+)/i);
-    if (match) {
-      const mlbId = match[1];
-      try {
-        const token = await getAccessToken();
-        if(!token) errorTrace += 'Falha no getAccessToken(). Verifique EnvVars. ';
+  // Detecta qualquer MLB ID independente da estrutura da URL (ex: /algo/MLB123... ou ?url=MLB123...)
+  const mlbMatch = urlPath.match(/(MLB\d+)/i);
+  if (mlbMatch) {
+    const mlbId = mlbMatch[1];
+    try {
+        // A API pública do MercadoLivre sem Token retorna 200 pros metadados básicos.
+        // O Token Auth privado estava causando 404 Not Found porque o AppID não era dono do anúncio testado.
+        const headers = { 'User-Agent': 'SylviosRecords/1.0', 'Accept': 'application/json' };
         
-        const headers = { 'User-Agent': 'SylviosRecordsBot/2.0', 'Accept': 'application/json' };
-        if (token) headers['Authorization'] = `Bearer ${token}`;
-
         const mlRes = await fetch(`https://api.mercadolibre.com/items/${mlbId}`, { headers });
         if (mlRes.ok) {
-          errorTrace += 'Fetch 200 OK. ';
+          errorTrace += 'Fetch Público 200 OK. ';
           const data = await mlRes.json();
           title = `${data.title} — ${STORE_NAME}`;
           description = `Compre ${data.title} original. Mídia física 100% original, envio seguro.`;
           image = (data.pictures && data.pictures.length > 0) ? data.pictures[0].secure_url : data.thumbnail;
         } else {
-             errorTrace += `Fetch Error: ${mlRes.status} ${mlRes.statusText}. `;
+             errorTrace += `Fetch Público Error: ${mlRes.status} ${mlRes.statusText}. `;
         }
       } catch (e) {
-         errorTrace += `Exception: ${e.message}. `;
+         errorTrace += `Public Exception: ${e.message}. `;
       }
-    }
+  }
   }
 
   const html = `<!DOCTYPE html>
