@@ -100,7 +100,7 @@ export default async function handler(req, res) {
   <h1>${title}</h1>
   <p>${description}</p>
   <img src="${image}" alt="${title}"/>
-  <!-- DEBUG: ${trace} -->
+
 </body>
 </html>`;
 
