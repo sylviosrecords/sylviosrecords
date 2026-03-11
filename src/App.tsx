@@ -103,7 +103,7 @@ function useProdutos(categoria: string, busca: string, pagina: number) {
   const [total,    setTotal]    = useState(0);
   const [loading,  setLoading]  = useState(true);
   const [error,    setError]    = useState(false);
-  const limite = 20;
+  const limite = 10; // Reduzido de 20 para 10 para evitar scroll gigantesco na home
   useEffect(() => {
     let cancelado = false;
     const carregar = async () => {
@@ -313,25 +313,25 @@ function NavSecundaria({ navigate }: { navigate: (path: string) => void }) {
   const [buscaInput, setBuscaInput] = useState('');
   return (
     <nav className="fixed top-0 w-full z-50 bg-[#080808]/92 backdrop-blur-xl border-b border-white/6 py-3">
-      <div className="max-w-7xl mx-auto px-6 flex items-center justify-between gap-4">
+      <div className="max-w-7xl mx-auto px-4 flex items-center justify-between gap-3">
         <button onClick={() => navigate('/')} className="flex items-center gap-3 group shrink-0">
           <div className="relative w-10 h-10 shrink-0">
             <div className="absolute inset-0 sr-gradient rounded-full opacity-25 blur-lg"/>
-            <img src={STORE_LOGO} alt={STORE_NAME} className="relative w-full h-full object-contain" referrerPolicy="no-referrer"
+            <img src={STORE_LOGO} alt={STORE_NAME} className="relative w-full h-full object-contain cursor-pointer" referrerPolicy="no-referrer"
               onError={e=>{(e.currentTarget as HTMLImageElement).style.display='none'}}/>
           </div>
           <span className="hidden sm:block font-bebas text-xl tracking-widest sr-gradient-text">{STORE_NAME.toUpperCase()}</span>
         </button>
-        <div className="flex-1 max-w-sm relative hidden sm:block">
+        <div className="flex-1 max-w-sm relative">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-500"/>
           <form onSubmit={e => { e.preventDefault(); if (buscaInput) navigate(`/busca?q=${encodeURIComponent(buscaInput)}`); }}>
-            <input type="text" value={buscaInput} onChange={e => setBuscaInput(e.target.value)} placeholder="Buscar discos, filmes..."
+            <input type="text" value={buscaInput} onChange={e => setBuscaInput(e.target.value)} placeholder="Pesquisar itens..."
               className="w-full pl-9 pr-4 py-2 bg-white/5 border border-white/10 rounded-full text-sm text-white placeholder-zinc-500 focus:outline-none focus:border-red-500/50 transition-colors"/>
           </form>
         </div>
         <a href={STORE_LINK} target="_blank" rel="noopener noreferrer"
-          className="shrink-0 sr-gradient text-white px-4 py-2 rounded-full text-sm font-bold flex items-center gap-2 hover:opacity-90">
-          <span className="hidden sm:inline">Ver Loja</span> <ExternalLink className="w-4 h-4"/>
+          className="shrink-0 sr-gradient text-white px-3 py-2 sm:px-4 rounded-full text-sm font-bold flex items-center gap-1.5 hover:opacity-90">
+          <span className="hidden sm:inline">Mercado Livre</span> <ExternalLink className="w-4 h-4"/>
         </a>
       </div>
     </nav>
@@ -902,15 +902,15 @@ function PaginaCatalogo({ navigate }: { navigate: (path: string) => void }) {
   return (
     <div className="min-h-screen bg-[#080808] text-zinc-100 overflow-x-hidden">
       <nav className={`fixed top-0 w-full z-50 transition-all duration-300 ${scrolled ? 'bg-[#080808]/92 backdrop-blur-xl border-b border-white/6 py-3' : 'bg-transparent py-5'}`}>
-        <div className="max-w-7xl mx-auto px-6 flex items-center justify-between gap-4">
+        <div className="max-w-7xl mx-auto px-4 flex items-center justify-between gap-3">
           <button onClick={() => navigate('/')} className="flex items-center gap-3 group shrink-0">
-            <div className="relative w-12 h-12 flex-shrink-0">
+            <div className="relative w-10 h-10 flex-shrink-0">
               <div className="absolute inset-0 sr-gradient rounded-full opacity-25 blur-lg group-hover:opacity-50 transition-opacity"/>
-              <img src={STORE_LOGO} alt={STORE_NAME} className="relative w-full h-full object-contain drop-shadow-[0_0_12px_rgba(230,57,70,0.5)]"
+              <img src={STORE_LOGO} alt={STORE_NAME} className="relative w-full h-full object-contain drop-shadow-[0_0_12px_rgba(230,57,70,0.5)] cursor-pointer"
                 referrerPolicy="no-referrer" onError={e=>{(e.currentTarget as HTMLImageElement).style.display='none'}}/>
             </div>
             <div>
-              <span className="font-bebas text-2xl tracking-widest sr-gradient-text hidden sm:block">{STORE_NAME.toUpperCase()}</span>
+              <span className="font-bebas text-xl tracking-widest sr-gradient-text hidden sm:block">{STORE_NAME.toUpperCase()}</span>
             </div>
           </button>
           
@@ -922,14 +922,14 @@ function PaginaCatalogo({ navigate }: { navigate: (path: string) => void }) {
             ))}
           </div>
 
-          <div className="flex items-center gap-3 shrink-0">
-            <form onSubmit={e => { e.preventDefault(); if (navSearch) navigate(`/busca?q=${encodeURIComponent(navSearch)}`); }} className="relative hidden md:block group">
+          <div className="flex-1 sm:max-w-[200px] lg:max-w-xs relative items-center flex gap-3 shrink-0">
+            <form onSubmit={e => { e.preventDefault(); if (navSearch) navigate(`/busca?q=${encodeURIComponent(navSearch)}`); }} className="relative w-full group">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-500 group-focus-within:text-red-400 transition-colors"/>
-              <input type="text" value={navSearch} onChange={e => setNavSearch(e.target.value)} placeholder="Buscar Discos, Filmes..."
-                className="w-48 pl-9 pr-4 py-2 bg-white/5 border border-white/10 rounded-full text-sm text-white placeholder-zinc-500 focus:outline-none focus:border-red-500/50 focus:bg-white/10 lg:focus:w-64 transition-all duration-300"/>
+              <input type="text" value={navSearch} onChange={e => setNavSearch(e.target.value)} placeholder="Pesquisar..."
+                className="w-full pl-9 pr-4 py-2 bg-white/5 border border-white/10 rounded-full text-sm text-white placeholder-zinc-500 focus:outline-none focus:border-red-500/50 focus:bg-white/10 transition-all duration-300"/>
             </form>
             <a href={STORE_LINK} target="_blank" rel="noopener noreferrer"
-              className="sr-gradient text-white px-5 py-2.5 rounded-full text-sm font-bold flex items-center gap-2 hover:opacity-90 transition-opacity shadow-lg shadow-red-900/30 active:scale-95">
+              className="shrink-0 sr-gradient text-white px-3 py-2 sm:px-4 rounded-full text-sm font-bold flex items-center gap-1.5 hover:opacity-90 transition-opacity shadow-lg shadow-red-900/30 active:scale-95">
               <span className="hidden sm:inline">Ver Loja</span> <ExternalLink className="w-4 h-4"/>
             </a>
           </div>
