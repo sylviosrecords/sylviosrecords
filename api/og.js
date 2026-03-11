@@ -45,23 +45,31 @@ export default async function handler(req, res) {
   let image = STORE_LOGO;
   let url = `https://sylviosrecords.com.br${urlPath}`;
 
+  let errorTrace = '';
   if (urlPath.startsWith('/produto/')) {
     const match = urlPath.match(/\/produto\/(MLB\d+)/i);
     if (match) {
       const mlbId = match[1];
       try {
         const token = await getAccessToken();
+        if(!token) errorTrace += 'Falha no getAccessToken(). Verifique EnvVars. ';
+        
         const headers = { 'User-Agent': 'SylviosRecordsBot/2.0', 'Accept': 'application/json' };
         if (token) headers['Authorization'] = `Bearer ${token}`;
 
         const mlRes = await fetch(`https://api.mercadolibre.com/items/${mlbId}`, { headers });
         if (mlRes.ok) {
+          errorTrace += 'Fetch 200 OK. ';
           const data = await mlRes.json();
           title = `${data.title} — ${STORE_NAME}`;
           description = `Compre ${data.title} original. Mídia física 100% original, envio seguro.`;
           image = (data.pictures && data.pictures.length > 0) ? data.pictures[0].secure_url : data.thumbnail;
+        } else {
+             errorTrace += `Fetch Error: ${mlRes.status} ${mlRes.statusText}. `;
         }
-      } catch (e) {}
+      } catch (e) {
+         errorTrace += `Exception: ${e.message}. `;
+      }
     }
   }
 
@@ -79,7 +87,7 @@ export default async function handler(req, res) {
   <meta name="twitter:card" content="summary_large_image">
   <meta name="twitter:image" content="${image}">
 </head>
-<body><h1>${title}</h1><p>${description}</p><img src="${image}"/></body>
+<body><h1>${title}</h1><p>${description}</p><img src="${image}"/><!-- TRACE: ${errorTrace} --></body>
 </html>`;
 
   res.setHeader('Content-Type', 'text/html; charset=utf-8');
