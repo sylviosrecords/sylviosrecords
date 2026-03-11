@@ -1,1 +1,4 @@
 node_modules 
+
+# Catálogo interno de produtos
+src/catalogo.jsonl
