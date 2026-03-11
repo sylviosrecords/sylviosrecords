@@ -1,5 +1,5 @@
 // Endpoint: /api/descricao?id=MLB123456
-// Gera uma descrição editorial do produto usando Claude AI
+// Gera uma descrição editorial do produto usando Google Gemini (gratuito)
 
 let cachedToken: string | null = null;
 let tokenExpiry: number = 0;
@@ -22,8 +22,8 @@ async function getMLToken(): Promise<string> {
   return cachedToken!;
 }
 
-async function gerarDescricaoClaude(titulo: string, condicao: string): Promise<string> {
-  const apiKey = process.env.ANTHROPIC_API_KEY;
+async function gerarDescricaoGemini(titulo: string): Promise<string> {
+  const apiKey = process.env.GEMINI_API_KEY;
   if (!apiKey) return '';
 
   const prompt = `Você é um especialista em mídias físicas (CDs, DVDs, Blu-rays). 
@@ -31,26 +31,23 @@ Escreva uma descrição editorial curta (3-4 frases) em português para o produt
 Informe o tipo de mídia, gênero (musical ou cinematográfico), período/ano aproximado se souber, e uma curiosidade interessante.
 Não mencione preço nem condição do produto. Não use asteriscos nem markdown. Escreva de forma natural e envolvente.`;
 
-  const res = await fetch('https://api.anthropic.com/v1/messages', {
+  const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`;
+
+  const res = await fetch(url, {
     method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      'x-api-key': apiKey,
-      'anthropic-version': '2023-06-01',
-    },
+    headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({
-      model: 'claude-3-haiku-20240307',
-      max_tokens: 200,
-      messages: [{ role: 'user', content: prompt }],
+      contents: [{ parts: [{ text: prompt }] }],
+      generationConfig: { maxOutputTokens: 250, temperature: 0.7 },
     }),
   });
 
   if (!res.ok) return '';
   const data = await res.json();
-  return data.content?.[0]?.text?.trim() || '';
+  return data.candidates?.[0]?.content?.parts?.[0]?.text?.trim() || '';
 }
 
-// Cache simples em memória para não chamar Claude toda vez
+// Cache em memória — evita chamadas repetidas à API
 const descricaoCache = new Map<string, { texto: string; ts: number }>();
 const CACHE_TTL = 24 * 60 * 60 * 1000; // 24 horas
 
@@ -64,7 +61,7 @@ export default async function handler(req: any, res: any) {
   const { id } = req.query;
   if (!id) return res.status(400).json({ erro: 'ID obrigatório' });
 
-  // Verifica cache
+  // Verifica cache antes de chamar a API
   const cached = descricaoCache.get(id as string);
   if (cached && Date.now() - cached.ts < CACHE_TTL) {
     return res.status(200).json({ descricao: cached.texto });
@@ -79,10 +76,11 @@ export default async function handler(req: any, res: any) {
     if (!itemRes.ok) return res.status(404).json({ erro: 'Produto não encontrado' });
     const item = await itemRes.json();
 
-    const descricao = await gerarDescricaoClaude(item.title, item.condition);
+    const descricao = await gerarDescricaoGemini(item.title);
 
-    // Salva no cache
-    if (descricao) descricaoCache.set(id as string, { texto: descricao, ts: Date.now() });
+    if (descricao) {
+      descricaoCache.set(id as string, { texto: descricao, ts: Date.now() });
+    }
 
     return res.status(200).json({ descricao });
   } catch (err: any) {

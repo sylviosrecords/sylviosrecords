@@ -25,7 +25,7 @@
     "titulo": "Os Melhores Filmes de Brad Pitt em DVD",
     "subtitulo": "Do drama tenso ao thriller — a versatilidade de um ícone",
     "descricao": "Brad Pitt é um dos atores mais versáteis de Hollywood. Os anos 90 e 2000 foram seu auge, com filmes que se tornaram referências absolutas do cinema moderno. Esta seleção reúne os títulos mais impactantes da sua carreira disponíveis em DVD.",
-    "ids": ["MLB3975064865", "MLB1040491254", "MLB1674784699", "MLB2974474825", "MLB716477104"]
+    "ids": ["MLB3975064865", "MLB1040491254", "MLB1674784699", "MLB716477104", "MLB2974610199"]
   },
   {
     "slug": "melhores-dvds-anos-90",
@@ -33,5 +33,40 @@
     "subtitulo": "A era de ouro do cinema americano — antes do CGI dominar tudo",
     "descricao": "Os anos 90 foram um período único no cinema: roteiros ousados, diretores inovadores e atores que marcaram época. De Trainspotting a Beleza Americana, passando por Os Intocáveis e Indochina — esta seleção é para quem sabe que o cinema de verdade tem cheiro de plástico e encarte impresso.",
     "ids": ["MLB781462064", "MLB979844073", "MLB815771243", "MLB709267150", "MLB905027302", "MLB714382488", "MLB720588723"]
+  },
+  {
+    "slug": "cds-rock-classico",
+    "titulo": "CDs de Rock Clássico — Álbuns que Moldaram a História",
+    "subtitulo": "Led Zeppelin, Pink Floyd, Rolling Stones, Metallica e muito mais",
+    "descricao": "Você não ouve Led Zeppelin pelo Spotify. Você ouve Led Zeppelin em um CD original, com o encarte nas mãos e o volume no máximo. Esta seleção reúne álbuns fundamentais do rock clássico disponíveis em mídia física — para quem sabe a diferença entre carregar uma música e possuí-la.",
+    "ids": ["MLB874509435", "MLB904940297", "MLB817790075", "MLB820096580", "MLB707244937", "MLB928422280", "MLB722795902", "MLB765883458", "MLB1987915833", "MLB1776553134"]
+  },
+  {
+    "slug": "cds-rock-pesado-metal",
+    "titulo": "CDs de Heavy Metal e Rock Pesado",
+    "subtitulo": "Iron Maiden, Black Sabbath, Metallica, Guns N'Roses — originais e lacrados",
+    "descricao": "O metal não é feito para streaming. É feito para CD — com booklet, com arte, com som sem compressão. Esta seleção reúne os álbuns mais importantes do heavy metal e rock pesado disponíveis em mídia física original. Perfeito para colecionadores e fãs que levam música a sério.",
+    "ids": ["MLB765883458", "MLB1776553134", "MLB707244937", "MLB1987915833", "MLB3839999592", "MLB2668879261", "MLB1776546799", "MLB1914164061"]
+  },
+  {
+    "slug": "cds-pop-internacional-80-90",
+    "titulo": "CDs de Pop Internacional dos Anos 80 e 90",
+    "subtitulo": "ABBA, A-ha, Evanescence, Pearl Jam e outros clássicos",
+    "descricao": "Os anos 80 e 90 foram a era de ouro do pop e do rock alternativo. Esses álbuns definiram gerações inteiras — e ainda soam melhor em CD do que em qualquer plataforma digital. Uma seleção para quem cresceu ouvindo isso ou quer descobrir o que perdeu.",
+    "ids": ["MLB709864650", "MLB757797397", "MLB805034501", "MLB765857118", "MLB721585686", "MLB1980573374", "MLB711629736", "MLB901114240"]
+  },
+  {
+    "slug": "cds-mpb-brasil",
+    "titulo": "Grandes CDs da MPB e Rock Brasileiro",
+    "subtitulo": "Titãs, Legião Urbana, Raul Seixas, Caetano Veloso e a nata da música nacional",
+    "descricao": "A música brasileira tem uma riqueza que o streaming não captura. Os álbuns da Legião Urbana, dos Titãs, de Raul Seixas — todos têm camadas que você só descobre ao ouvir em CD, com atenção. Esta seleção é uma homenagem à melhor fase da música nacional.",
+    "ids": ["MLB707278240", "MLB727683495", "MLB731375659", "MLB711629736", "MLB2205785403", "MLB814291393", "MLB815395201"]
+  },
+  {
+    "slug": "melhores-blu-rays",
+    "titulo": "Os Melhores Blu-rays do Catálogo",
+    "subtitulo": "A melhor qualidade de imagem e som para a sua coleção",
+    "descricao": "Blu-ray é o topo da cadeia na mídia física. Imagem em Full HD ou 4K, som surround impecável — uma experiência que nenhum streaming consegue replicar. Esta seleção reúne os melhores títulos em Blu-ray disponíveis no catálogo, de filmes dramáticos a ação intensa.",
+    "ids": ["MLB768005182", "MLB783352812", "MLB1097876030", "MLB1001681469", "MLB1556956162", "MLB3492738083", "MLB767388452"]
   }
 ]
