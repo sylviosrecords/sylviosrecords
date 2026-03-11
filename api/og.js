@@ -3,18 +3,17 @@ export default async function handler(req, res) {
   const STORE_NAME = 'Sylvios Records';
   const STORE_LOGO = 'https://lh3.googleusercontent.com/d/1q6YyW7bYCceOyChffF9LhNuVLhmrGjGA';
   
-  // Em JS bruto e simples. A Vercel Enterprise envia x-vercel-forwarded-url, no FREE precisamos deduzir
-  let urlPath = req.headers['x-vercel-forwarded-url'] 
-      || req.headers['x-now-route-matches'] 
-      || req.headers['referer'] 
-      || req.url || '/';
-      
-  // Limpando headers que a Vercel suja
-  if (urlPath.startsWith('1=')) urlPath = '/' + urlPath.substring(2);
-  else if (urlPath.startsWith('http')) {
-    try { urlPath = new URL(urlPath).pathname; } catch(e) {}
-  }
-  if (!urlPath.startsWith('/')) urlPath = '/' + urlPath;
+  // Com o nosso novo Middleware global (middleware.js), nós passamos confiavelmente
+  // a URL original no cabeçalho x-middleware-rewrite ou no query param ?url.
+  // req.url em Vercel Edge cru conterá: /api/og.js?url=%2Fproduto%2FMLB3631525043-cd-teste-pearl-jam
+  let urlPath = '/';
+  try {
+    const rawUrlInfo = req.url || '';
+    if (rawUrlInfo.includes('?url=')) {
+      const qs = rawUrlInfo.split('?url=')[1];
+      urlPath = decodeURIComponent(qs.split('&')[0]);
+    }
+  } catch(e) {}
   let title = STORE_NAME;
   let description = 'CDs, DVDs e Blu-rays 100% originais. Rock, Metal, MPB e muito mais.';
   let image = STORE_LOGO;
