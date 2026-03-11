@@ -1,3 +1,13 @@
+export const config = {
+  matcher: ['/produto/:path*', '/colecao/:path*', '/artigo/:path*']
+};
+
+export default function middleware(request) {
+  const url = new URL(request.url);
+  const userAgent = (request.headers.get('user-agent') || '').toLowerCase();
+  
+  const isBot = /whatsapp|facebook|twitter|linkedin|skype|telegram|discord/.test(userAgent);
+
   if (isBot && !url.pathname.startsWith('/api/og')) {
     const originalPath = url.pathname;
     const ogUrl = new URL(`/api/og.js?url=${encodeURIComponent(originalPath)}`, request.url);
