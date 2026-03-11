@@ -51,8 +51,8 @@ interface Artigo {
   imagemCapa: string; conteudo: string; produtosRelacionados: string[];
 }
 
-const colecoes: Colecao[] = colecoesData as Colecao[];
-const artigos:  Artigo[]  = artigosData  as Artigo[];
+const colecoes: Colecao[] = (colecoesData as Colecao[]).slice().reverse();
+const artigos:  Artigo[]  = (artigosData  as Artigo[]).slice().reverse();
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 function slugify(text: string): string {
