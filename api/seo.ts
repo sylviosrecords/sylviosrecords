@@ -13,17 +13,29 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   const protocol = req.headers['x-forwarded-proto'] || 'https';
   const host = req.headers['x-forwarded-host'] || req.headers.host || 'sylviosrecords.com.br';
   
-  // A forma mais blindada na Vercel para Serverless Interception
-  // Ler o Header X-Vercel-Forwarded-Url ou host original
-  let urlPath = req.headers['x-now-route-matches'] as string 
-    || req.headers['x-invoke-path'] as string 
-    || req.url || '';
+  // A forma absoluta final de ler do Request Object da Vercel
+  // Tentamos caçar a URL originada de qualquer um dos headers injetados pelos Proxies Externos (Zap/Facebook)
+  let urlPath = req.url || '';
   
-  if (urlPath && urlPath.startsWith('1=')) { urlPath = '/' + urlPath.substring(2); }
+  if (urlPath === '/' || urlPath === '/api/seo') {
+    const fallbackPath = req.headers['x-now-route-matches'] as string 
+      || req.headers['x-invoke-path'] as string 
+      || req.headers['referer'] 
+      || '';
+      
+    if (fallbackPath) {
+      if (fallbackPath.startsWith('1=')) urlPath = '/' + fallbackPath.substring(2);
+      else if (fallbackPath.startsWith('http')) {
+        try {
+          const u = new URL(fallbackPath);
+          urlPath = u.pathname;
+        } catch { }
+      } else urlPath = fallbackPath;
+    }
+  }
   
   // Garantia: Bots sociais adicionais
   const userAgent = (req.headers['user-agent'] || '').toLowerCase();
-  const isSocialPreview = /whatsapp|facebook|twitter|linkedin|skype|telegram/.test(userAgent);
   
   const finalUrl = `https://sylviosrecords.com.br${urlPath}`;
 
