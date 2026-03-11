@@ -18,7 +18,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   let url = `https://sylviosrecords.com.br${urlPath.split('?')[0]}`;
   
   if (urlPath.startsWith('/produto/')) {
-    const match = urlPath.match(/\/produto\/(MLB\d+)/);
+    const match = urlPath.match(/\/produto\/(MLB\d+)/i);
     if (match) {
       const mlbId = match[1];
       try {
