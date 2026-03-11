@@ -317,9 +317,43 @@ function PaginaProduto({ slugComposto, navigate }: { slugComposto: string; navig
       let meta = document.querySelector('meta[name="description"]') as HTMLMetaElement;
       if (!meta) { meta = document.createElement('meta'); meta.name = 'description'; document.head.appendChild(meta); }
       meta.content = `Compre ${produto.titulo} no Mercado Livre com envio seguro. Mídia física original — ${STORE_NAME}.`;
+
+      // Injeção de Meta-Dados JSON-LD (Schema.org) para Rich Snippets no Google
+      const jsonLd = {
+        "@context": "https://schema.org/",
+        "@type": "Product",
+        "name": produto.titulo,
+        "image": produto.foto,
+        "description": `Compre ${produto.titulo} original no ${STORE_NAME}. Envio seguro via Mercado Livre.`,
+        "offers": {
+          "@type": "Offer",
+          "url": produto.link,
+          "priceCurrency": "BRL",
+          "price": produto.preco,
+          "availability": produto.vendidos > -1 ? "https://schema.org/InStock" : "https://schema.org/OutOfStock",
+          "seller": {
+            "@type": "Organization",
+            "name": STORE_NAME
+          }
+        }
+      };
+
+      let scriptLd = document.getElementById('json-ld') as HTMLScriptElement;
+      if (!scriptLd) {
+        scriptLd = document.createElement('script');
+        scriptLd.id = 'json-ld';
+        scriptLd.type = 'application/ld+json';
+        document.head.appendChild(scriptLd);
+      }
+      scriptLd.textContent = JSON.stringify(jsonLd);
     }
-    return () => { document.title = STORE_NAME; };
-  }, [produto?.titulo]);
+    
+    return () => { 
+      document.title = STORE_NAME; 
+      const existingScript = document.getElementById('json-ld');
+      if (existingScript) existingScript.remove();
+    };
+  }, [produto]);
 
   if (loading) return (
     <div className="min-h-screen bg-[#080808] flex items-center justify-center">
