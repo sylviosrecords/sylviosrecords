@@ -13,25 +13,13 @@ import {
 } from 'lucide-react';
 import colecoesData from './colecoes.json';
 import artigosData  from './artigos.json';
+import { STORE_NAME, STORE_LINK, STORE_LOGO, GENRES, FAQ, LINKS } from './config';
 
-const STORE_NAME = "Sylvios Records";
-const STORE_LINK = "https://www.mercadolivre.com.br/pagina/sylviosrecords";
-const STORE_LOGO = "https://lh3.googleusercontent.com/d/1q6YyW7bYCceOyChffF9LhNuVLhmrGjGA";
-const LINKS = {
-  ALL:    "https://lista.mercadolivre.com.br/pagina/sylviosrecords/",
-};
-const GENRES = ['Rock','Metal','Grunge','Punk','Clássico','MPB','Moda de Viola','Jazz','Blues'];
 const CATEGORIAS = [
   { id:'todos',   label:'Todos',    icon:<Package className="w-4 h-4"/> },
   { id:'cds',     label:'CDs',      icon:<Music   className="w-4 h-4"/> },
   { id:'dvds',    label:'DVDs',     icon:<Film    className="w-4 h-4"/> },
   { id:'blurays', label:'Blu-Rays', icon:<Disc    className="w-4 h-4"/> },
-];
-const FAQ = [
-  { q:"Os produtos são originais?",   a:"Sim. Trabalhamos exclusivamente com mídias físicas 100% originais, nacionais e importadas." },
-  { q:"Como é feito o envio?",        a:"Usamos embalagens reforçadas com plástico bolha e papelão rígido. Seu disco chega intacto." },
-  { q:"Vocês aceitam encomendas?",    a:"Renovamos o estoque constantemente. Para títulos específicos, use o campo de perguntas no ML." },
-  { q:"Entregam para todo o Brasil?", a:"Sim! Vendemos pelo Mercado Livre com frete calculado no checkout para todo o Brasil." },
 ];
 
 // ── Tipos ─────────────────────────────────────────────────────────────────────
@@ -1432,26 +1420,48 @@ function PaginaNovidades({ navigate }: { navigate: (path: string) => void }) {
   );
 }
 
+// ── Página 404 ───────────────────────────────────────────────────────────────
+function Pagina404({ navigate }: { navigate: (path: string) => void }) {
+  useEffect(() => {
+    document.title = `Página não encontrada — ${STORE_NAME}`;
+    return () => { document.title = STORE_NAME; };
+  }, []);
+  return (
+    <div className="min-h-screen bg-[#080808] text-zinc-100 flex flex-col items-center justify-center px-6 text-center">
+      <motion.div initial={{opacity:0, y:20}} animate={{opacity:1, y:0}} transition={{duration:0.4}}>
+        <Disc className="w-20 h-20 text-zinc-800 mx-auto mb-6 spin-vinyl"/>
+        <p className="text-red-500 text-xs font-bold uppercase tracking-widest mb-3">Erro 404</p>
+        <h1 className="font-bebas text-6xl md:text-8xl text-white mb-4">Página não encontrada</h1>
+        <p className="text-zinc-500 text-lg mb-10 max-w-md">
+          Parece que esse lado do disco está em branco. A página que você procurou não existe.
+        </p>
+        <button onClick={() => navigate('/')}
+          className="sr-gradient text-white px-8 py-4 rounded-full font-bold hover:opacity-90 transition-all shadow-xl shadow-red-950/30 flex items-center gap-2 mx-auto">
+          <ArrowLeft className="w-5 h-5"/> Voltar para a Home
+        </button>
+      </motion.div>
+    </div>
+  );
+}
+
 // ── Página Favoritos ─────────────────────────────────────────────────────────
 function PaginaFavoritos({ navigate }: { navigate: (path: string) => void }) {
   const { favoritos, toggle } = React.useContext(FavCtx);
   const [produtos, setProdutos] = useState<Produto[]>([]);
   const [loading, setLoading]   = useState(true);
+  const favKey = favoritos.join(',');
 
   useEffect(() => {
     document.title = `Meus Favoritos — ${STORE_NAME}`;
-    if (favoritos.length === 0) { setLoading(false); return; }
-    // Buscar detalhes de cada produto favoritado
-    Promise.all(
-      favoritos.map(id =>
-        fetch(`/api/produto?id=${id}`).then(r => r.json()).catch(() => null)
-      )
-    ).then(results => {
-      setProdutos(results.filter((r): r is Produto => r !== null && r.id));
-      setLoading(false);
-    });
+    if (favoritos.length === 0) { setProdutos([]); setLoading(false); return; }
+    setLoading(true);
+    // Usa o endpoint multiget /api/colecao (1 request em vez de N)
+    fetch(`/api/colecao?ids=${favoritos.join(',')}`)
+      .then(r => r.json())
+      .then(d => { setProdutos(d.produtos || []); setLoading(false); })
+      .catch(() => setLoading(false));
     return () => { document.title = STORE_NAME; };
-  }, [favoritos]);
+  }, [favKey]);
 
   return (
     <div className="min-h-screen bg-[#080808] text-zinc-100 pt-24 pb-20 px-6">
@@ -1527,31 +1537,9 @@ export default function App() {
 
   const isSecundaria = isProduto || isColecao || isArtigo || isColecoesList || isBlogList || isBusca || isNovidades || isFavoritos;
 
+
   return (
     <FavCtx.Provider value={favCtxValue}>
-      <style>{`
-        .font-bebas { font-family: 'Bebas Neue', sans-serif; letter-spacing: 0.04em; }
-        body { font-family: 'DM Sans', system-ui, sans-serif; }
-        .sr-gradient { background: linear-gradient(135deg, #e63946 0%, #1d3557 100%); }
-        .sr-gradient-text {
-          background: linear-gradient(135deg, #e63946 0%, #4895ef 100%);
-          -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
-        }
-        @keyframes spin-vinyl { from{transform:rotate(0deg)} to{transform:rotate(360deg)} }
-        .spin-vinyl { animation: spin-vinyl 18s linear infinite; }
-        @keyframes float { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-12px)} }
-        .float { animation: float 6s ease-in-out infinite; }
-        ::selection { background:#e63946; color:#fff; }
-        ::-webkit-scrollbar { width: 6px; }
-        ::-webkit-scrollbar-track { background: #080808; }
-        ::-webkit-scrollbar-thumb { background: #e63946; border-radius: 3px; }
-        .skeleton {
-          background: linear-gradient(90deg, #1a1a1a 25%, #252525 50%, #1a1a1a 75%);
-          background-size: 200% 100%;
-          animation: shimmer 1.4s infinite;
-        }
-        @keyframes shimmer { 0%{background-position:200% 0} 100%{background-position:-200% 0} }
-      `}</style>
 
       {isSecundaria && <NavSecundaria navigate={navigate}/>}
 
@@ -1590,7 +1578,7 @@ export default function App() {
           </motion.div>
         ) : (
           <motion.div key="catalogo" initial={{opacity:0}} animate={{opacity:1}} exit={{opacity:0}} transition={{duration:0.2}}>
-            <PaginaCatalogo navigate={navigate}/>
+            {route === '/' ? <PaginaCatalogo navigate={navigate}/> : <Pagina404 navigate={navigate}/>}
           </motion.div>
         )}
       </AnimatePresence>
