@@ -9,7 +9,7 @@ import {
   Disc, Film, Package, ShieldCheck, Truck, History,
   ExternalLink, ChevronRight, ChevronLeft, Star,
   Music, Loader2, Search, TrendingUp, ChevronDown,
-  X, ArrowLeft, ShoppingCart, ImageOff, BookOpen, Sparkles, Clock, Calendar
+  X, ArrowLeft, ShoppingCart, ImageOff, BookOpen, Sparkles, Clock, Calendar, Heart
 } from 'lucide-react';
 import colecoesData from './colecoes.json';
 import artigosData  from './artigos.json';
@@ -359,6 +359,14 @@ function NavSecundaria({ navigate }: { navigate: (path: string) => void }) {
               className="w-full pl-9 pr-4 py-2 bg-white/5 border border-white/10 rounded-full text-sm text-white placeholder-zinc-500 focus:outline-none focus:border-red-500/50 transition-colors"/>
           </form>
         </div>
+        <button onClick={() => navigate('/favoritos')} className="relative shrink-0 w-9 h-9 rounded-full bg-white/5 border border-white/10 flex items-center justify-center hover:bg-red-500/20 hover:border-red-500/30 transition-all">
+          <Heart className="w-4 h-4 text-zinc-400"/>
+          {React.useContext(FavCtx).favoritos.length > 0 && (
+            <span className="absolute -top-1 -right-1 w-4 h-4 bg-red-500 rounded-full text-[9px] font-bold text-white flex items-center justify-center">
+              {React.useContext(FavCtx).favoritos.length}
+            </span>
+          )}
+        </button>
         <a href={STORE_LINK} target="_blank" rel="noopener noreferrer"
           className="shrink-0 sr-gradient text-white px-3 py-2 sm:px-4 rounded-full text-sm font-bold flex items-center gap-1.5 hover:opacity-90">
           <span className="hidden sm:inline">Mercado Livre</span> <ExternalLink className="w-4 h-4"/>
@@ -1026,6 +1034,14 @@ function PaginaCatalogo({ navigate }: { navigate: (path: string) => void }) {
               <input type="text" value={navSearch} onChange={e => setNavSearch(e.target.value)} placeholder="Pesquisar..."
                 className="w-full pl-9 pr-4 py-2 bg-white/5 border border-white/10 rounded-full text-sm text-white placeholder-zinc-500 focus:outline-none focus:border-red-500/50 focus:bg-white/10 transition-all duration-300"/>
             </form>
+            <button onClick={() => navigate('/favoritos')} className="relative shrink-0 w-9 h-9 rounded-full bg-white/5 border border-white/10 flex items-center justify-center hover:bg-red-500/20 hover:border-red-500/30 transition-all">
+              <Heart className="w-4 h-4 text-zinc-400"/>
+              {React.useContext(FavCtx).favoritos.length > 0 && (
+                <span className="absolute -top-1 -right-1 w-4 h-4 bg-red-500 rounded-full text-[9px] font-bold text-white flex items-center justify-center">
+                  {React.useContext(FavCtx).favoritos.length}
+                </span>
+              )}
+            </button>
             <a href={STORE_LINK} target="_blank" rel="noopener noreferrer"
               className="shrink-0 sr-gradient text-white px-3 py-2 sm:px-4 rounded-full text-sm font-bold flex items-center gap-1.5 hover:opacity-90 transition-opacity shadow-lg shadow-red-900/30 active:scale-95">
               <span className="hidden sm:inline">Ver Loja</span> <ExternalLink className="w-4 h-4"/>
@@ -1416,6 +1432,80 @@ function PaginaNovidades({ navigate }: { navigate: (path: string) => void }) {
   );
 }
 
+// ── Página Favoritos ─────────────────────────────────────────────────────────
+function PaginaFavoritos({ navigate }: { navigate: (path: string) => void }) {
+  const { favoritos, toggle } = React.useContext(FavCtx);
+  const [produtos, setProdutos] = useState<Produto[]>([]);
+  const [loading, setLoading]   = useState(true);
+
+  useEffect(() => {
+    document.title = `Meus Favoritos — ${STORE_NAME}`;
+    if (favoritos.length === 0) { setLoading(false); return; }
+    // Buscar detalhes de cada produto favoritado
+    Promise.all(
+      favoritos.map(id =>
+        fetch(`/api/produto?id=${id}`).then(r => r.json()).catch(() => null)
+      )
+    ).then(results => {
+      setProdutos(results.filter((r): r is Produto => r !== null && r.id));
+      setLoading(false);
+    });
+    return () => { document.title = STORE_NAME; };
+  }, [favoritos]);
+
+  return (
+    <div className="min-h-screen bg-[#080808] text-zinc-100 pt-24 pb-20 px-6">
+      <div className="max-w-7xl mx-auto">
+        <button onClick={() => navigate('/')}
+          className="flex items-center gap-2 text-zinc-500 hover:text-white transition-colors mb-8 text-sm group">
+          <ArrowLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform"/> Voltar para Home
+        </button>
+        <div className="mb-12">
+          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-red-500/10 border border-red-500/20 mb-3">
+            <Heart className="w-3 h-3 text-red-400"/>
+            <span className="text-red-400 text-xs font-bold uppercase tracking-widest">Seus Favoritos</span>
+          </div>
+          <h1 className="font-bebas text-5xl md:text-7xl text-white mb-4">Meus <span className="sr-gradient-text">Favoritos</span></h1>
+          <p className="text-zinc-400 text-lg">
+            {favoritos.length > 0
+              ? `Você tem ${favoritos.length} ${favoritos.length === 1 ? 'item salvo' : 'itens salvos'}.`
+              : 'Você ainda não favoritou nenhum produto.'}
+          </p>
+        </div>
+
+        {loading ? (
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
+            {Array.from({length: Math.min(favoritos.length || 4, 10)}).map((_,i) => <SkeletonCard key={i}/>)}
+          </div>
+        ) : produtos.length === 0 ? (
+          <div className="text-center py-32">
+            <Heart className="w-16 h-16 text-zinc-800 mx-auto mb-6"/>
+            <p className="text-zinc-500 text-lg mb-2">Nenhum favorito ainda</p>
+            <p className="text-zinc-600 text-sm mb-8">Clique no ❤️ em qualquer produto para salvá-lo aqui.</p>
+            <button onClick={() => navigate('/')}
+              className="sr-gradient text-white px-8 py-4 rounded-full font-bold hover:opacity-90 transition-all shadow-xl shadow-red-950/30">
+              Explorar Catálogo
+            </button>
+          </div>
+        ) : (
+          <>
+            <div className="flex justify-end mb-6">
+              <button onClick={() => { favoritos.forEach(id => toggle(id)); }}
+                className="text-zinc-600 text-xs hover:text-red-400 transition-colors">
+                Limpar todos os favoritos
+              </button>
+            </div>
+            <motion.div initial={{opacity:0,y:10}} animate={{opacity:1,y:0}} transition={{duration:0.3}}
+              className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
+              {produtos.map(p => <ProdutoCard key={p.id} p={p} navigate={navigate}/>)}
+            </motion.div>
+          </>
+        )}
+      </div>
+    </div>
+  );
+}
+
 // ── App principal ─────────────────────────────────────────────────────────────
 export default function App() {
   const { route, navigate } = useRoute();
@@ -1428,13 +1518,14 @@ export default function App() {
   const isColecoesList = route === '/colecoes';
   const isBlogList = route === '/blog';
   const isNovidades = route === '/novidades';
+  const isFavoritos = route === '/favoritos';
 
   const slugProduto = isProduto ? route.replace('/produto/', '') : '';
   const slugColecao = isColecao ? route.replace('/colecao/', '') : '';
   const slugArtigo  = isArtigo  ? route.replace('/artigo/',  '') : '';
   const buscaQuery  = isBusca   ? new URLSearchParams(route.split('?')[1]).get('q') || '' : '';
 
-  const isSecundaria = isProduto || isColecao || isArtigo || isColecoesList || isBlogList || isBusca || isNovidades;
+  const isSecundaria = isProduto || isColecao || isArtigo || isColecoesList || isBlogList || isBusca || isNovidades || isFavoritos;
 
   return (
     <FavCtx.Provider value={favCtxValue}>
@@ -1484,6 +1575,10 @@ export default function App() {
         ) : isBlogList ? (
           <motion.div key="bloglist" initial={{opacity:0}} animate={{opacity:1}} exit={{opacity:0}} transition={{duration:0.2}}>
             <PaginaBlogList navigate={navigate}/>
+          </motion.div>
+        ) : isFavoritos ? (
+          <motion.div key="favoritos" initial={{opacity:0}} animate={{opacity:1}} exit={{opacity:0}} transition={{duration:0.2}}>
+            <PaginaFavoritos navigate={navigate}/>
           </motion.div>
         ) : isNovidades ? (
           <motion.div key="novidades" initial={{opacity:0}} animate={{opacity:1}} exit={{opacity:0}} transition={{duration:0.2}}>
