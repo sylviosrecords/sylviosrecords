@@ -1,6 +1,9 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
-import colecoes from '../src/colecoes.json';
-import artigos from '../src/artigos.json';
+import { createRequire } from 'module';
+
+const require = createRequire(import.meta.url);
+const colecoes = require('../src/colecoes.json');
+const artigos = require('../src/artigos.json');
 
 const STORE_NAME = 'Sylvios Records';
 const STORE_LOGO = 'https://lh3.googleusercontent.com/d/1q6YyW7bYCceOyChffF9LhNuVLhmrGjGA';
