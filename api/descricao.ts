@@ -45,7 +45,7 @@ Nao mencione preco nem condicao do produto. Nao use asteriscos nem markdown. Esc
   if (!res.ok) {
     const text = await res.text();
     console.error('Gemini API Error:', res.status, text);
-    return '';
+    return `ERRO_GEMINI: ${res.status} - ${text}`;
   }
   const data = await res.json();
   return data.candidates?.[0]?.content?.parts?.[0]?.text?.trim() || '';
