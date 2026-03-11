@@ -2,6 +2,22 @@ import { useState, useEffect } from 'react';
 import type { Produto } from '../types';
 import { extrairIdML } from '../utils';
 
+// ── Cache Global ──────────────────────────────────────────────────────────────
+const cache = new Map<string, { data: any; timestamp: number }>();
+const CACHE_TTL = 1000 * 60 * 5; // 5 minutos
+
+async function fetchComCache(url: string) {
+  const cached = cache.get(url);
+  if (cached && Date.now() - cached.timestamp < CACHE_TTL) {
+    return cached.data;
+  }
+  const res = await fetch(url);
+  if (!res.ok) throw new Error(`HTTP error! status: ${res.status}`);
+  const data = await res.json();
+  cache.set(url, { data, timestamp: Date.now() });
+  return data;
+}
+
 // ── useProdutos — lista paginada da home ──────────────────────────────────────
 export function useProdutos(categoria: string, busca: string, pagina: number) {
   const [produtos, setProdutos] = useState<Produto[]>([]);
@@ -20,8 +36,18 @@ export function useProdutos(categoria: string, busca: string, pagina: number) {
           ...(categoria !== 'todos' && { categoria }),
           ...(busca && { busca }),
         });
-        const res  = await fetch(`/api/produtos?${params}`);
-        const data = await res.json();
+        const url = `/api/produtos?${params}`;
+        
+        // Verifica cache de forma síncrona visualmente rapida antes de mostrar loading se der
+        const cached = cache.get(url);
+        if (cached && Date.now() - cached.timestamp < CACHE_TTL) {
+          setProdutos(cached.data.produtos || []);
+          setTotal(cached.data.total || 0);
+          setLoading(false);
+          return;
+        }
+
+        const data = await fetchComCache(url);
         if (!cancelado) { setProdutos(data.produtos || []); setTotal(data.total || 0); }
       } catch { if (!cancelado) setError(true); }
       finally  { if (!cancelado) setLoading(false); }
@@ -48,9 +74,17 @@ export function useBuscaPesquisa(q: string, sort: string, pagina: number) {
       setLoading(true); setError(false);
       try {
         const params = new URLSearchParams({ q, sort, pagina: String(pagina) });
-        const res  = await fetch(`/api/busca?${params}`);
-        if (!res.ok) throw new Error();
-        const data = await res.json();
+        const url = `/api/busca?${params}`;
+        
+        const cached = cache.get(url);
+        if (cached && Date.now() - cached.timestamp < CACHE_TTL) {
+          setProdutos(cached.data.produtos || []);
+          setTotal(cached.data.total || 0);
+          setLoading(false);
+          return;
+        }
+
+        const data = await fetchComCache(url);
         if (!cancelado) { setProdutos(data.produtos || []); setTotal(data.total || 0); }
       } catch { if (!cancelado) setError(true); }
       finally  { if (!cancelado) setLoading(false); }
@@ -74,9 +108,16 @@ export function useProduto(slugComposto: string) {
     const carregar = async () => {
       setLoading(true); setError(false);
       try {
-        const res  = await fetch(`/api/item?id=${encodeURIComponent(id)}`);
-        if (!res.ok) throw new Error();
-        const data = await res.json();
+        const url = `/api/item?id=${encodeURIComponent(id)}`;
+        
+        const cached = cache.get(url);
+        if (cached && Date.now() - cached.timestamp < CACHE_TTL) {
+          setProduto(cached.data);
+          setLoading(false);
+          return;
+        }
+
+        const data = await fetchComCache(url);
         if (!cancelado) setProduto(data);
       } catch { if (!cancelado) setError(true); }
       finally  { if (!cancelado) setLoading(false); }
@@ -99,11 +140,18 @@ export function useDescricao(id: string) {
     const carregar = async () => {
       setLoading(true);
       try {
-        const res  = await fetch(`/api/descricao?id=${encodeURIComponent(id)}`);
-        if (!res.ok) return;
-        const data = await res.json();
+        const url = `/api/descricao?id=${encodeURIComponent(id)}`;
+        
+        const cached = cache.get(url);
+        if (cached && Date.now() - cached.timestamp < CACHE_TTL) {
+          setDescricao(cached.data.descricao || '');
+          setLoading(false);
+          return;
+        }
+
+        const data = await fetchComCache(url);
         if (!cancelado) setDescricao(data.descricao || '');
-      } catch { }
+      } catch { } // ignora silentemente error pra descricao
       finally { if (!cancelado) setLoading(false); }
     };
     carregar();
@@ -126,8 +174,17 @@ export function useProdutosColecao(ids: string[]) {
     const carregar = async () => {
       setLoading(true); setError(false);
       try {
-        const res  = await fetch(`/api/colecao?ids=${idsValidos.join(',')}`);
-        const data = await res.json();
+        const chaveIds = idsValidos.join(',');
+        const url = `/api/colecao?ids=${chaveIds}`;
+        
+        const cached = cache.get(url);
+        if (cached && Date.now() - cached.timestamp < CACHE_TTL) {
+          setProdutos(cached.data.produtos || []);
+          setLoading(false);
+          return;
+        }
+
+        const data = await fetchComCache(url);
         if (!cancelado) setProdutos(data.produtos || []);
       } catch { if (!cancelado) setError(true); }
       finally  { if (!cancelado) setLoading(false); }
