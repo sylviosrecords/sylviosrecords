@@ -13,18 +13,11 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   const protocol = req.headers['x-forwarded-proto'] || 'https';
   const host = req.headers['x-forwarded-host'] || req.headers.host || 'sylviosrecords.com.br';
   
-  // Variação 1: x-now-route-matches costuma trazer a string RegExp casada no vercel.json
-  // Variação 2: req.headers['x-invoke-path'] traz a request original *antes* de cair no router.
-  const rawPath = req.headers['x-now-route-matches'] || req.headers['x-invoke-path'] || req.url || '';
-  
-  // Limpando o path caso a Vercel retorne a regex var (ex: `1=produto/MLB...`)
-  let urlPath = typeof rawPath === 'string' ? rawPath : '';
-  if (urlPath.startsWith('1=')) {
-    urlPath = '/' + urlPath.substring(2);
-  }
-  if (!urlPath.startsWith('/')) { urlPath = '/' + urlPath; }
+  // Como o rewrite foi ajustado para `/api/seo?path=$1`, a url original inteira estará em `req.query.path`
+  const rawPath = req.query.path as string || '';
+  let urlPath = '/' + rawPath;
 
-  console.log('[SEO Bot] Request Detectada. Path Resolvido:', urlPath);
+  console.log('[SEO Bot] Request Detectada. Query Path:', urlPath);
   let title = STORE_NAME;
   let description = 'CDs, DVDs e Blu-rays 100% originais. Rock, Metal, MPB e muito mais.';
   let image = STORE_LOGO;

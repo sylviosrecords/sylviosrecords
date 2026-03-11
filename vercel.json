@@ -12,7 +12,7 @@
           "value": "(?i).*(whatsapp|facebook|twitter|linkedin|skype|telegram).*"
         }
       ],
-      "destination": "/api/seo"
+      "destination": "/api/seo?path=$1"
     },
     { "source": "/api/(.*)", "destination": "/api/$1" },
     { "source": "/(.*)", "destination": "/index.html" }
