@@ -1,25 +1,4 @@
 // Script nativo Serverless sem dependencias
-let cachedToken = null;
-let tokenExpiry = 0;
-
-async function getAccessToken() {
-  if (cachedToken && Date.now() < tokenExpiry) return cachedToken;
-  const res = await fetch('https://api.mercadolibre.com/oauth/token', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-    body: new URLSearchParams({
-      grant_type: 'client_credentials',
-      client_id: process.env.ML_APP_ID,
-      client_secret: process.env.ML_SECRET,
-    }),
-  });
-  if (!res.ok) return null;
-  const data = await res.json();
-  cachedToken = data.access_token;
-  tokenExpiry = Date.now() + (data.expires_in - 60) * 1000;
-  return cachedToken;
-}
-
 export default async function handler(req, res) {
   const STORE_NAME = 'Sylvios Records';
   const STORE_LOGO = 'https://lh3.googleusercontent.com/d/1q6YyW7bYCceOyChffF9LhNuVLhmrGjGA';
@@ -68,7 +47,6 @@ export default async function handler(req, res) {
       } catch (e) {
          errorTrace += `Public Exception: ${e.message}. `;
       }
-  }
   }
 
   const html = `<!DOCTYPE html>
