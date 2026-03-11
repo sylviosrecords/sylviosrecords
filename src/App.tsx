@@ -482,7 +482,7 @@ function GenreTicker() {
 }
 
 function SecaoColecoes({ navigate }: { navigate: (path: string) => void }) {
-  const colecoesDestaque = colecoes.slice(0, 4);
+  const colecoesDestaque = colecoes.slice(0, 8);
   return (
     <section className="py-24 px-6 bg-white/[0.015] border-y border-white/6">
       <div className="max-w-7xl mx-auto">
@@ -502,10 +502,12 @@ function SecaoColecoes({ navigate }: { navigate: (path: string) => void }) {
               onClick={() => navigate(`/colecao/${c.slug}`)}
               className="text-left p-6 rounded-2xl bg-zinc-900 border border-white/6 hover:border-red-500/40 transition-all group cursor-pointer">
               <div className={`w-10 h-10 rounded-xl sr-gradient flex items-center justify-center mb-4 shadow-lg shadow-red-950/30`}>
-                {i === 0 ? <Film className="w-5 h-5 text-white"/> :
-                 i === 1 ? <Music className="w-5 h-5 text-white"/> :
-                 i === 2 ? <Star className="w-5 h-5 text-white"/> :
-                           <Disc className="w-5 h-5 text-white"/>}
+                {[
+                  <Film className="w-5 h-5 text-white"/>,
+                  <Music className="w-5 h-5 text-white"/>,
+                  <Star className="w-5 h-5 text-white"/>,
+                  <Disc className="w-5 h-5 text-white"/>
+                ][i % 4]}
               </div>
               <h3 className="font-bebas text-xl text-white leading-tight mb-2 group-hover:text-red-400 transition-colors">{c.titulo}</h3>
               <p className="text-zinc-600 text-xs leading-relaxed line-clamp-2">{c.subtitulo}</p>

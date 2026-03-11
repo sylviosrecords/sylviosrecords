@@ -26,10 +26,10 @@ async function gerarDescricaoGemini(titulo: string): Promise<string> {
   const apiKey = process.env.GEMINI_API_KEY;
   if (!apiKey) return '';
 
-  const prompt = `Voce e um especialista em midias fisicas (CDs, DVDs, Blu-rays). 
-Escreva uma descricao editorial curta (3-4 frases) em portugues para o produto: "${titulo}".
-Informe o tipo de midia, genero (musical ou cinematografico), periodo/ano aproximado se souber, e uma curiosidade interessante.
-Nao mencione preco nem condicao do produto. Nao use asteriscos nem markdown. Escreva de forma natural e envolvente.`;
+  const prompt = `Você é um especialista em mídias físicas (CDs, DVDs, Blu-rays). 
+Escreva uma descrição editorial (1 parágrafo completo de 3 a 5 frases) em português para o produto: "${titulo}".
+Informe o tipo de mídia, gênero (musical ou cinematográfico), período/ano aproximado se souber, e uma curiosidade interessante.
+Não mencione preço nem condição do produto. Não use asteriscos, não use markdown e encerre o texto adequadamente com ponto final. Escreva de forma natural e envolvente.`;
 
   const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`;
 
@@ -38,7 +38,7 @@ Nao mencione preco nem condicao do produto. Nao use asteriscos nem markdown. Esc
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({
       contents: [{ parts: [{ text: prompt }] }],
-      generationConfig: { maxOutputTokens: 250, temperature: 0.7 },
+      generationConfig: { maxOutputTokens: 600, temperature: 0.5 },
     }),
   });
 
