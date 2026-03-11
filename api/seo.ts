@@ -13,15 +13,27 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   const protocol = req.headers['x-forwarded-proto'] || 'https';
   const host = req.headers['x-forwarded-host'] || req.headers.host || 'sylviosrecords.com.br';
   
-  // Como o rewrite foi ajustado para `/api/seo?path=$1`, a url original inteira estará em `req.query.path`
-  const rawPath = req.query.path as string || '';
-  let urlPath = '/' + rawPath;
+  // A forma mais blindada na Vercel para Serverless Interception
+  // Ler o Header X-Vercel-Forwarded-Url ou host original
+  let urlPath = req.headers['x-now-route-matches'] as string 
+    || req.headers['x-invoke-path'] as string 
+    || req.url || '';
+  
+  if (urlPath && urlPath.startsWith('1=')) { urlPath = '/' + urlPath.substring(2); }
+  
+  // Garantia: Bots sociais adicionais
+  const userAgent = (req.headers['user-agent'] || '').toLowerCase();
+  const isSocialPreview = /whatsapp|facebook|twitter|linkedin|skype|telegram/.test(userAgent);
+  
+  const finalUrl = `https://sylviosrecords.com.br${urlPath}`;
 
-  console.log('[SEO Bot] Request Detectada. Query Path:', urlPath);
+  console.log(`[SEO Bot] User-Agent: ${userAgent}`);
+  console.log(`[SEO Bot] Detectada. Url resolvida interna: ${urlPath}`);
+  
   let title = STORE_NAME;
   let description = 'CDs, DVDs e Blu-rays 100% originais. Rock, Metal, MPB e muito mais.';
   let image = STORE_LOGO;
-  let url = `https://sylviosrecords.com.br${urlPath.split('?')[0]}`;
+  let url = finalUrl;
   
   if (urlPath.startsWith('/produto/')) {
     const match = urlPath.match(/\/produto\/(MLB\d+)/i);
