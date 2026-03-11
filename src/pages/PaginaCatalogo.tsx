@@ -1,19 +1,26 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { motion } from 'motion/react';
 import { ChevronLeft, ChevronRight, Search, TrendingUp, X, Heart, ExternalLink, Star, BookOpen, Film, Music, Disc, ShieldCheck, History, Truck, Calendar, Clock } from 'lucide-react';
-import { STORE_NAME, STORE_LOGO, STORE_LINK, CATEGORIAS, FAQ, LINKS } from '../config';
+import { STORE_NAME, STORE_LOGO, STORE_LINK, FAQ, LINKS } from '../config';
 import { useProdutos } from '../hooks/useProdutos';
 import { FavCtx } from '../contexts/FavoritosContext';
 import { SkeletonCard } from '../components/SkeletonCard';
 import { ProdutoCard } from '../components/ProdutoCard';
 import { GenreTicker } from '../components/GenreTicker';
-import { FaqAccordion } from '../components/FaqAccordion';
+import { FAQItem as FaqAccordion } from '../components/FaqAccordion';
 import colecoesData from '../colecoes.json';
 import artigosData from '../artigos.json';
 import type { Colecao, Artigo } from '../types';
 
 const colecoes: Colecao[] = (colecoesData as Colecao[]).slice().reverse();
 const artigos: Artigo[] = (artigosData as Artigo[]).slice().reverse();
+
+const CATEGORIAS = [
+  { id:'todos',   label:'Todos',    icon:<Disc className="w-4 h-4"/> },
+  { id:'cds',     label:'CDs',      icon:<Music className="w-4 h-4"/> },
+  { id:'dvds',    label:'DVDs',     icon:<Film className="w-4 h-4"/> },
+  { id:'blurays', label:'Blu-Rays', icon:<Disc className="w-4 h-4"/> },
+];
 
 function SecaoColecoes({ navigate }: { navigate: (path: string) => void }) {
   const scrollRef = useRef<HTMLDivElement>(null);
