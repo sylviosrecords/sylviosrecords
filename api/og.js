@@ -24,17 +24,22 @@ export default async function handler(req, res) {
   const STORE_NAME = 'Sylvios Records';
   const STORE_LOGO = 'https://lh3.googleusercontent.com/d/1q6YyW7bYCceOyChffF9LhNuVLhmrGjGA';
   
-  // Com o nosso novo Middleware global (middleware.js), nós passamos confiavelmente
-  // a URL original no cabeçalho x-middleware-rewrite ou no query param ?url.
-  // req.url em Vercel Edge cru conterá: /api/og.js?url=%2Fproduto%2FMLB3631525043-cd-teste-pearl-jam
+  // A extração definitiva e final do query parameter Vercel Edge 
+  // O URL Router da vercel entrega o path como algo tipo `/api/og.js?url=%2Fproduto%2FMLB3631525043`
   let urlPath = '/';
   try {
-    const rawUrlInfo = req.url || '';
-    if (rawUrlInfo.includes('?url=')) {
-      const qs = rawUrlInfo.split('?url=')[1];
-      urlPath = decodeURIComponent(qs.split('&')[0]);
+    const rawReqUrl = req.url || '';
+    if (rawReqUrl.includes('url=')) {
+      const q = rawReqUrl.split('url=')[1];
+      urlPath = decodeURIComponent(q.split('&')[0]);
+    } else if (req.headers['x-now-route-matches']) {
+      const rm = req.headers['x-now-route-matches'];
+      urlPath = rm.startsWith('1=') ? '/' + rm.substring(2) : rm;
     }
   } catch(e) {}
+  
+  if (!urlPath.startsWith('/')) urlPath = '/' + urlPath;
+  
   let title = STORE_NAME;
   let description = 'CDs, DVDs e Blu-rays 100% originais. Rock, Metal, MPB e muito mais.';
   let image = STORE_LOGO;
