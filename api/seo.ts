@@ -9,9 +9,15 @@ const STORE_NAME = 'Sylvios Records';
 const STORE_LOGO = 'https://lh3.googleusercontent.com/d/1q6YyW7bYCceOyChffF9LhNuVLhmrGjGA';
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
-  // `req.url` na Vercel traz a URL originalmente requisitada pelo usuário/bot (ex: /produto/MLB123-cd-teste)
-  const urlPath = req.url || '';
+  // Extração inteligente da URL original repassada pelo Vercel
+  const host = req.headers['x-forwarded-host'] || req.headers.host || 'sylviosrecords.com.br';
+  const protocol = req.headers['x-forwarded-proto'] || 'https';
   
+  // No Vercel Edge, req.url traz a rota chamada interna (/api/seo),
+  // e precisamos recorrer ao header x-invoke-path para a URL original navegada.
+  const urlPath = (req.headers['x-invoke-path'] as string) || req.url || '';
+  
+  console.log('[SEO Bot] Request Detectada. Path:', urlPath);
   let title = STORE_NAME;
   let description = 'CDs, DVDs e Blu-rays 100% originais. Rock, Metal, MPB e muito mais.';
   let image = STORE_LOGO;
