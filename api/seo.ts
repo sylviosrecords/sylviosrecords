@@ -9,15 +9,22 @@ const STORE_NAME = 'Sylvios Records';
 const STORE_LOGO = 'https://lh3.googleusercontent.com/d/1q6YyW7bYCceOyChffF9LhNuVLhmrGjGA';
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
-  // Extração inteligente da URL original repassada pelo Vercel
-  const host = req.headers['x-forwarded-host'] || req.headers.host || 'sylviosrecords.com.br';
+  // Montando a URL absoluta baseada no request local para escapar da máscara de Rewrite do Vercel
   const protocol = req.headers['x-forwarded-proto'] || 'https';
+  const host = req.headers['x-forwarded-host'] || req.headers.host || 'sylviosrecords.com.br';
   
-  // No Vercel Edge, req.url traz a rota chamada interna (/api/seo),
-  // e precisamos recorrer ao header x-invoke-path para a URL original navegada.
-  const urlPath = (req.headers['x-invoke-path'] as string) || req.url || '';
+  // Variação 1: x-now-route-matches costuma trazer a string RegExp casada no vercel.json
+  // Variação 2: req.headers['x-invoke-path'] traz a request original *antes* de cair no router.
+  const rawPath = req.headers['x-now-route-matches'] || req.headers['x-invoke-path'] || req.url || '';
   
-  console.log('[SEO Bot] Request Detectada. Path:', urlPath);
+  // Limpando o path caso a Vercel retorne a regex var (ex: `1=produto/MLB...`)
+  let urlPath = typeof rawPath === 'string' ? rawPath : '';
+  if (urlPath.startsWith('1=')) {
+    urlPath = '/' + urlPath.substring(2);
+  }
+  if (!urlPath.startsWith('/')) { urlPath = '/' + urlPath; }
+
+  console.log('[SEO Bot] Request Detectada. Path Resolvido:', urlPath);
   let title = STORE_NAME;
   let description = 'CDs, DVDs e Blu-rays 100% originais. Rock, Metal, MPB e muito mais.';
   let image = STORE_LOGO;
