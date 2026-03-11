@@ -42,19 +42,24 @@ Nao mencione preco nem condicao do produto. Nao use asteriscos nem markdown. Esc
     }),
   });
 
-  if (!res.ok) return '';
+  if (!res.ok) {
+    const text = await res.text();
+    console.error('Gemini API Error:', res.status, text);
+    return '';
+  }
   const data = await res.json();
   return data.candidates?.[0]?.content?.parts?.[0]?.text?.trim() || '';
 }
 
-// Cache em memoria - evita chamadas repetidas a API
+// Cache em memoria - evita chamadas repetidas a API num curto periodo do Serverless
 const descricaoCache = new Map<string, { texto: string; ts: number }>();
-const CACHE_TTL = 24 * 60 * 60 * 1000; // 24 horas
+const CACHE_TTL = 1 * 60 * 1000; // 1 minuto (reduzido de 24h por enquanto)
 
 export default async function handler(req: any, res: any) {
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'GET, OPTIONS');
-  res.setHeader('Cache-Control', 's-maxage=86400, stale-while-revalidate=172800');
+  // Cache reduzido para garantir updates: 1 hora no maximo
+  res.setHeader('Cache-Control', 's-maxage=3600, stale-while-revalidate=7200');
 
   if (req.method === 'OPTIONS') return res.status(200).end();
 
