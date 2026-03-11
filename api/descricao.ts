@@ -33,6 +33,15 @@ Nao mencione preco nem condicao do produto. Nao use asteriscos nem markdown. Esc
 
   const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent?key=${apiKey}`;
 
+  // Consulta os modelos disponiveis para esta chave
+  const listUrl = `https://generativelanguage.googleapis.com/v1beta/models?key=${apiKey}`;
+  const listRes = await fetch(listUrl);
+  if (listRes.ok) {
+    const listData = await listRes.json();
+    const models = listData.models.map((m: any) => m.name);
+    return `DEBUG_MODELS: ${models.join(', ')}`;
+  }
+
   const res = await fetch(url, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
