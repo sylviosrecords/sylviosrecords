@@ -36,8 +36,8 @@ export function PaginaColecao({ slug, navigate }: { slug: string; navigate: (pat
   if (!colecao) return (
     <div className="min-h-screen bg-[#080808] flex flex-col items-center justify-center gap-6">
       <p className="text-zinc-400">Coleção não encontrada.</p>
-      <button onClick={() => navigate('/colecoes')} className="flex items-center gap-2 sr-gradient text-white px-6 py-3 rounded-full font-bold">
-        <ArrowLeft className="w-4 h-4"/> Voltar para as Coleções
+      <button onClick={() => { if (window.history.length > 2) window.history.back(); else navigate('/colecoes'); }} className="flex items-center gap-2 sr-gradient text-white px-6 py-3 rounded-full font-bold">
+        <ArrowLeft className="w-4 h-4"/> Voltar
       </button>
     </div>
   );
@@ -47,9 +47,9 @@ export function PaginaColecao({ slug, navigate }: { slug: string; navigate: (pat
   return (
     <div className="min-h-screen bg-[#080808] text-zinc-100 pt-24 pb-20 px-6">
       <div className="max-w-6xl mx-auto">
-        <button onClick={() => navigate('/colecoes')}
+        <button onClick={() => { if (window.history.length > 2) window.history.back(); else navigate('/colecoes'); }}
           className="flex items-center gap-2 text-zinc-500 hover:text-white transition-colors mb-10 text-sm group">
-          <ArrowLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform"/> Voltar para as Coleções
+          <ArrowLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform"/> Voltar
         </button>
         <div className="mb-12 max-w-3xl">
           <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-red-500/10 border border-red-500/20 mb-4">

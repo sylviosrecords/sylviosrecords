@@ -21,9 +21,9 @@ export function PaginaBusca({ buscaQuery, navigate }: { buscaQuery: string; navi
     <div className="min-h-screen bg-[#080808] text-zinc-100 pt-28 pb-20 px-6">
       <div className="max-w-7xl mx-auto">
         <div className="mb-10">
-          <button onClick={() => navigate('/')}
+          <button onClick={() => { if (window.history.length > 2) window.history.back(); else navigate('/'); }}
             className="flex items-center gap-2 text-zinc-500 hover:text-white transition-colors mb-4 text-sm group">
-            <ArrowLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform"/> Voltar para Home
+            <ArrowLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform"/> Voltar
           </button>
           <h1 className="font-bebas text-5xl md:text-6xl text-white">
             Resultados para <span className="sr-gradient-text">"{buscaQuery}"</span>

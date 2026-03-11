@@ -20,9 +20,9 @@ export function PaginaBlogList({ navigate }: { navigate: (path: string) => void 
   return (
     <div className="min-h-screen bg-[#080808] text-zinc-100 pt-24 pb-20 px-6">
       <div className="max-w-7xl mx-auto">
-        <button onClick={() => navigate('/')}
+        <button onClick={() => { if (window.history.length > 2) window.history.back(); else navigate('/'); }}
           className="flex items-center gap-2 text-zinc-500 hover:text-white transition-colors mb-8 text-sm group">
-          <ArrowLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform"/> Voltar para Home
+          <ArrowLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform"/> Voltar
         </button>
         <div className="mb-12">
           <h1 className="font-bebas text-5xl md:text-7xl text-white mb-4">Blog e <span className="sr-gradient-text">Artigos</span></h1>

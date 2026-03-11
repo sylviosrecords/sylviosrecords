@@ -38,8 +38,8 @@ export function PaginaArtigo({ slug, navigate }: { slug: string; navigate: (path
   if (!artigo) return (
     <div className="min-h-screen bg-[#080808] flex flex-col items-center justify-center gap-6">
       <p className="text-zinc-400">Artigo não encontrado.</p>
-      <button onClick={() => navigate('/blog')} className="flex items-center gap-2 sr-gradient text-white px-6 py-3 rounded-full font-bold">
-        <ArrowLeft className="w-4 h-4"/> Voltar para o Blog
+      <button onClick={() => { if (window.history.length > 2) window.history.back(); else navigate('/blog'); }} className="flex items-center gap-2 sr-gradient text-white px-6 py-3 rounded-full font-bold">
+        <ArrowLeft className="w-4 h-4"/> Voltar
       </button>
     </div>
   );
@@ -63,9 +63,9 @@ export function PaginaArtigo({ slug, navigate }: { slug: string; navigate: (path
 
         {/* Meta do artigo */}
         <div className="flex flex-wrap items-center gap-4 py-6 border-b border-white/8 mb-10">
-          <button onClick={() => navigate('/blog')}
+          <button onClick={() => { if (window.history.length > 2) window.history.back(); else navigate('/blog'); }}
             className="flex items-center gap-2 text-zinc-500 hover:text-white transition-colors text-sm group">
-            <ArrowLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform"/> Voltar para o Blog
+            <ArrowLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform"/> Voltar
           </button>
           <div className="flex items-center gap-4 ml-auto text-zinc-500 text-sm">
             <span className="flex items-center gap-1.5"><Calendar className="w-3.5 h-3.5"/>{artigo.data}</span>
