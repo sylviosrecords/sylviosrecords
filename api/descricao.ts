@@ -1,5 +1,5 @@
 // Endpoint: /api/descricao?id=MLB123456
-// Gera uma descrição editorial do produto usando Google Gemini (gratuito)
+// Gera uma descricao editorial do produto usando Google Gemini (gratuito)
 
 let cachedToken: string | null = null;
 let tokenExpiry: number = 0;
@@ -26,10 +26,10 @@ async function gerarDescricaoGemini(titulo: string): Promise<string> {
   const apiKey = process.env.GEMINI_API_KEY;
   if (!apiKey) return '';
 
-  const prompt = `Você é um especialista em mídias físicas (CDs, DVDs, Blu-rays). 
-Escreva uma descrição editorial curta (3-4 frases) em português para o produto: "${titulo}".
-Informe o tipo de mídia, gênero (musical ou cinematográfico), período/ano aproximado se souber, e uma curiosidade interessante.
-Não mencione preço nem condição do produto. Não use asteriscos nem markdown. Escreva de forma natural e envolvente.`;
+  const prompt = `Voce e um especialista em midias fisicas (CDs, DVDs, Blu-rays). 
+Escreva uma descricao editorial curta (3-4 frases) em portugues para o produto: "${titulo}".
+Informe o tipo de midia, genero (musical ou cinematografico), periodo/ano aproximado se souber, e uma curiosidade interessante.
+Nao mencione preco nem condicao do produto. Nao use asteriscos nem markdown. Escreva de forma natural e envolvente.`;
 
   const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`;
 
@@ -47,7 +47,7 @@ Não mencione preço nem condição do produto. Não use asteriscos nem markdown
   return data.candidates?.[0]?.content?.parts?.[0]?.text?.trim() || '';
 }
 
-// Cache em memória — evita chamadas repetidas à API
+// Cache em memoria - evita chamadas repetidas a API
 const descricaoCache = new Map<string, { texto: string; ts: number }>();
 const CACHE_TTL = 24 * 60 * 60 * 1000; // 24 horas
 
@@ -59,7 +59,7 @@ export default async function handler(req: any, res: any) {
   if (req.method === 'OPTIONS') return res.status(200).end();
 
   const { id } = req.query;
-  if (!id) return res.status(400).json({ erro: 'ID obrigatório' });
+  if (!id) return res.status(400).json({ erro: 'ID obrigatorio' });
 
   // Verifica cache antes de chamar a API
   const cached = descricaoCache.get(id as string);
@@ -73,7 +73,7 @@ export default async function handler(req: any, res: any) {
       `https://api.mercadolibre.com/items/${id}?attributes=title,condition`,
       { headers: { Authorization: `Bearer ${token}` } }
     );
-    if (!itemRes.ok) return res.status(404).json({ erro: 'Produto não encontrado' });
+    if (!itemRes.ok) return res.status(404).json({ erro: 'Produto nao encontrado' });
     const item = await itemRes.json();
 
     const descricao = await gerarDescricaoGemini(item.title);

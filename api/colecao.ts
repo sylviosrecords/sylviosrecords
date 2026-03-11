@@ -1,5 +1,5 @@
 // Endpoint: /api/colecao?ids=MLB1,MLB2,MLB3
-// Busca detalhes de uma lista de IDs do ML para páginas de coleção
+// Busca detalhes de uma lista de IDs do ML para paginas de colecao
 
 let cachedToken: string | null = null;
 let tokenExpiry: number = 0;
@@ -30,10 +30,10 @@ export default async function handler(req: any, res: any) {
   if (req.method === 'OPTIONS') return res.status(200).end();
 
   const { ids } = req.query;
-  if (!ids) return res.status(400).json({ erro: 'IDs obrigatórios' });
+  if (!ids) return res.status(400).json({ erro: 'IDs obrigatorios' });
 
   const listaIds = (ids as string).split(',').map(id => id.trim()).filter(Boolean).slice(0, 20);
-  if (!listaIds.length) return res.status(400).json({ erro: 'Nenhum ID válido' });
+  if (!listaIds.length) return res.status(400).json({ erro: 'Nenhum ID valido' });
 
   try {
     const token = await getAccessToken();
