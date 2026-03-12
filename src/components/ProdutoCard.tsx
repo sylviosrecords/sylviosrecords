@@ -12,7 +12,7 @@ export function ProdutoCard({ p, navigate }: { key?: React.Key; p: Produto; navi
   const urlProduto = `/produto/${p.id}-${slugify(p.titulo)}`;
   return (
     <div onClick={() => navigate(urlProduto)}
-      className="group flex flex-col rounded-2xl overflow-hidden bg-zinc-900 border border-white/6 hover:border-red-500/40 transition-all hover:-translate-y-2 hover:shadow-2xl hover:shadow-red-950/30 duration-300 cursor-pointer relative">
+      className="group flex flex-col rounded-2xl overflow-hidden bg-zinc-900 border border-white/6 hover:border-red-500/40 transition-all hover:-translate-y-2 hover:shadow-2xl hover:shadow-red-950/30 duration-300 cursor-pointer relative transform-gpu will-change-transform">
       <div className="relative aspect-square bg-zinc-800 overflow-hidden">
         {!imgLoaded && <div className="absolute inset-0 skeleton"/>}
         {imgOk && p.foto

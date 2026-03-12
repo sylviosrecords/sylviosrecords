@@ -160,8 +160,8 @@ export function PaginaCatalogo({ navigate }: { navigate: (path: string) => void 
   const handleCategoria = (c: string) => { setCategoria(c); setPagina(1); setBusca(''); setBuscaInput(''); };
 
   return (
-    <div className="min-h-screen bg-[#080808] text-zinc-100 overflow-x-hidden">
-      <nav className={`fixed top-0 w-full z-50 transition-all duration-300 ${scrolled ? 'bg-[#080808]/92 backdrop-blur-xl border-b border-white/6 py-3' : 'bg-transparent py-5'}`}>
+    <div className="min-h-screen bg-[#080808] text-zinc-100">
+      <nav className={`fixed top-0 w-full z-50 transition-all duration-300 transform-gpu ${scrolled ? 'bg-[#080808]/92 backdrop-blur-xl border-b border-white/6 py-3 shadow-[0_4px_30px_rgba(0,0,0,0.5)]' : 'bg-transparent py-5'}`}>
         <div className="max-w-7xl mx-auto px-4 flex items-center justify-between gap-3">
           <button onClick={() => navigate('/')} className="flex items-center gap-3 group shrink-0">
             <div className="relative w-10 h-10 flex-shrink-0">
@@ -314,7 +314,7 @@ export function PaginaCatalogo({ navigate }: { navigate: (path: string) => void 
             <>
               <motion.div key={`${categoria}-${busca}-${pagina}`}
                 initial={{opacity:0,y:10}} animate={{opacity:1,y:0}} transition={{duration:0.3}}
-                className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
+                className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4 transform-gpu">
                 {produtos.map(p => <ProdutoCard key={p.id} p={p} navigate={navigate}/>)}
               </motion.div>
               {totalPaginas > 1 && (
