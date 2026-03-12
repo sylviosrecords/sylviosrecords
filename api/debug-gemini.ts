@@ -20,10 +20,16 @@ export default async function handler(req: any, res: any) {
 
   // Testa chamada real ao Gemini
   try {
-    const url = `https://generativelanguage.googleapis.com/v1beta/models?key=${apiKey}`;
-    const r = await fetch(url);
-    const body = await r.json();
-    diag.gemini_models = body.models?.map((m: any) => m.name).filter((n: string) => n.includes('flash'));
+    const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`;
+    const r = await fetch(url, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ contents: [{ parts: [{ text: 'Diga apenas: ok' }] }] }),
+    });
+    const status = r.status;
+    const bodyText = await r.text();
+    diag.gemini_2_0_status = status;
+    diag.gemini_2_0_response = bodyText.substring(0, 500);
   } catch (e: any) {
     diag.gemini_error = e.message;
   }
