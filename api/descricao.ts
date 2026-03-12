@@ -36,7 +36,7 @@ Regras obrigatórias:
 5. Não use asteriscos ou formatação markdown.
 6. Termine todo o texto com um ponto final, fechando o raciocínio adequadamente.`;
 
-  const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`;
+  const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`;
 
   const res = await fetch(url, {
     method: 'POST',

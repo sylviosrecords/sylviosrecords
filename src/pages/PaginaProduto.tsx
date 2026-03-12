@@ -129,12 +129,12 @@ export function PaginaProduto({ slugComposto, navigate }: { slugComposto: string
                 <Sparkles className="w-4 h-4 text-blue-400"/>
                 <span className="text-blue-400 text-xs font-bold uppercase tracking-widest">Sobre este produto</span>
               </div>
-              {descLoading
-                ? <div className="space-y-2"><div className="skeleton h-3 w-full rounded"/><div className="skeleton h-3 w-4/5 rounded"/><div className="skeleton h-3 w-3/4 rounded"/></div>
-                : descricao
-                  ? <p className="text-zinc-400 text-sm leading-relaxed">{descricao}</p>
-                  : <p className="text-zinc-600 text-sm italic">Descrição não disponível.</p>
-              }
+              {descLoading 
+            ? <div className="animate-pulse space-y-2 max-w-lg mt-2"><div className="h-4 bg-white/10 rounded w-full"></div><div className="h-4 bg-white/10 rounded w-5/6"></div></div>
+            : descricao
+              ? <p className="text-zinc-400 text-sm leading-relaxed">{descricao}</p>
+              : <p className="text-zinc-400 text-sm leading-relaxed">Mídia física original garantida pelo Sylvio's Records. Um item indispensável para colecionadores e amantes do catálogo clássico, com a procedência e qualidade que plataformas digitais não podem oferecer.</p>
+          }
             </div>
 
             <div className="flex flex-col gap-2 p-4 rounded-2xl bg-white/4 border border-white/8">
