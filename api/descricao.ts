@@ -36,7 +36,7 @@ Regras obrigatórias:
 5. Não use asteriscos ou formatação markdown.
 6. Termine todo o texto com um ponto final, fechando o raciocínio adequadamente.`;
 
-  const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`;
+  const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`;
 
   const res = await fetch(url, {
     method: 'POST',
@@ -65,10 +65,9 @@ const CACHE_TTL = 1 * 60 * 1000; // 1 minuto (reduzido de 24h por enquanto)
 export default async function handler(req: any, res: any) {
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'GET, OPTIONS');
-  // Cache reduzido para garantir updates: 1 hora no maximo
-  res.setHeader('Cache-Control', 's-maxage=3600, stale-while-revalidate=7200');
-
+  // Sem cache se descricao vier vazia — para não guardar falhas no CDN
   if (req.method === 'OPTIONS') return res.status(200).end();
+  res.setHeader('Cache-Control', 's-maxage=3600, stale-while-revalidate=7200');
 
   const { id } = req.query;
   if (!id) return res.status(400).json({ erro: 'ID obrigatorio' });
@@ -92,6 +91,9 @@ export default async function handler(req: any, res: any) {
 
     if (descricao) {
       descricaoCache.set(id as string, { texto: descricao, ts: Date.now() });
+    } else {
+      // Se descricao vazia, responde sem cache CDN para tentar novamente na próxima visita
+      res.setHeader('Cache-Control', 'no-store');
     }
 
     return res.status(200).json({ descricao });
