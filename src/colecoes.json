@@ -1,4 +1,4 @@
-﻿[
+[
     {
         "slug":  "filmes-tarantino-dvd",
         "titulo":  "Filmes de Quentin Tarantino em DVD",
@@ -255,13 +255,11 @@
         "subtitulo":  "A história da música do interior do Brasil em edições originais",
         "descricao":  "A autêntica música sertaneja sertaneja toca a alma. Das modas de viola de Tião Carreiro aos grandes hits românticos das duplas que marcaram época. Esta seleção traz CDs difíceis de encontrar em plataformas digitais.",
         "ids":  [
-                    "MLB745046348",
-                    "MLB3839999592",
-                    "MLB720173585",
-                    "MLB787413197",
-                    "MLB720189769",
-                    "MLB757162942"
-                ]
+                "MLB745046348",
+                "MLB720189769",
+                "MLB787413197",
+                "MLB757162942"
+            ]
     },
     {
         "slug":  "melhores-comedias-dvd",
