@@ -3,13 +3,23 @@ import { Disc } from 'lucide-react';
 import type { Produto } from '../types';
 import { slugify, fmt, disc } from '../utils';
 import { FavCtx } from '../contexts/FavoritosContext';
+import { useCarrinho } from '../contexts/CarrinhoContext';
 
 export function ProdutoCard({ p, navigate }: { key?: React.Key; p: Produto; navigate: (path: string) => void }) {
   const [imgOk,     setImgOk]     = useState(true);
   const [imgLoaded, setImgLoaded] = useState(false);
+  const [adicionado, setAdicionado] = useState(false);
   const { isFav, toggle } = React.useContext(FavCtx);
+  const { adicionarItem } = useCarrinho();
   const fav = isFav(p.id);
   const urlProduto = `/produto/${p.id}-${slugify(p.titulo)}`;
+
+  const handleAddToCart = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    adicionarItem(p);
+    setAdicionado(true);
+    setTimeout(() => setAdicionado(false), 1500);
+  };
   return (
     <div onClick={() => navigate(urlProduto)}
       className="group flex flex-col rounded-2xl overflow-hidden bg-zinc-900 border border-white/6 hover:border-red-500/40 transition-all hover:-translate-y-2 hover:shadow-2xl hover:shadow-red-950/30 duration-300 cursor-pointer relative transform-gpu will-change-transform">
@@ -46,6 +56,18 @@ export function ProdutoCard({ p, navigate }: { key?: React.Key; p: Produto; navi
         )}
         <p className="text-white font-bold text-sm">{fmt(p.preco)}</p>
         {p.vendidos > 0 && <p className="text-zinc-600 text-[10px] mt-1">{p.vendidos} vendidos</p>}
+
+        {/* Botão Adicionar ao Carrinho */}
+        <button
+          onClick={handleAddToCart}
+          className={`mt-2 w-full py-1.5 rounded-lg text-xs font-bold transition-all duration-300 ${
+            adicionado
+              ? 'bg-green-600 text-white'
+              : 'bg-zinc-800 text-zinc-300 hover:bg-red-700 hover:text-white'
+          }`}
+        >
+          {adicionado ? '✓ Adicionado!' : '🛒 Adicionar'}
+        </button>
       </div>
     </div>
   );

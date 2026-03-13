@@ -21,6 +21,7 @@ const PaginaFavoritos = lazy(() => import('./pages/PaginaFavoritos').then(m => (
 // Novas páginas da loja própria
 const PaginaCarrinho     = lazy(() => import('./pages/PaginaCarrinho').then(m => ({ default: m.PaginaCarrinho })));
 const PaginaCheckout     = lazy(() => import('./pages/PaginaCheckout').then(m => ({ default: m.PaginaCheckout })));
+const PaginaPedido       = lazy(() => import('./pages/PaginaPedido').then(m => ({ default: m.PaginaPedido })));
 const PaginaPedidoSucesso  = lazy(() => import('./pages/PaginasPedido').then(m => ({ default: m.PaginaPedidoSucesso })));
 const PaginaPedidoFalha    = lazy(() => import('./pages/PaginasPedido').then(m => ({ default: m.PaginaPedidoFalha })));
 const PaginaPedidoPendente = lazy(() => import('./pages/PaginasPedido').then(m => ({ default: m.PaginaPedidoPendente })));
@@ -49,9 +50,11 @@ export default function App() {
   const isFavoritos    = route === '/favoritos';
   const isCarrinho     = route === '/carrinho';
   const isCheckout     = route === '/checkout';
+  const isPedido       = route.startsWith('/pedido/') && !route.startsWith('/pedido/sucesso') && !route.startsWith('/pedido/falha') && !route.startsWith('/pedido/pendente');
   const isPedidoSucesso  = route === '/pedido/sucesso';
   const isPedidoFalha    = route === '/pedido/falha';
   const isPedidoPendente = route === '/pedido/pendente';
+  const pedidoId = isPedido ? route.replace('/pedido/', '') : '';
 
   const slugProduto = isProduto ? route.replace('/produto/', '') : '';
   const slugColecao = isColecao ? route.replace('/colecao/', '') : '';
@@ -60,7 +63,7 @@ export default function App() {
 
   const isSecundaria = isProduto || isColecao || isArtigo || isColecoesList || isBlogList
     || isBusca || isNovidades || isFavoritos || isCarrinho || isCheckout
-    || isPedidoSucesso || isPedidoFalha || isPedidoPendente;
+    || isPedido || isPedidoSucesso || isPedidoFalha || isPedidoPendente;
 
   const wrap = (key: string, el: React.ReactNode) => (
     <motion.div key={key} initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.2 }}>
@@ -89,6 +92,7 @@ export default function App() {
              isBusca         ? wrap('busca',      <PaginaBusca      buscaQuery={buscaQuery} navigate={navigate} />) :
              isCarrinho      ? wrap('carrinho',   <PaginaCarrinho   navigate={navigate} />) :
              isCheckout      ? wrap('checkout',   <PaginaCheckout   navigate={navigate} freteNome={freteCheckout?.nome} fretePreco={freteCheckout?.preco} />) :
+             isPedido        ? wrap('pedido',     <PaginaPedido     pedidoId={pedidoId} navigate={navigate} />) :
              isPedidoSucesso ? wrap('sucesso',    <PaginaPedidoSucesso navigate={navigate} />) :
              isPedidoFalha   ? wrap('falha',      <PaginaPedidoFalha   navigate={navigate} />) :
              isPedidoPendente? wrap('pendente',   <PaginaPedidoPendente navigate={navigate} />) :
