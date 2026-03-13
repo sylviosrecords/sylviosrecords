@@ -119,6 +119,43 @@ export function PaginaCheckout({ navigate, freteNome, fretePreco }: {
     }
   };
 
+  const handleSimular = async (e: React.MouseEvent) => {
+    e.preventDefault();
+    if (!freteNome) { setErro('Escolha um frete primeiro.'); return; }
+    setCarregando(true);
+    setErro('');
+    
+    try {
+      const resp = await fetch('/api/checkout-simular', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          itens: itens.map(i => ({
+            id: i.produto.id,
+            titulo: i.produto.titulo,
+            preco: i.produto.preco,
+            quantidade: i.quantidade,
+            foto: i.produto.foto,
+          })),
+          comprador: dados,
+          frete: { nome: freteNome, preco: fretePreco || 0 },
+        }),
+      });
+
+      const data = await resp.json() as { checkoutUrl?: string; erro?: string };
+      if (data.erro) throw new Error(data.erro);
+      if (data.checkoutUrl) {
+        limparCarrinho();
+        navigate(data.checkoutUrl); // Vai pro sucesso
+      }
+    } catch (err) {
+      setErro((err as Error).message || 'Erro ao simular');
+    } finally {
+      setCarregando(false);
+    }
+  };
+
+
   const InputStyle = {
     background: 'rgba(255,255,255,0.05)',
     border: '1px solid rgba(255,255,255,0.1)',
@@ -243,16 +280,27 @@ export function PaginaCheckout({ navigate, freteNome, fretePreco }: {
             </div>
           )}
 
-          <motion.button
-            type="submit"
-            whileHover={{ scale: 1.02 }}
-            whileTap={{ scale: 0.98 }}
-            disabled={carregando}
-            className="w-full py-4 rounded-lg font-bold text-white text-base disabled:opacity-50"
-            style={{ background: 'linear-gradient(135deg, #dc2626, #7f1d1d)' }}
-          >
-            {carregando ? '⏳ Aguarde...' : `🔒 Ir para Pagamento — ${fmt(totalComFrete)}`}
-          </motion.button>
+          <div className="flex flex-col gap-3">
+            <motion.button
+              type="submit"
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.98 }}
+              disabled={carregando}
+              className="w-full py-4 rounded-lg font-bold text-white text-base disabled:opacity-50"
+              style={{ background: 'linear-gradient(135deg, #dc2626, #7f1d1d)' }}
+            >
+              {carregando ? '⏳ Aguarde...' : `🔒 Ir para Pagamento — ${fmt(totalComFrete)}`}
+            </motion.button>
+            <motion.button
+              onClick={handleSimular}
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.98 }}
+              disabled={carregando}
+              className="w-full py-4 rounded-lg font-bold text-zinc-300 bg-white/5 border border-white/10 text-base disabled:opacity-50 flex items-center justify-center gap-2"
+            >
+              🚀 Simular Pagamento Aprovado (Bypassar Mercado Pago)
+            </motion.button>
+          </div>
 
           <p className="text-zinc-600 text-xs text-center">
             Ao clicar, você será redirecionado ao pagamento seguro do Mercado Pago.<br />
