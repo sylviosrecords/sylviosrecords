@@ -1,7 +1,17 @@
 import React from 'react';
 
 // ── Formatação ─────────────────────────────────────────────────────────────────
-export const fmt  = (v: number) => v.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+export function fmt(valor: number): string {
+  return valor.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+}
+
+/** Gera um ID único de pedido no formato SR-YYYYMMDD-XXX */
+export function gerarIdPedido(): string {
+  const now = new Date();
+  const date = now.toISOString().slice(0, 10).replace(/-/g, '');
+  const rand = Math.random().toString(36).slice(2, 6).toUpperCase();
+  return `SR-${date}-${rand}`;
+}
 export const disc = (o: number, c: number) => Math.round(((o - c) / o) * 100);
 
 // ── Slug e extração de ID ML ───────────────────────────────────────────────────

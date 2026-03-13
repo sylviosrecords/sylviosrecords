@@ -1,7 +1,7 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
 import { Resend } from 'resend';
 import { createClient } from '@supabase/supabase-js';
-import { gerarIdPedido } from '../src/lib/supabase';
+import { gerarIdPedido } from '../src/utils';
 
 // ── Clientes ─────────────────────────────────────────────────────────────────
 const resend = new Resend(process.env.RESEND_API_KEY);

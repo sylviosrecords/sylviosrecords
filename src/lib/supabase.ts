@@ -46,13 +46,6 @@ export interface PedidoDB {
   atualizado_em: string;
 }
 
-/** Gera um ID único de pedido no formato SR-YYYYMMDD-XXX */
-export function gerarIdPedido(): string {
-  const now = new Date();
-  const date = now.toISOString().slice(0, 10).replace(/-/g, '');
-  const rand = Math.random().toString(36).slice(2, 6).toUpperCase();
-  return `SR-${date}-${rand}`;
-}
 
 /** Busca um pedido pelo ID — qualquer um pode ler (política pública) */
 export async function buscarPedido(id: string): Promise<PedidoDB | null> {
