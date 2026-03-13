@@ -90,7 +90,7 @@ export default function App() {
              isFavoritos     ? wrap('favoritos',  <PaginaFavoritos  navigate={navigate} />) :
              isNovidades     ? wrap('novidades',  <PaginaNovidades  navigate={navigate} />) :
              isBusca         ? wrap('busca',      <PaginaBusca      buscaQuery={buscaQuery} navigate={navigate} />) :
-             isCarrinho      ? wrap('carrinho',   <PaginaCarrinho   navigate={navigate} />) :
+             isCarrinho      ? wrap('carrinho',   <PaginaCarrinho   navigate={navigate} setFreteCheckout={setFreteCheckout} />) :
              isCheckout      ? wrap('checkout',   <PaginaCheckout   navigate={navigate} freteNome={freteCheckout?.nome} fretePreco={freteCheckout?.preco} />) :
              isPedido        ? wrap('pedido',     <PaginaPedido     pedidoId={pedidoId} navigate={navigate} />) :
              isPedidoSucesso ? wrap('sucesso',    <PaginaPedidoSucesso navigate={navigate} />) :

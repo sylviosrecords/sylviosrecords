@@ -5,7 +5,7 @@ import { CarrinhoCalculadorFrete } from '../components/CarrinhoCalculadorFrete';
 import { fmt } from '../utils';
 import { NavSecundaria } from '../components/NavSecundaria';
 
-export function PaginaCarrinho({ navigate }: { navigate: (r: string) => void }) {
+export function PaginaCarrinho({ navigate, setFreteCheckout }: { navigate: (r: string) => void, setFreteCheckout: (f: { nome: string; preco: number } | null) => void }) {
   const { itens, total, totalItens, removerItem, alterarQuantidade, limparCarrinho } = useCarrinho();
   const [freteEscolhido, setFreteEscolhido] = useState<{ nome: string; preco: number } | null>(null);
 
@@ -137,7 +137,10 @@ export function PaginaCarrinho({ navigate }: { navigate: (r: string) => void }) 
               <motion.button
                 whileHover={{ scale: 1.02 }}
                 whileTap={{ scale: 0.98 }}
-                onClick={() => navigate('/checkout')}
+                onClick={() => {
+                  setFreteCheckout(freteEscolhido);
+                  navigate('/checkout');
+                }}
                 disabled={!freteEscolhido}
                 className="w-full py-3 rounded-lg font-bold text-white text-sm mt-2 disabled:opacity-40 disabled:cursor-not-allowed"
                 style={{ background: 'linear-gradient(135deg, #dc2626, #7f1d1d)' }}

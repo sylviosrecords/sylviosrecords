@@ -1,7 +1,7 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { ItemCarrinho, Produto } from '../types';
 
-const MAX_POR_ITEM = 5; // máximo por item quando não há estoque definido
+const MAX_POR_ITEM = 1; // máximo por item quando não há estoque definido
 
 interface CarrinhoContextType {
   itens: ItemCarrinho[];

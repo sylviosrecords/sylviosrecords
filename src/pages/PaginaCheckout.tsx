@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { motion } from 'motion/react';
+import { ArrowLeft } from 'lucide-react';
 import { useCarrinho } from '../contexts/CarrinhoContext';
 import { NavSecundaria } from '../components/NavSecundaria';
 import { fmt } from '../utils';
@@ -140,7 +141,12 @@ export function PaginaCheckout({ navigate, freteNome, fretePreco }: {
       <NavSecundaria navigate={navigate} />
 
       <div className="max-w-3xl mx-auto px-4 pt-24 pb-16">
-        <h1 className="text-3xl font-bold text-white mb-8">Finalizar Pedido</h1>
+        <div className="flex items-center gap-4 mb-8">
+          <button onClick={() => navigate('/carrinho')} className="p-2 bg-white/5 hover:bg-white/10 rounded-xl text-zinc-400 hover:text-white transition-colors">
+            <ArrowLeft className="w-5 h-5" />
+          </button>
+          <h1 className="text-3xl font-bold text-white">Finalizar Pedido</h1>
+        </div>
 
         <form onSubmit={handleSubmit} className="space-y-6">
 
