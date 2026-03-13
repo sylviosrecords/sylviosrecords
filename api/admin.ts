@@ -58,14 +58,14 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       if (typeof desconto !== 'number' || desconto < 0 || desconto > 100) {
         return res.status(400).json({ erro: 'Desconto inválido (0-100)' });
       }
-      const { error } = await supabase.from('configuracoes').upsert(
+      const { error, status, statusText } = await supabase.from('configuracoes').upsert(
         { chave: 'desconto_site', valor: String(desconto) },
         { onConflict: 'chave' }
       );
-      if (error) return res.status(500).json({ erro: error.message });
+      if (error) return res.status(500).json({ erro: `ERRO BANCO: ${error.message || JSON.stringify(error)} | Status: ${status}` });
       return res.json({ ok: true, desconto });
     } catch (err: any) {
-      return res.status(500).json({ erro: err.message });
+      return res.status(500).json({ erro: `ERRO FATAL: ${err.message}` });
     }
   }
 
