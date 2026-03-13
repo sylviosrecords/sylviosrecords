@@ -1,18 +1,13 @@
 import { createClient } from '@supabase/supabase-js';
 
-// Cliente Supabase para uso nos serverless (usa a service_role key)
-// Nunca exponha a service_role key no frontend!
-const supabaseUrl = process.env.SUPABASE_URL!;
-const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!;
+// Cliente Supabase para uso SOMENTE no frontend (React)
+// Usa a publishable/anon key — seguro para o browser
+// RLS no Supabase garante que usuários só leiam o que devem
 
-export const supabaseAdmin = createClient(supabaseUrl, supabaseServiceKey, {
-  auth: { persistSession: false },
-});
+const url  = import.meta.env.VITE_SUPABASE_URL  as string;
+const key  = import.meta.env.VITE_SUPABASE_ANON_KEY as string;
 
-// Cliente Supabase para uso no frontend (usa a anon/publishable key)
-// Seguro para expor ao cliente — RLS protege os dados
-const supabaseAnonKey = process.env.VITE_SUPABASE_ANON_KEY!;
-export const supabase = createClient(supabaseUrl, supabaseAnonKey);
+export const supabase = createClient(url, key);
 
 // ── Tipos ──────────────────────────────────────────────────────────────────────
 
@@ -49,8 +44,6 @@ export interface PedidoDB {
   atualizado_em: string;
 }
 
-// ── Helpers ────────────────────────────────────────────────────────────────────
-
 /** Gera um ID único de pedido no formato SR-YYYYMMDD-XXX */
 export function gerarIdPedido(): string {
   const now = new Date();
@@ -59,7 +52,7 @@ export function gerarIdPedido(): string {
   return `SR-${date}-${rand}`;
 }
 
-/** Busca um pedido pelo ID (público) */
+/** Busca um pedido pelo ID — qualquer um pode ler (política pública) */
 export async function buscarPedido(id: string): Promise<PedidoDB | null> {
   const { data, error } = await supabase
     .from('pedidos')
