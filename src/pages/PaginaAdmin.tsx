@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'motion/react';
-import { Lock, Package, CheckCircle, Truck, RefreshCw, X } from 'lucide-react';
+import { Lock, Package, CheckCircle, Truck, RefreshCw, X, Settings, Info } from 'lucide-react';
 import { fmt } from '../utils';
 
 // Tipo Simplificado do Pedido no db
@@ -26,6 +26,11 @@ export function PaginaAdmin() {
   const [nfeKey, setNfeKey] = useState('');
   const [gerandoMsg, setGerandoMsg] = useState('');
 
+  // Configurador de Desconto
+  const [descontoAtual, setDescontoAtual] = useState(10);
+  const [novoDesconto, setNovoDesconto] = useState(10);
+  const [descontoMsg, setDescontoMsg] = useState('');
+
   // 1. Login
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -38,6 +43,9 @@ export function PaginaAdmin() {
       if (!resp.ok) throw new Error('Senha incorreta');
       const data = await resp.json();
       setPedidos(data.pedidos || []);
+      // Buscar desconto atual
+      const cfgResp = await fetch('/api/config');
+      if (cfgResp.ok) { const cfg = await cfgResp.json(); setDescontoAtual(cfg.desconto ?? 10); setNovoDesconto(cfg.desconto ?? 10); }
       setLogado(true);
     } catch {
       setErro('Acesso negado. Tente novamente.');
@@ -206,6 +214,61 @@ export function PaginaAdmin() {
                 )}
               </tbody>
             </table>
+          </div>
+        </div>
+
+        {/* Configurador de Desconto */}
+        <div className="mt-8 bg-zinc-900 border border-white/5 rounded-2xl p-6 shadow-xl">
+          <div className="flex items-center gap-3 mb-5">
+            <Settings className="w-5 h-5 text-red-500" />
+            <h2 className="text-xl font-bold text-white">Configurador de Desconto</h2>
+            <span className="ml-auto text-xs bg-zinc-800 text-zinc-400 px-2 py-1 rounded-full">Atual: <strong className="text-white">{descontoAtual}% OFF</strong></span>
+          </div>
+
+          <div className="space-y-4">
+            <div className="flex items-center gap-4">
+              <input
+                type="range"
+                min={0} max={50} step={1}
+                value={novoDesconto}
+                onChange={e => setNovoDesconto(Number(e.target.value))}
+                className="flex-1 accent-red-500"
+              />
+              <div className="flex items-center gap-2">
+                <input
+                  type="number"
+                  min={0} max={50}
+                  value={novoDesconto}
+                  onChange={e => setNovoDesconto(Math.min(50, Math.max(0, Number(e.target.value))))}
+                  className="w-16 bg-black/50 border border-zinc-700 rounded-lg px-2 py-1.5 text-white text-center font-bold focus:outline-none focus:border-red-500"
+                />
+                <span className="text-zinc-400 text-sm">%</span>
+              </div>
+            </div>
+
+            {novoDesconto !== descontoAtual && (
+              <div className="bg-amber-900/20 border border-amber-500/30 p-4 rounded-xl flex gap-3">
+                <Info className="w-5 h-5 text-amber-400 flex-shrink-0 mt-0.5" />
+                <div>
+                  <p className="text-amber-300 text-sm font-bold mb-1">Para aplicar o desconto de {novoDesconto}%:</p>
+                  <ol className="text-amber-200/70 text-xs space-y-1 leading-relaxed list-decimal pl-4">
+                    <li>Acesse <strong>vercel.com</strong> → Settings → Environment Variables</li>
+                    <li>Crie ou atualize a variável: <code className="bg-black/30 px-1 rounded">DESCONTO_SITE</code> = <code className="bg-black/30 px-1 rounded font-bold">{novoDesconto}</code></li>
+                    <li>Clique em <strong>Redeploy</strong> na aba Deployments</li>
+                  </ol>
+                </div>
+              </div>
+            )}
+
+            {novoDesconto === descontoAtual && (
+              <p className="text-green-500 text-sm font-medium">✅ O site está com {descontoAtual}% de desconto ativo.</p>
+            )}
+
+            {novoDesconto === 0 && (
+              <p className="text-zinc-400 text-xs">💡 Desconto 0% = os badges de desconto e preços riscados somem automaticamente do site.</p>
+            )}
+
+            {descontoMsg && <p className="text-green-400 text-sm font-bold">{descontoMsg}</p>}
           </div>
         </div>
       </div>

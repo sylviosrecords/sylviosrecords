@@ -4,6 +4,7 @@ import type { Produto } from '../types';
 import { slugify, fmt, disc } from '../utils';
 import { FavCtx } from '../contexts/FavoritosContext';
 import { useCarrinho } from '../contexts/CarrinhoContext';
+import { useDesconto } from '../contexts/DescontoContext';
 
 export function ProdutoCard({ p, navigate }: { key?: React.Key; p: Produto; navigate: (path: string) => void }) {
   const [imgOk,     setImgOk]     = useState(true);
@@ -11,6 +12,7 @@ export function ProdutoCard({ p, navigate }: { key?: React.Key; p: Produto; navi
   const [adicionado, setAdicionado] = useState(false);
   const { isFav, toggle } = React.useContext(FavCtx);
   const { adicionarItem } = useCarrinho();
+  const { desconto } = useDesconto();
   const fav = isFav(p.id);
   const urlProduto = `/produto/${p.id}-${slugify(p.titulo)}`;
 
@@ -32,10 +34,12 @@ export function ProdutoCard({ p, navigate }: { key?: React.Key; p: Produto; navi
               onError={() => { setImgOk(false); setImgLoaded(true); }}/>
           : <div className="w-full h-full flex items-center justify-center"><Disc className="w-12 h-12 text-zinc-700"/></div>
         }
-        {/* Badge OFF dinâmico baseado no calulo + 10% ML */}
-        <span className="absolute top-2 left-2 bg-red-600 text-white text-[10px] font-black px-2 py-0.5 rounded-full shadow border border-red-800/50">
-          -10% OFF (Site)
-        </span>
+        {/* Badge OFF dinâmico baseado no desconto configurado no painel */}
+        {desconto > 0 && (
+          <span className="absolute top-2 left-2 bg-red-600 text-white text-[10px] font-black px-2 py-0.5 rounded-full shadow border border-red-800/50">
+            -{desconto}% OFF (Site)
+          </span>
+        )}
         {p.condicao === 'new' && (
           <span className="absolute top-2 right-2 bg-blue-600/80 text-white text-[10px] font-bold px-2 py-0.5 rounded-full">NOVO</span>
         )}
@@ -51,8 +55,10 @@ export function ProdutoCard({ p, navigate }: { key?: React.Key; p: Produto; navi
       <div className="p-3 flex flex-col flex-1">
         <p className="text-[11px] text-zinc-400 leading-tight line-clamp-2 min-h-[30px] mb-2 flex-1">{p.titulo}</p>
         
-        {/* Mostra preço original (calculado +10% do ML) riscado e preço atual do site em destaque */}
-        <p className="text-zinc-600 text-[11px] line-through">{fmt(p.preco / 0.9)} <span className="text-[9px]">(ML)</span></p>
+        {/* Mostra preço original (calculado com +desconto% do ML) riscado e preço atual do site em destaque */}
+        {desconto > 0 && (
+          <p className="text-zinc-600 text-[11px] line-through">{fmt(p.preco / (1 - desconto / 100))} <span className="text-[9px]">(ML)</span></p>
+        )}
         <p className="text-white font-bold text-sm">{fmt(p.preco)}</p>
         
         {p.vendidos > 0 && <p className="text-zinc-600 text-[10px] mt-1">{p.vendidos} vendidos</p>}

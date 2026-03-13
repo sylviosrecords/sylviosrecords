@@ -5,6 +5,7 @@ import { useFavoritos, FavCtx } from './contexts/FavoritosContext';
 import { useCarrinhoProvider, CarrinhoCtx } from './contexts/CarrinhoContext';
 import { NavSecundaria } from './components/NavSecundaria';
 import { CarrinhoDrawer } from './components/CarrinhoDrawer';
+import { DescontoProvider } from './contexts/DescontoContext';
 
 // Páginas (Lazy Loading)
 const PaginaProduto   = lazy(() => import('./pages/PaginaProduto').then(m => ({ default: m.PaginaProduto })));
@@ -74,6 +75,7 @@ export default function App() {
   );
 
   return (
+    <DescontoProvider>
     <CarrinhoCtx.Provider value={carrinhoCtxValue}>
       <FavCtx.Provider value={favCtxValue}>
 
@@ -107,5 +109,6 @@ export default function App() {
 
       </FavCtx.Provider>
     </CarrinhoCtx.Provider>
+    </DescontoProvider>
   );
 }
