@@ -37,14 +37,16 @@ export function PaginaAdmin() {
     setLoading(true);
     setErro('');
     try {
-      const resp = await fetch('/api/admin/pedidos', {
+      const resp = await fetch('/api/admin?action=pedidos', {
         headers: { Authorization: `Bearer ${senha}` }
       });
       if (!resp.ok) throw new Error('Senha incorreta');
       const data = await resp.json();
       setPedidos(data.pedidos || []);
       // Buscar desconto atual
-      const cfgResp = await fetch('/api/config');
+      const cfgResp = await fetch('/api/admin?action=config', {
+        headers: { Authorization: `Bearer ${senha}` }
+      });
       if (cfgResp.ok) { const cfg = await cfgResp.json(); setDescontoAtual(cfg.desconto ?? 10); setNovoDesconto(cfg.desconto ?? 10); }
       setLogado(true);
     } catch {
@@ -58,7 +60,7 @@ export function PaginaAdmin() {
   const carregarPedidos = async () => {
     setLoading(true);
     try {
-      const resp = await fetch('/api/admin/pedidos', {
+      const resp = await fetch('/api/admin?action=pedidos', {
         headers: { Authorization: `Bearer ${senha}` }
       });
       if (resp.ok) {
@@ -77,7 +79,7 @@ export function PaginaAdmin() {
     setErro('');
     
     try {
-      const resp = await fetch('/api/admin/etiqueta', {
+      const resp = await fetch('/api/admin?action=etiqueta', {
         method: 'POST',
         headers: { 
           'Content-Type': 'application/json',
