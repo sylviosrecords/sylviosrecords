@@ -116,7 +116,8 @@ export function PaginaAdmin() {
         headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${senha}` },
         body: JSON.stringify({ desconto: novoDesconto })
       });
-      if (!resp.ok) throw new Error('Falha ao salvar');
+      const data = await resp.json();
+      if (!resp.ok) throw new Error(data.erro || 'Falha ao salvar');
       setDescontoAtual(novoDesconto);
       setDescontoMsg(`✅ Desconto atualizado para ${novoDesconto}% com sucesso!`);
       setTimeout(() => setDescontoMsg(''), 4000);
