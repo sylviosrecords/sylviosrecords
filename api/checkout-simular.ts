@@ -3,14 +3,34 @@ import { Resend } from 'resend';
 import { createClient } from '@supabase/supabase-js';
 import { gerarIdPedido } from '../src/utils.ts';
 
-// ── Clientes ─────────────────────────────────────────────────────────────────
-const resend = new Resend(process.env.RESEND_API_KEY);
+// Atrasamos a inicialização para evitar crash se a env var não estiver carregada no boot do Vercel
+let resendClient: Resend | null = null;
+let supabaseClient: ReturnType<typeof createClient> | null = null;
 
-const supabase = createClient(
-  process.env.SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!,
-  { auth: { persistSession: false } }
-);
+function getSupabase() {
+  if (!supabaseClient) {
+    if (!process.env.SUPABASE_URL || !process.env.SUPABASE_SERVICE_ROLE_KEY) {
+      console.warn('Variáveis de ambiente do Supabase faltando!');
+    }
+    supabaseClient = createClient(
+      process.env.SUPABASE_URL || '',
+      process.env.SUPABASE_SERVICE_ROLE_KEY || '',
+      { auth: { persistSession: false } }
+    );
+  }
+  return supabaseClient;
+}
+
+function getResend() {
+  if (!resendClient) {
+    if (!process.env.RESEND_API_KEY) {
+      console.warn('Aviso: RESEND_API_KEY não definida (e-mails não serão enviados)');
+    }
+    // Inicializa mesmo sem key para não quebrar a compilação, ou passa null se preferir controle
+    resendClient = new Resend(process.env.RESEND_API_KEY || 're_dummy_123');
+  }
+  return resendClient;
+}
 
 const SITE_URL = process.env.SITE_URL || 'https://sylviosrecords.vercel.app';
 
@@ -45,11 +65,12 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       frete_nome: frete.nome,
       frete_valor: frete.preco,
       total: subtotal + frete.preco,
-      itens,
+      itens: itens as any,
     };
 
     // 5. Salvar no Supabase
-    const { error: dbError } = await supabase.from('pedidos').insert(pedido);
+    const supabase = getSupabase();
+    const { error: dbError } = await supabase.from('pedidos').insert(pedido as any);
     if (dbError) {
       console.error('[checkout-simular] Erro ao salvar pedido:', dbError);
       return res.status(500).json({ erro: 'Erro ao salvar pedido no banco' });
@@ -165,14 +186,18 @@ async function enviarEmailConfirmacao(pedido: {
 </html>`;
 
   try {
-    const result = await resend.emails.send({
-      from: 'Sylvio\'s Records <pedidos@sylviosrecords.com.br>',
-      to: pedido.cliente_email,
-      subject: `✅ Pedido Teste ${pedido.id} — Sylvio's Records`,
-      html,
-    });
-    console.log('[email] Confirmação simulada enviada:', result);
-  } catch (err) {
+    const resend = getResend();
+    if (process.env.RESEND_API_KEY) {
+      const result = await resend.emails.send({
+        from: "Sylvio's Records <pedidos@sylviosrecords.com.br>",
+        to: pedido.cliente_email,
+        subject: `✅ Pedido Teste ${pedido.id} — Sylvio's Records`,
+        html,
+      });
+          } else {
+      console.log('[email] Simulado sem envio real (falta API KEY):', pedido.id);
+    }
+      } catch (err) {
     console.error('[email] Erro ao enviar simulado:', err);
   }
 }
