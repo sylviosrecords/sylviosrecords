@@ -1,15 +1,32 @@
 import { useState, useEffect } from 'react';
 import { Loader2, ArrowLeft, ImageOff, Sparkles, ShoppingCart, ExternalLink } from 'lucide-react';
+import { motion } from 'motion/react';
 import { STORE_NAME } from '../config';
 import { SEO } from '../components/SEO';
 import { useProduto, useDescricao } from '../hooks/useProdutos';
 import { fmt, disc } from '../utils';
+import { useCarrinho } from '../contexts/CarrinhoContext';
 
 export function PaginaProduto({ slugComposto, navigate }: { slugComposto: string; navigate: (path: string) => void }) {
   const { produto, loading, error } = useProduto(slugComposto);
   const [fotoIdx, setFotoIdx] = useState(0);
+  const [adicionado, setAdicionado] = useState(false);
   const fotos = produto?.fotos?.length ? produto.fotos : produto?.foto ? [produto.foto] : [];
   const { descricao, loading: descLoading } = useDescricao(produto?.id || '');
+  const { adicionarItem } = useCarrinho();
+
+  const handleAddToCart = () => {
+    if (!produto) return;
+    adicionarItem(produto);
+    setAdicionado(true);
+    setTimeout(() => setAdicionado(false), 2000);
+  };
+
+  const handleBuyNow = () => {
+    if (!produto) return;
+    adicionarItem(produto);
+    navigate('/carrinho');
+  };
 
   useEffect(() => {
     if (produto?.titulo) {
@@ -143,11 +160,50 @@ export function PaginaProduto({ slugComposto, navigate }: { slugComposto: string
               ))}
             </div>
 
-            <a href={produto.link} target="_blank" rel="noopener noreferrer"
-              className="sr-gradient text-white px-8 py-5 rounded-2xl font-bold text-lg flex items-center justify-center gap-3 hover:opacity-90 transition-all shadow-xl shadow-red-950/30 active:scale-95">
-              <ShoppingCart className="w-6 h-6"/> Comprar no Mercado Livre <ExternalLink className="w-5 h-5"/>
-            </a>
-            <p className="text-zinc-600 text-xs text-center">Você será redirecionado para o Mercado Livre para finalizar a compra com segurança.</p>
+            {/* Botões de compra */}
+            <div className="flex flex-col gap-3">
+
+              {/* Adicionar ao Carrinho */}
+              <motion.button
+                whileTap={{ scale: 0.97 }}
+                onClick={handleAddToCart}
+                className={`w-full px-8 py-4 rounded-2xl font-bold text-base flex items-center justify-center gap-3 transition-all duration-300 ${
+                  adicionado
+                    ? 'bg-green-600 text-white'
+                    : 'bg-white/8 border border-white/15 text-white hover:bg-white/12'
+                }`}
+              >
+                <ShoppingCart className="w-5 h-5" />
+                {adicionado ? '✓ Adicionado ao Carrinho!' : 'Adicionar ao Carrinho'}
+              </motion.button>
+
+              {/* Comprar Agora */}
+              <motion.button
+                whileHover={{ scale: 1.02 }}
+                whileTap={{ scale: 0.97 }}
+                onClick={handleBuyNow}
+                className="sr-gradient text-white px-8 py-5 rounded-2xl font-bold text-lg flex items-center justify-center gap-3 hover:opacity-90 transition-all shadow-xl shadow-red-950/30"
+              >
+                ⚡ Comprar Agora pelo Site
+              </motion.button>
+
+              {/* Divisor */}
+              <div className="flex items-center gap-3">
+                <div className="flex-1 h-px bg-white/10" />
+                <span className="text-zinc-600 text-xs">ou</span>
+                <div className="flex-1 h-px bg-white/10" />
+              </div>
+
+              {/* Fallback ML */}
+              <a href={produto.link} target="_blank" rel="noopener noreferrer"
+                className="text-zinc-500 hover:text-zinc-300 text-sm flex items-center justify-center gap-2 transition-colors py-2"
+              >
+                <ExternalLink className="w-4 h-4" />
+                Comprar no Mercado Livre
+              </a>
+            </div>
+
+            <p className="text-zinc-700 text-xs text-center">🔒 Pagamento seguro via Mercado Pago · Pix, Boleto e Cartão</p>
           </div>
         </div>
       </div>

@@ -68,6 +68,7 @@ CREATE TRIGGER trigger_pedidos_atualizado_em
 ALTER TABLE pedidos ENABLE ROW LEVEL SECURITY;
 
 -- Política pública: qualquer um pode ler um pedido pelo ID (para a página /pedido/:id)
+DROP POLICY IF EXISTS "leitura_publica_por_id" ON pedidos;
 CREATE POLICY "leitura_publica_por_id" ON pedidos
   FOR SELECT USING (true);
 
