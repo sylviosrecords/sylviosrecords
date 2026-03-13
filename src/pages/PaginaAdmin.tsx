@@ -107,6 +107,23 @@ export function PaginaAdmin() {
       setErro(err.message);
     }
   };
+  // 3. Salvar Desconto no Supabase (instantâneo, sem redeploy)
+  const handleSalvarDesconto = async () => {
+    setDescontoMsg('');
+    try {
+      const resp = await fetch('/api/admin?action=config', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${senha}` },
+        body: JSON.stringify({ desconto: novoDesconto })
+      });
+      if (!resp.ok) throw new Error('Falha ao salvar');
+      setDescontoAtual(novoDesconto);
+      setDescontoMsg(`✅ Desconto atualizado para ${novoDesconto}% com sucesso!`);
+      setTimeout(() => setDescontoMsg(''), 4000);
+    } catch (err: any) {
+      setDescontoMsg(`❌ Erro: ${err.message}`);
+    }
+  };
 
   // Tela de Login (Gatekeeper)
   if (!logado) {
@@ -249,17 +266,14 @@ export function PaginaAdmin() {
             </div>
 
             {novoDesconto !== descontoAtual && (
-              <div className="bg-amber-900/20 border border-amber-500/30 p-4 rounded-xl flex gap-3">
-                <Info className="w-5 h-5 text-amber-400 flex-shrink-0 mt-0.5" />
-                <div>
-                  <p className="text-amber-300 text-sm font-bold mb-1">Para aplicar o desconto de {novoDesconto}%:</p>
-                  <ol className="text-amber-200/70 text-xs space-y-1 leading-relaxed list-decimal pl-4">
-                    <li>Acesse <strong>vercel.com</strong> → Settings → Environment Variables</li>
-                    <li>Crie ou atualize a variável: <code className="bg-black/30 px-1 rounded">DESCONTO_SITE</code> = <code className="bg-black/30 px-1 rounded font-bold">{novoDesconto}</code></li>
-                    <li>Clique em <strong>Redeploy</strong> na aba Deployments</li>
-                  </ol>
-                </div>
-              </div>
+              <motion.button
+                onClick={handleSalvarDesconto}
+                whileHover={{ scale: 1.02 }}
+                whileTap={{ scale: 0.98 }}
+                className="w-full py-3 bg-gradient-to-r from-red-600 to-red-800 hover:from-red-500 hover:to-red-700 text-white rounded-xl font-bold text-sm transition-all shadow-lg"
+              >
+                💾 Salvar Desconto ({novoDesconto}%)
+              </motion.button>
             )}
 
             {novoDesconto === descontoAtual && (
@@ -270,7 +284,7 @@ export function PaginaAdmin() {
               <p className="text-zinc-400 text-xs">💡 Desconto 0% = os badges de desconto e preços riscados somem automaticamente do site.</p>
             )}
 
-            {descontoMsg && <p className="text-green-400 text-sm font-bold">{descontoMsg}</p>}
+            {descontoMsg && <p className="text-sm font-bold" style={{ color: descontoMsg.startsWith('❌') ? '#f87171' : '#4ade80' }}>{descontoMsg}</p>}
           </div>
         </div>
       </div>

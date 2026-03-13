@@ -42,8 +42,31 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
   // ── GET /api/admin?action=config ──────────────────────────────────────────
   if (req.method === 'GET' && action === 'config') {
-    const valor = parseInt(process.env.DESCONTO_SITE || '10', 10);
-    return res.json({ desconto: valor });
+    try {
+      const { data } = await supabase
+        .from('configuracoes').select('valor').eq('chave', 'desconto_site').single();
+      return res.json({ desconto: data?.valor !== undefined ? Number(data.valor) : 10 });
+    } catch {
+      return res.json({ desconto: parseInt(process.env.DESCONTO_SITE || '10', 10) });
+    }
+  }
+
+  // ── POST /api/admin?action=config ─────────────────────────────────────────
+  if (req.method === 'POST' && action === 'config') {
+    try {
+      const { desconto } = req.body as { desconto: number };
+      if (typeof desconto !== 'number' || desconto < 0 || desconto > 100) {
+        return res.status(400).json({ erro: 'Desconto inválido (0-100)' });
+      }
+      const { error } = await supabase.from('configuracoes').upsert(
+        { chave: 'desconto_site', valor: String(desconto) },
+        { onConflict: 'chave' }
+      );
+      if (error) return res.status(500).json({ erro: error.message });
+      return res.json({ ok: true, desconto });
+    } catch (err: any) {
+      return res.status(500).json({ erro: err.message });
+    }
   }
 
   // ── POST /api/admin?action=etiqueta ───────────────────────────────────────
