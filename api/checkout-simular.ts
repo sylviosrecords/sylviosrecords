@@ -13,8 +13,8 @@ function getSupabase() {
       console.warn('Variáveis de ambiente do Supabase faltando!');
     }
     supabaseClient = createClient(
-      process.env.SUPABASE_URL || '',
-      process.env.SUPABASE_SERVICE_ROLE_KEY || '',
+      process.env.SUPABASE_URL || 'https://dummy.supabase.co',
+      process.env.SUPABASE_SERVICE_ROLE_KEY || 'dummy_key',
       { auth: { persistSession: false } }
     );
   }
