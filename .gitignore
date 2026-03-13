@@ -7,3 +7,5 @@ src/catalogo.jsonl
 .env
 .env.local
 .env.*.local
+
+.vercel

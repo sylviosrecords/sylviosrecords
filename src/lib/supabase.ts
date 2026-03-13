@@ -4,8 +4,10 @@ import { createClient } from '@supabase/supabase-js';
 // Usa a publishable/anon key — seguro para o browser
 // RLS no Supabase garante que usuários só leiam o que devem
 
-const url  = import.meta.env.VITE_SUPABASE_URL  as string;
-const key  = import.meta.env.VITE_SUPABASE_ANON_KEY as string;
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const meta = (import.meta as any).env ?? {};
+const url  = (meta.VITE_SUPABASE_URL  as string) ?? '';
+const key  = (meta.VITE_SUPABASE_ANON_KEY as string) ?? '';
 
 export const supabase = createClient(url, key);
 
