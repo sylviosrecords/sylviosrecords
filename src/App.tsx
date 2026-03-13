@@ -25,6 +25,7 @@ const PaginaPedido       = lazy(() => import('./pages/PaginaPedido').then(m => (
 const PaginaPedidoSucesso  = lazy(() => import('./pages/PaginasPedido').then(m => ({ default: m.PaginaPedidoSucesso })));
 const PaginaPedidoFalha    = lazy(() => import('./pages/PaginasPedido').then(m => ({ default: m.PaginaPedidoFalha })));
 const PaginaPedidoPendente = lazy(() => import('./pages/PaginasPedido').then(m => ({ default: m.PaginaPedidoPendente })));
+const PaginaAdmin        = lazy(() => import('./pages/PaginaAdmin').then(m => ({ default: m.PaginaAdmin })));
 
 const LoadingScreen = () => (
   <div className="min-h-screen bg-[#080808] flex items-center justify-center">
@@ -54,6 +55,7 @@ export default function App() {
   const isPedidoSucesso  = route === '/pedido/sucesso';
   const isPedidoFalha    = route === '/pedido/falha';
   const isPedidoPendente = route === '/pedido/pendente';
+  const isAdmin          = route === '/admin';
   const pedidoId = isPedido ? route.replace('/pedido/', '') : '';
 
   const slugProduto = isProduto ? route.replace('/produto/', '') : '';
@@ -63,7 +65,7 @@ export default function App() {
 
   const isSecundaria = isProduto || isColecao || isArtigo || isColecoesList || isBlogList
     || isBusca || isNovidades || isFavoritos || isCarrinho || isCheckout
-    || isPedido || isPedidoSucesso || isPedidoFalha || isPedidoPendente;
+    || isPedido || isPedidoSucesso || isPedidoFalha || isPedidoPendente || isAdmin;
 
   const wrap = (key: string, el: React.ReactNode) => (
     <motion.div key={key} initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.2 }}>
@@ -96,6 +98,7 @@ export default function App() {
              isPedidoSucesso ? wrap('sucesso',    <PaginaPedidoSucesso navigate={navigate} />) :
              isPedidoFalha   ? wrap('falha',      <PaginaPedidoFalha   navigate={navigate} />) :
              isPedidoPendente? wrap('pendente',   <PaginaPedidoPendente navigate={navigate} />) :
+             isAdmin         ? wrap('admin',      <PaginaAdmin />) :
              (
                wrap('home', route === '/' ? <PaginaCatalogo navigate={navigate} /> : <Pagina404 navigate={navigate} />)
              )}

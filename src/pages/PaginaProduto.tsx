@@ -102,11 +102,10 @@ export function PaginaProduto({ slugComposto, navigate }: { slugComposto: string
                 ? <img src={fotos[fotoIdx]} alt={produto.titulo} className="w-full h-full object-contain p-4"/>
                 : <div className="w-full h-full flex items-center justify-center"><ImageOff className="w-16 h-16 text-zinc-700"/></div>
               }
-              {produto.preco_original && produto.preco_original > produto.preco && (
-                <span className="absolute top-4 left-4 bg-red-600 text-white text-sm font-black px-3 py-1 rounded-full">
-                  -{disc(produto.preco_original, produto.preco)}%
-                </span>
-              )}
+              {/* Badge Dinâmico - 10% OFF em relação ao ML */}
+              <span className="absolute top-4 left-4 bg-red-600 text-white text-sm font-black px-3 py-1 rounded-full shadow-lg border border-red-800">
+                -10% OFF (Site)
+              </span>
             </div>
             {fotos.length > 1 && (
               <div className="flex gap-2 overflow-x-auto pb-1">
@@ -127,13 +126,9 @@ export function PaginaProduto({ slugComposto, navigate }: { slugComposto: string
             <h1 className="font-bebas text-4xl md:text-5xl leading-tight text-white">{produto.titulo}</h1>
 
             <div>
-              {produto.preco_original && produto.preco_original > produto.preco && (
-                <p className="text-zinc-500 text-lg line-through">{fmt(produto.preco_original)}</p>
-              )}
+              <p className="text-zinc-500 text-lg line-through">{fmt(produto.preco / 0.9)} <span className="text-sm">(No Mercado Livre)</span></p>
               <p className="text-4xl font-bold sr-gradient-text">{fmt(produto.preco)}</p>
-              {produto.preco_original && produto.preco_original > produto.preco && (
-                <p className="text-green-400 text-sm mt-1">Você economiza {fmt(produto.preco_original - produto.preco)}</p>
-              )}
+              <p className="text-green-400 text-sm mt-1">Comprando pelo site você economiza {fmt((produto.preco / 0.9) - produto.preco)} (-10%)</p>
             </div>
 
             {produto.estoque !== undefined && produto.estoque <= 5 && produto.estoque > 0 && (

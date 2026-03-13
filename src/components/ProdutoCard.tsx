@@ -32,11 +32,10 @@ export function ProdutoCard({ p, navigate }: { key?: React.Key; p: Produto; navi
               onError={() => { setImgOk(false); setImgLoaded(true); }}/>
           : <div className="w-full h-full flex items-center justify-center"><Disc className="w-12 h-12 text-zinc-700"/></div>
         }
-        {p.preco_original && p.preco_original > p.preco && (
-          <span className="absolute top-2 left-2 bg-red-600 text-white text-[10px] font-black px-2 py-0.5 rounded-full">
-            -{disc(p.preco_original, p.preco)}%
-          </span>
-        )}
+        {/* Badge OFF dinâmico baseado no calulo + 10% ML */}
+        <span className="absolute top-2 left-2 bg-red-600 text-white text-[10px] font-black px-2 py-0.5 rounded-full shadow border border-red-800/50">
+          -10% OFF (Site)
+        </span>
         {p.condicao === 'new' && (
           <span className="absolute top-2 right-2 bg-blue-600/80 text-white text-[10px] font-bold px-2 py-0.5 rounded-full">NOVO</span>
         )}
@@ -51,10 +50,11 @@ export function ProdutoCard({ p, navigate }: { key?: React.Key; p: Produto; navi
       </div>
       <div className="p-3 flex flex-col flex-1">
         <p className="text-[11px] text-zinc-400 leading-tight line-clamp-2 min-h-[30px] mb-2 flex-1">{p.titulo}</p>
-        {p.preco_original && p.preco_original > p.preco && (
-          <p className="text-zinc-600 text-[11px] line-through">{fmt(p.preco_original)}</p>
-        )}
+        
+        {/* Mostra preço original (calculado +10% do ML) riscado e preço atual do site em destaque */}
+        <p className="text-zinc-600 text-[11px] line-through">{fmt(p.preco / 0.9)} <span className="text-[9px]">(ML)</span></p>
         <p className="text-white font-bold text-sm">{fmt(p.preco)}</p>
+        
         {p.vendidos > 0 && <p className="text-zinc-600 text-[10px] mt-1">{p.vendidos} vendidos</p>}
 
         {/* Botão Adicionar ao Carrinho */}

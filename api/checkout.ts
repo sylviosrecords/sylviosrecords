@@ -16,7 +16,10 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   try {
     const { itens, comprador, frete } = req.body as {
       itens: Array<{ titulo: string; preco: number; quantidade: number; foto: string; id: string }>;
-      comprador: { nome: string; email: string; cpf: string; telefone: string };
+      comprador: { 
+        nome: string; email: string; cpf: string; telefone: string;
+        endereco?: { cep: string; logradouro: string; numero: string; complemento?: string; bairro: string; cidade: string; estado: string; };
+      };
       frete: { nome: string; preco: number };
     };
 
@@ -60,6 +63,18 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       },
       auto_approve: false,
       notification_url: `${process.env.SITE_URL || 'https://sylviosrecords.vercel.app'}/api/webhook-mp`,
+      metadata: {
+        frete_nome: frete.nome,
+        frete_valor: frete.preco,
+        cliente_telefone: comprador.telefone,
+        endereco_cep: comprador.endereco?.cep,
+        endereco_logradouro: comprador.endereco?.logradouro,
+        endereco_numero: comprador.endereco?.numero,
+        endereco_complemento: comprador.endereco?.complemento,
+        endereco_bairro: comprador.endereco?.bairro,
+        endereco_cidade: comprador.endereco?.cidade,
+        endereco_estado: comprador.endereco?.estado,
+      },
       statement_descriptor: 'SYLVIOS RECORDS',
       expires: false,
     };

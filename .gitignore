@@ -9,3 +9,4 @@ src/catalogo.jsonl
 .env.*.local
 
 .vercel
+.env*.local

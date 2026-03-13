@@ -46,7 +46,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       const pesoTotal = PESO_DISCO_KG * qtd;
 
       const body = {
-        from: { postal_code: '01310100' }, // CEP de origem (São Paulo, SP) - ajustar para o seu CEP
+        from: { postal_code: '11704460' }, // CEP de origem (Sylvio's Records)
         to: { postal_code: cepLimpo },
         package: {
           height: DIMENSOES.altura,
