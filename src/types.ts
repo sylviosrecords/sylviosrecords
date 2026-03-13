@@ -35,3 +35,34 @@ export interface Artigo {
   conteudo: string;
   produtosRelacionados: string[];
 }
+
+export interface ItemCarrinho {
+  produto: Produto;
+  quantidade: number;
+}
+
+export interface FreteOpcao {
+  id: string;
+  nome: string;
+  preco: number;
+  prazo: string;
+  transportadora: string;
+}
+
+export interface EnderecoEntrega {
+  cep: string;
+  logradouro: string;
+  numero: string;
+  complemento?: string;
+  bairro: string;
+  cidade: string;
+  estado: string;
+}
+
+export interface DadosComprador {
+  nome: string;
+  email: string;
+  telefone: string;
+  cpf: string;
+  endereco: EnderecoEntrega;
+}
