@@ -1,6 +1,8 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { ItemCarrinho, Produto } from '../types';
 
+const MAX_POR_ITEM = 5; // máximo por item quando não há estoque definido
+
 interface CarrinhoContextType {
   itens: ItemCarrinho[];
   total: number;
@@ -45,16 +47,18 @@ export function useCarrinhoProvider(): CarrinhoContextType {
   const adicionarItem = (produto: Produto, quantidade = 1) => {
     setItens(prev => {
       const existente = prev.find(i => i.produto.id === produto.id);
+      const limite = produto.estoque != null && produto.estoque > 0
+        ? Math.min(produto.estoque, MAX_POR_ITEM)
+        : MAX_POR_ITEM;
       if (existente) {
+        const novaQtd = Math.min(existente.quantidade + quantidade, limite);
         return prev.map(i =>
-          i.produto.id === produto.id
-            ? { ...i, quantidade: i.quantidade + quantidade }
-            : i
+          i.produto.id === produto.id ? { ...i, quantidade: novaQtd } : i
         );
       }
-      return [...prev, { produto, quantidade }];
+      return [...prev, { produto, quantidade: Math.min(quantidade, limite) }];
     });
-    setIsAberto(true); // Abre o drawer ao adicionar
+    setIsAberto(true);
   };
 
   const removerItem = (produtoId: string) => {
@@ -62,12 +66,15 @@ export function useCarrinhoProvider(): CarrinhoContextType {
   };
 
   const alterarQuantidade = (produtoId: string, quantidade: number) => {
-    if (quantidade <= 0) {
-      removerItem(produtoId);
-      return;
-    }
+    if (quantidade <= 0) { removerItem(produtoId); return; }
     setItens(prev =>
-      prev.map(i => i.produto.id === produtoId ? { ...i, quantidade } : i)
+      prev.map(i => {
+        if (i.produto.id !== produtoId) return i;
+        const limite = i.produto.estoque != null && i.produto.estoque > 0
+          ? Math.min(i.produto.estoque, MAX_POR_ITEM)
+          : MAX_POR_ITEM;
+        return { ...i, quantidade: Math.min(quantidade, limite) };
+      })
     );
   };
 
