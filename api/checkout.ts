@@ -73,7 +73,9 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   // PASSO 3: Inserir pedido no Supabase
   let dbOrderId: string;
   try {
+    const pedidoId = crypto.randomUUID();
     const { data: dbOrder, error: dbError } = await supabase.from('pedidos').insert({
+      id: pedidoId,
       status: 'pendente',
       cliente_nome: comprador.nome,
       cliente_email: comprador.email,
