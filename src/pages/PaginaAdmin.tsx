@@ -272,7 +272,7 @@ export function PaginaAdmin() {
                         </button>
                       )}
                       {p.status === 'enviado' && (
-                        <a href="https://app.melhorenvio.com/orders/released" target="_blank" rel="noopener noreferrer" className="text-blue-400 hover:text-blue-300 text-xs font-bold underline">
+                        <a href="https://melhorenvio.com.br/painel" target="_blank" rel="noopener noreferrer" className="text-blue-400 hover:text-blue-300 text-xs font-bold underline">
                           Imprimir no M.E.
                         </a>
                       )}
