@@ -139,7 +139,11 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         return res.status(500).json({ erro: `Melhor Envio retornou HTML. Status ${cartResp.status}`, detalhe: textResp.substring(0, 200) });
       }
 
-      if (!cartResp.ok || cartData.error) return res.status(500).json({ erro: 'Falha no Melhor Envio (Cart)', detalhe: cartData });
+      if (!cartResp.ok || cartData.error) {
+        let erroReal = cartData.message || cartData.error || 'Falha no Melhor Envio (Cart)';
+        if (cartData.errors) erroReal += ' - ' + JSON.stringify(cartData.errors);
+        return res.status(500).json({ erro: erroReal });
+      }
 
       const meOrderId = cartData.id;
 
