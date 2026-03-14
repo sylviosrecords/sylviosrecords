@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion } from 'motion/react';
 import { ArrowLeft } from 'lucide-react';
 import { useCarrinho } from '../contexts/CarrinhoContext';
@@ -80,6 +80,12 @@ export function PaginaCheckout({ navigate, freteNome, fretePreco, cepFrete }: {
     } catch { /* silencioso */ }
     finally { setBuscandoCep(false); }
   };
+
+  // Auto-preencher endereço assim que a página abre com o CEP do carrinho
+  useEffect(() => {
+    if (cepFrete) buscarCep(cepFrete);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [cepFrete]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();

@@ -73,13 +73,14 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       estado: comprador.endereco?.estado,
       frete_nome: frete.nome,
       frete_valor: frete.preco,
+      subtotal: totalRealItens,
       itens: itensValidados.map(i => ({ id: i.id, titulo: i.titulo, preco: i.preco, quantidade: i.quantidade })),
       total: totalCalculado,
     }).select('id').single();
 
     if (dbError || !dbOrder) {
-      console.error('[checkout] Erro ao salvar pedido no DB:', dbError);
-      return res.status(500).json({ erro: 'Erro ao registrar pedido no sistema', detalhe: dbError });
+      console.error('[checkout] Erro DB:', JSON.stringify(dbError));
+      return res.status(500).json({ erro: 'Erro ao registrar pedido no sistema', detalhe: dbError?.message });
     }
 
     // 2. Montar a preferência de pagamento com referência ao ID interno
