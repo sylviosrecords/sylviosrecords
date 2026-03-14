@@ -442,6 +442,7 @@ export function PaginaCatalogo({ navigate }: { navigate: (path: string) => void 
           </div>
           <span>© 2026 {STORE_NAME}. Todos os direitos reservados.</span>
           <div className="flex gap-6">
+            <button onClick={() => navigate('/contato')} className="hover:text-zinc-400 transition-colors">Contato</button>
             <a href="#" className="hover:text-zinc-400 transition-colors">Termos de Uso</a>
             <a href="#" className="hover:text-zinc-400 transition-colors">Privacidade</a>
           </div>

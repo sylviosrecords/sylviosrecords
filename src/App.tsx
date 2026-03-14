@@ -18,6 +18,7 @@ const PaginaBusca     = lazy(() => import('./pages/PaginaBusca').then(m => ({ de
 const PaginaNovidades = lazy(() => import('./pages/PaginaNovidades').then(m => ({ default: m.PaginaNovidades })));
 const Pagina404       = lazy(() => import('./pages/Pagina404').then(m => ({ default: m.Pagina404 })));
 const PaginaFavoritos = lazy(() => import('./pages/PaginaFavoritos').then(m => ({ default: m.PaginaFavoritos })));
+const PaginaContato   = lazy(() => import('./pages/PaginaContato').then(m => ({ default: m.PaginaContato })));
 
 // Novas páginas da loja própria
 const PaginaCarrinho     = lazy(() => import('./pages/PaginaCarrinho').then(m => ({ default: m.PaginaCarrinho })));
@@ -57,6 +58,7 @@ export default function App() {
   const isPedidoFalha    = route === '/pedido/falha';
   const isPedidoPendente = route === '/pedido/pendente';
   const isAdmin          = route === '/admin';
+  const isContato        = route === '/contato';
   const pedidoId = isPedido ? route.replace('/pedido/', '') : '';
 
   const slugProduto = isProduto ? route.replace('/produto/', '') : '';
@@ -66,7 +68,7 @@ export default function App() {
 
   const isSecundaria = isProduto || isColecao || isArtigo || isColecoesList || isBlogList
     || isBusca || isNovidades || isFavoritos || isCarrinho || isCheckout
-    || isPedido || isPedidoSucesso || isPedidoFalha || isPedidoPendente || isAdmin;
+    || isPedido || isPedidoSucesso || isPedidoFalha || isPedidoPendente || isAdmin || isContato;
 
   const wrap = (key: string, el: React.ReactNode) => (
     <motion.div key={key} initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.2 }}>
@@ -101,6 +103,7 @@ export default function App() {
              isPedidoFalha   ? wrap('falha',      <PaginaPedidoFalha   navigate={navigate} />) :
              isPedidoPendente? wrap('pendente',   <PaginaPedidoPendente navigate={navigate} />) :
              isAdmin         ? wrap('admin',      <PaginaAdmin />) :
+             isContato       ? wrap('contato',    <PaginaContato />) :
              (
                wrap('home', route === '/' ? <PaginaCatalogo navigate={navigate} /> : <Pagina404 navigate={navigate} />)
              )}

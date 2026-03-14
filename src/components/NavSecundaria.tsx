@@ -31,6 +31,9 @@ export function NavSecundaria({ navigate }: { navigate: (path: string) => void }
             </span>
           )}
         </button>
+        <button onClick={() => navigate('/contato')} className="shrink-0 text-zinc-400 hover:text-white transition-colors flex items-center justify-center w-9 h-9 rounded-full hover:bg-white/5" title="Central de Atendimento / Dúvidas">
+          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m3 21 1.9-5.7a8.5 8.5 0 1 1 3.8 3.8z"/></svg>
+        </button>
         <a href={STORE_LINK} target="_blank" rel="noopener noreferrer"
           className="shrink-0 sr-gradient text-white px-3 py-2 sm:px-4 rounded-full text-sm font-bold flex items-center gap-1.5 hover:opacity-90">
           <span className="hidden sm:inline">Mercado Livre</span> <ExternalLink className="w-4 h-4"/>
