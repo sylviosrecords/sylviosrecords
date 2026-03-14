@@ -69,6 +69,18 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     }
   }
 
+  // ── DELETE /api/admin?action=pedido ───────────────────────────────────────
+  if (req.method === 'DELETE' && action === 'pedido') {
+    try {
+      const { id } = req.body as { id: string };
+      if (!id) return res.status(400).json({ erro: 'ID obrigatório' });
+      await supabase.from('pedidos').delete().eq('id', id);
+      return res.json({ ok: true });
+    } catch (err: any) {
+      return res.status(500).json({ erro: err.message });
+    }
+  }
+
   // ── POST /api/admin?action=etiqueta ───────────────────────────────────────
   if (req.method === 'POST' && action === 'etiqueta') {
     const tokenME = process.env.MELHOR_ENVIO_TOKEN;

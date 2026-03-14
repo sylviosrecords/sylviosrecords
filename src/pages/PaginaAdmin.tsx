@@ -108,7 +108,26 @@ export function PaginaAdmin() {
 
     } catch (err: any) {
       setGerandoMsg('');
-      setErro(err.message);
+      setErro(err.message || 'Falha ao conectar no provedor de envios');
+    }
+  };
+
+  const handleExcluir = async (id: string, nome: string) => {
+    if (!confirm(`Tem certeza que deseja EXCLUIR o pedido de ${nome}? Isso não pode ser desfeito.`)) return;
+    try {
+      setLoading(true);
+      const resp = await fetch('/api/admin?action=pedido', {
+        method: 'DELETE',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${senha}` },
+        body: JSON.stringify({ id })
+      });
+      if (!resp.ok) throw new Error('Falha ao excluir pedido');
+      setPedidos(p => p.filter(x => x.id !== id));
+      if (pedidoDetalhes?.id === id) setPedidoDetalhes(null);
+    } catch(err: any) {
+      alert(err.message);
+    } finally {
+      setLoading(false);
     }
   };
   // 3. Salvar Desconto no Supabase (instantâneo, sem redeploy)
@@ -401,7 +420,13 @@ export function PaginaAdmin() {
               </div>
             </div>
 
-            <div className="mt-6 flex justify-end">
+            <div className="mt-6 flex justify-between items-center">
+              <button 
+                onClick={() => handleExcluir(pedidoDetalhes.id, pedidoDetalhes.cliente_nome)}
+                className="px-4 py-2 text-red-500 hover:text-white hover:bg-red-600 rounded-xl text-sm font-bold transition-colors"
+              >
+                Excluir Pedido
+              </button>
               <button 
                 onClick={() => setPedidoDetalhes(null)}
                 className="px-6 py-2 bg-zinc-800 hover:bg-zinc-700 text-white rounded-xl text-sm font-bold transition-colors"
