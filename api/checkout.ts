@@ -136,7 +136,11 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         },
         identification: { type: 'CPF', number: comprador.cpf.replace(/\D/g, '') },
       },
-      payment_methods: { excluded_payment_types: [], installments: 6 },
+      payment_methods: {
+        installments: 12,
+        excluded_payment_types: [],
+        default_payment_method_id: 'pix',
+      },
       back_urls: {
         success: `${process.env.SITE_URL}/pedido/sucesso`,
         failure: `${process.env.SITE_URL}/pedido/falha`,
