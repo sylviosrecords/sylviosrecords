@@ -28,6 +28,35 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       frete: { nome: string; preco: number };
     };
 
+    // 0. BUSCAR PREÇOS REAIS DO MERCADO LIVRE E DESCONTO DO SUPABASE
+    const { data: config } = await supabase.from('configuracoes').select('valor').eq('chave', 'desconto_site').single();
+    const descontoStr = config?.valor || process.env.DESCONTO_SITE || '10';
+    const desconto = parseInt(descontoStr, 10);
+    const fatorDesconto = 1 - (desconto / 100);
+
+    const ids = itens.map(i => i.id).join(',');
+    const mlResposta = await fetch(`https://api.mercadolibre.com/items?ids=${ids}&attributes=id,price`);
+    const mlDados = await mlResposta.json();
+
+    const precosReais: Record<string, number> = {};
+    if (Array.isArray(mlDados)) {
+      for (const res of mlDados) {
+        if (res.code === 200 && res.body) {
+          precosReais[res.body.id] = res.body.price;
+        }
+      }
+    }
+
+    let totalRealItens = 0;
+    const itensValidados = itens.map(i => {
+      const precoOriginal = precosReais[i.id] || i.preco; // Fallback caso ML falhe e caia fora de 200 pro item
+      const precoComDesconto = Number((precoOriginal * fatorDesconto).toFixed(2));
+      totalRealItens += (precoComDesconto * i.quantidade);
+      return { ...i, preco: precoComDesconto };
+    });
+
+    const totalCalculado = totalRealItens + frete.preco;
+
     // 1. INSERIR PEDIDO PENDENTE NO BANCO DE DADOS PRIMEIRO
     const { data: dbOrder, error: dbError } = await supabase.from('pedidos').insert({
       status: 'pendente',
@@ -44,8 +73,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       estado: comprador.endereco?.estado,
       frete_nome: frete.nome,
       frete_valor: frete.preco,
-      itens: itens.map(i => ({ id: i.id, titulo: i.titulo, preco: i.preco, quantidade: i.quantidade })),
-      total: itens.reduce((acc, i) => acc + (i.preco * i.quantidade), 0) + frete.preco,
+      itens: itensValidados.map(i => ({ id: i.id, titulo: i.titulo, preco: i.preco, quantidade: i.quantidade })),
+      total: totalCalculado,
     }).select('id').single();
 
     if (dbError || !dbOrder) {
@@ -57,7 +86,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     const preferencia = {
       external_reference: dbOrder.id, // VÍNCULO CRUCIAL COM NOSSO BANCO DE DADOS
       items: [
-        ...itens.map(item => ({
+        ...itensValidados.map(item => ({
           id: item.id,
           title: item.titulo,
           quantity: item.quantidade,
