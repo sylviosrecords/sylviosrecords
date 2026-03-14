@@ -93,6 +93,18 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       const cartPayload = {
         service: serviceId,
         agency: null,
+        from: {
+          name: "Sylvios Records",
+          phone: "13996061597",
+          email: "contato@sylviosrecords.com.br",
+          document: "52025529805",
+          address: "Rua Particular",
+          number: "S/N",
+          district: "Ocian",
+          city: "Praia Grande",
+          state_abbr: "SP",
+          postal_code: "11704460"
+        },
         to: {
           name: pedido.cliente_nome.substring(0, 50),
           phone: (pedido.cliente_telefone || "11999999999").replace(/\D/g, ''),

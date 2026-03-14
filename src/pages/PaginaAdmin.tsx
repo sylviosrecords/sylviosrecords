@@ -22,6 +22,9 @@ export function PaginaAdmin() {
   const [pedidos, setPedidos] = useState<AdminPedido[]>([]);
   const [filtroStatus, setFiltroStatus] = useState<'pagos' | 'pendentes' | 'todos'>('pagos');
   
+  // Modal de Detalhes
+  const [pedidoDetalhes, setPedidoDetalhes] = useState<any>(null);
+
   // Modal de Etiqueta
   const [pedidoFoco, setPedidoFoco] = useState<AdminPedido | null>(null);
   const [nfeKey, setNfeKey] = useState('');
@@ -240,7 +243,10 @@ export function PaginaAdmin() {
                       )}
                     </td>
                     <td className="p-4 font-medium text-white">{fmt(p.total)}</td>
-                    <td className="p-4 text-right">
+                    <td className="p-4 text-right flex flex-col items-end gap-2">
+                      <button onClick={() => setPedidoDetalhes(p)} className="text-zinc-400 hover:text-white text-[11px] uppercase tracking-wider font-bold">
+                        Ver Detalhes
+                      </button>
                       {p.status === 'pago' && (
                         <button onClick={() => setPedidoFoco(p)} className="bg-red-600 hover:bg-red-500 text-white px-3 py-1.5 rounded-lg text-xs font-bold transition-colors">
                           🚛 Gerar Etiqueta
@@ -358,6 +364,49 @@ export function PaginaAdmin() {
                 className="w-full py-4 bg-gradient-to-r from-red-600 to-red-800 hover:from-red-500 hover:to-red-700 text-white rounded-xl font-bold transition-all shadow-lg flex justify-center items-center gap-2 disabled:opacity-50"
               >
                 {gerandoMsg ? 'Processando...' : '💰 Pagar e Gerar no Melhor Envio'}
+              </button>
+            </div>
+          </motion.div>
+        </div>
+      )}
+
+      {/* Modal de Detalhes do Pedido */}
+      {pedidoDetalhes && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm">
+          <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} className="bg-zinc-900 border border-white/10 rounded-2xl w-full max-w-lg overflow-hidden shadow-2xl p-6">
+            <h2 className="text-xl font-bold text-white mb-4">Detalhes do Pedido</h2>
+            
+            <div className="space-y-4 text-sm text-zinc-300">
+              <div>
+                <span className="text-zinc-500 block text-xs uppercase font-bold mb-1">Cliente</span>
+                <span className="font-bold text-white text-base">{pedidoDetalhes.cliente_nome}</span><br />
+                {pedidoDetalhes.cliente_cpf} • {pedidoDetalhes.cliente_telefone}<br />
+                {pedidoDetalhes.cliente_email}
+              </div>
+              
+              <div>
+                <span className="text-zinc-500 block text-xs uppercase font-bold mb-1">Endereço de Entrega</span>
+                {pedidoDetalhes.logradouro}, {pedidoDetalhes.numero} {pedidoDetalhes.complemento && `(${pedidoDetalhes.complemento})`}<br />
+                {pedidoDetalhes.bairro} - {pedidoDetalhes.cidade}/{pedidoDetalhes.estado}<br />
+                CEP: {pedidoDetalhes.cep}
+              </div>
+
+              <div className="bg-black/30 p-3 rounded-lg border border-white/5">
+                <span className="text-zinc-500 block text-xs uppercase font-bold mb-2">Resumo Financeiro</span>
+                <div className="flex justify-between mb-1"><span>Subtotal</span> <span>{fmt(pedidoDetalhes.subtotal || 0)}</span></div>
+                <div className="flex justify-between mb-2"><span>Frete ({pedidoDetalhes.frete_nome})</span> <span>{fmt(pedidoDetalhes.frete_valor)}</span></div>
+                <div className="flex justify-between text-white font-bold pt-2 border-t border-white/10">
+                  <span>Total Pago</span> <span>{fmt(pedidoDetalhes.total)}</span>
+                </div>
+              </div>
+            </div>
+
+            <div className="mt-6 flex justify-end">
+              <button 
+                onClick={() => setPedidoDetalhes(null)}
+                className="px-6 py-2 bg-zinc-800 hover:bg-zinc-700 text-white rounded-xl text-sm font-bold transition-colors"
+              >
+                Fechar
               </button>
             </div>
           </motion.div>
