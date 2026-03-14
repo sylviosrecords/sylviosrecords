@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
-import { Search, ExternalLink, Heart } from 'lucide-react';
+import { Search, ExternalLink, Heart, ShoppingCart } from 'lucide-react';
 import { STORE_NAME, STORE_LINK, STORE_LOGO } from '../config';
 import { FavCtx } from '../contexts/FavoritosContext';
+import { CarrinhoCtx } from '../contexts/CarrinhoContext';
 
 export function NavSecundaria({ navigate }: { navigate: (path: string) => void }) {
   const [buscaInput, setBuscaInput] = useState('');
@@ -28,6 +29,14 @@ export function NavSecundaria({ navigate }: { navigate: (path: string) => void }
           {React.useContext(FavCtx).favoritos.length > 0 && (
             <span className="absolute -top-1 -right-1 w-4 h-4 bg-red-500 rounded-full text-[9px] font-bold text-white flex items-center justify-center">
               {React.useContext(FavCtx).favoritos.length}
+            </span>
+          )}
+        </button>
+        <button onClick={() => navigate('/carrinho')} className="relative shrink-0 w-9 h-9 rounded-full bg-white/5 border border-white/10 flex items-center justify-center hover:bg-red-500/20 hover:border-red-500/30 transition-all">
+          <ShoppingCart className="w-4 h-4 text-zinc-400"/>
+          {React.useContext(CarrinhoCtx).itens.length > 0 && (
+            <span className="absolute -top-1 -right-1 w-4 h-4 bg-red-500 rounded-full text-[9px] font-bold text-white flex items-center justify-center">
+              {React.useContext(CarrinhoCtx).itens.reduce((acc, item) => acc + item.quantidade, 0)}
             </span>
           )}
         </button>
