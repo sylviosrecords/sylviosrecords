@@ -128,7 +128,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
       const cartResp = await fetch('https://melhorenvio.com.br/api/v2/me/cart', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${tokenME}`, 'User-Agent': 'Sylvios Records (sylviosrecords.com.br)' },
+        headers: { 'Accept': 'application/json', 'Content-Type': 'application/json', Authorization: `Bearer ${tokenME}`, 'User-Agent': 'Sylvios Records (sylviosrecords.com.br)' },
         body: JSON.stringify(cartPayload)
       });
       const textResp = await cartResp.text();
@@ -136,7 +136,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       try {
         cartData = JSON.parse(textResp);
       } catch (e) {
-        return res.status(500).json({ erro: `Melhor Envio retornou HTML/Texto inesperado. Status ${cartResp.status}`, detalhe: textResp.substring(0, 200) });
+        return res.status(500).json({ erro: `Melhor Envio retornou HTML. Status ${cartResp.status}`, detalhe: textResp.substring(0, 200) });
       }
 
       if (!cartResp.ok || cartData.error) return res.status(500).json({ erro: 'Falha no Melhor Envio (Cart)', detalhe: cartData });
@@ -145,13 +145,13 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
       await fetch('https://melhorenvio.com.br/api/v2/me/shipment/checkout', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${tokenME}`, 'User-Agent': 'Sylvios Records (sylviosrecords.com.br)' },
+        headers: { 'Accept': 'application/json', 'Content-Type': 'application/json', Authorization: `Bearer ${tokenME}`, 'User-Agent': 'Sylvios Records (sylviosrecords.com.br)' },
         body: JSON.stringify({ orders: [String(meOrderId)] })
       });
 
       await fetch('https://melhorenvio.com.br/api/v2/me/shipment/generate', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${tokenME}`, 'User-Agent': 'Sylvios Records (sylviosrecords.com.br)' },
+        headers: { 'Accept': 'application/json', 'Content-Type': 'application/json', Authorization: `Bearer ${tokenME}`, 'User-Agent': 'Sylvios Records (sylviosrecords.com.br)' },
         body: JSON.stringify({ orders: [String(meOrderId)] })
       });
 
