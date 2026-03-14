@@ -103,10 +103,13 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         }] : []),
       ],
       payer: {
-        name: comprador.nome.split(' ').slice(0, -1).join(' '),
-        surname: comprador.nome.split(' ').slice(-1)[0],
+        name: comprador.nome.split(' ').slice(0, -1).join(' ') || comprador.nome,
+        surname: comprador.nome.split(' ').slice(-1)[0] || comprador.nome,
         email: comprador.email,
-        phone: { number: comprador.telefone.replace(/\D/g, '') },
+        phone: {
+          area_code: comprador.telefone.replace(/\D/g, '').slice(0, 2),
+          number: comprador.telefone.replace(/\D/g, '').slice(2),
+        },
         identification: { type: 'CPF', number: comprador.cpf.replace(/\D/g, '') },
       },
       payment_methods: {

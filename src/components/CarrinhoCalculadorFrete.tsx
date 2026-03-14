@@ -5,7 +5,7 @@ import { fmt } from '../utils';
 
 interface Props {
   quantidade: number;
-  onFreteEscolhido: (frete: { nome: string; preco: number } | null) => void;
+  onFreteEscolhido: (frete: { nome: string; preco: number } | null, cep?: string) => void;
   freteEscolhido: { nome: string; preco: number } | null;
 }
 
@@ -91,7 +91,7 @@ export function CarrinhoCalculadorFrete({ quantidade, onFreteEscolhido, freteEsc
           {opcoes.map(op => (
             <button
               key={op.id}
-              onClick={() => onFreteEscolhido({ nome: op.nome, preco: op.preco })}
+              onClick={() => onFreteEscolhido({ nome: op.nome, preco: op.preco }, cep.replace(/\D/g, ''))}
               className="w-full flex items-center justify-between p-3 rounded-lg text-left transition-all"
               style={{
                 background: freteEscolhido?.nome === op.nome

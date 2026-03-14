@@ -25,10 +25,11 @@ function formatCEP(v: string) {
   return n.length > 5 ? `${n.slice(0, 5)}-${n.slice(5)}` : n;
 }
 
-export function PaginaCheckout({ navigate, freteNome, fretePreco }: {
+export function PaginaCheckout({ navigate, freteNome, fretePreco, cepFrete }: {
   navigate: (r: string) => void;
   freteNome?: string;
   fretePreco?: number;
+  cepFrete?: string;
 }) {
   const { itens, total, limparCarrinho } = useCarrinho();
   const [carregando, setCarregando] = useState(false);
@@ -41,7 +42,7 @@ export function PaginaCheckout({ navigate, freteNome, fretePreco }: {
     telefone: '',
     cpf: '',
     endereco: {
-      cep: '',
+      cep: cepFrete ? cepFrete.replace(/(\d{5})(\d{3})/, '$1-$2') : '',
       logradouro: '',
       numero: '',
       complemento: '',
@@ -182,13 +183,21 @@ export function PaginaCheckout({ navigate, freteNome, fretePreco }: {
 
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
               <div>
-                <Label>CEP *</Label>
+                <Label>CEP de Entrega *</Label>
                 <input
-                  required style={InputStyle}
+                  required
                   value={dados.endereco.cep}
-                  onChange={e => { const v = formatCEP(e.target.value); updateEnd('cep', v); if (v.replace(/\D/g,'').length === 8) buscarCep(v); }}
+                  readOnly={!!cepFrete}
+                  onChange={e => {
+                    if (cepFrete) return; // bloqueado
+                    const v = formatCEP(e.target.value);
+                    updateEnd('cep', v);
+                    if (v.replace(/\D/g,'').length === 8) buscarCep(v);
+                  }}
                   placeholder="00000-000"
+                  style={{ ...InputStyle, opacity: cepFrete ? 0.6 : 1, cursor: cepFrete ? 'not-allowed' : 'text' }}
                 />
+                {cepFrete && <p className="text-zinc-500 text-xs mt-1">CEP definido no carrinho. <button type="button" className="text-red-400 underline" onClick={() => navigate('/carrinho')}>Alterar</button></p>}
                 {buscandoCep && <p className="text-zinc-500 text-xs mt-1">Buscando endereço...</p>}
               </div>
               <div className="sm:col-span-2">

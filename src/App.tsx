@@ -41,7 +41,12 @@ export default function App() {
   const carrinhoCtxValue = useCarrinhoProvider();
 
   // Estado do frete escolhido — passa entre PaginaCarrinho → PaginaCheckout
-  const [freteCheckout, setFreteCheckout] = useState<{ nome: string; preco: number } | null>(null);
+  const [freteCheckout, setFreteCheckoutState] = useState<{ nome: string; preco: number } | null>(null);
+  const [cepFrete, setCepFrete] = useState('');
+  const setFreteCheckout = (f: { nome: string; preco: number } | null, cep?: string) => {
+    setFreteCheckoutState(f);
+    if (cep) setCepFrete(cep);
+  };
 
   const isProduto      = route.startsWith('/produto/');
   const isColecao      = route.startsWith('/colecao/');
@@ -97,7 +102,7 @@ export default function App() {
              isNovidades     ? wrap('novidades',  <PaginaNovidades  navigate={navigate} />) :
              isBusca         ? wrap('busca',      <PaginaBusca      buscaQuery={buscaQuery} navigate={navigate} />) :
              isCarrinho      ? wrap('carrinho',   <PaginaCarrinho   navigate={navigate} setFreteCheckout={setFreteCheckout} />) :
-             isCheckout      ? wrap('checkout',   <PaginaCheckout   navigate={navigate} freteNome={freteCheckout?.nome} fretePreco={freteCheckout?.preco} />) :
+             isCheckout      ? wrap('checkout',   <PaginaCheckout   navigate={navigate} freteNome={freteCheckout?.nome} fretePreco={freteCheckout?.preco} cepFrete={cepFrete} />) :
              isPedido        ? wrap('pedido',     <PaginaPedido     pedidoId={pedidoId} navigate={navigate} />) :
              isPedidoSucesso ? wrap('sucesso',    <PaginaPedidoSucesso navigate={navigate} />) :
              isPedidoFalha   ? wrap('falha',      <PaginaPedidoFalha   navigate={navigate} />) :

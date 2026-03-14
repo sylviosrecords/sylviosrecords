@@ -5,9 +5,10 @@ import { CarrinhoCalculadorFrete } from '../components/CarrinhoCalculadorFrete';
 import { fmt } from '../utils';
 import { NavSecundaria } from '../components/NavSecundaria';
 
-export function PaginaCarrinho({ navigate, setFreteCheckout }: { navigate: (r: string) => void, setFreteCheckout: (f: { nome: string; preco: number } | null) => void }) {
+export function PaginaCarrinho({ navigate, setFreteCheckout }: { navigate: (r: string) => void, setFreteCheckout: (f: { nome: string; preco: number } | null, cep?: string) => void }) {
   const { itens, total, totalItens, removerItem, alterarQuantidade, limparCarrinho } = useCarrinho();
   const [freteEscolhido, setFreteEscolhido] = useState<{ nome: string; preco: number } | null>(null);
+  const [cepFrete, setCepFrete] = useState('');
 
   if (itens.length === 0) {
     return (
@@ -110,7 +111,7 @@ export function PaginaCarrinho({ navigate, setFreteCheckout }: { navigate: (r: s
             {/* Calculador de Frete */}
             <CarrinhoCalculadorFrete
               quantidade={totalItens}
-              onFreteEscolhido={setFreteEscolhido}
+              onFreteEscolhido={(frete, cep) => { setFreteEscolhido(frete); if (cep) setCepFrete(cep); }}
               freteEscolhido={freteEscolhido}
             />
 
@@ -138,7 +139,7 @@ export function PaginaCarrinho({ navigate, setFreteCheckout }: { navigate: (r: s
                 whileHover={{ scale: 1.02 }}
                 whileTap={{ scale: 0.98 }}
                 onClick={() => {
-                  setFreteCheckout(freteEscolhido);
+                  setFreteCheckout(freteEscolhido, cepFrete);
                   navigate('/checkout');
                 }}
                 disabled={!freteEscolhido}
