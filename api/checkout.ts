@@ -18,46 +18,61 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     return res.status(500).json({ erro: 'Credenciais do Mercado Pago não configuradas' });
   }
 
-  try {
-    const { itens, comprador, frete } = req.body as {
-      itens: Array<{ titulo: string; preco: number; quantidade: number; foto: string; id: string }>;
-      comprador: { 
-        nome: string; email: string; cpf: string; telefone: string;
-        endereco?: { cep: string; logradouro: string; numero: string; complemento?: string; bairro: string; cidade: string; estado: string; };
-      };
-      frete: { nome: string; preco: number };
+  // Validação básica do body
+  const { itens, comprador, frete } = req.body as {
+    itens: Array<{ titulo: string; preco: number; quantidade: number; foto: string; id: string }>;
+    comprador: { 
+      nome: string; email: string; cpf: string; telefone: string;
+      endereco?: { cep: string; logradouro: string; numero: string; complemento?: string; bairro: string; cidade: string; estado: string; };
     };
+    frete: { nome: string; preco: number };
+  };
 
-    // 0. BUSCAR PREÇOS REAIS DO MERCADO LIVRE E DESCONTO DO SUPABASE
+  if (!itens?.length || !comprador?.nome || !comprador?.email) {
+    return res.status(400).json({ erro: '[PASSO 0] Dados do pedido incompletos' });
+  }
+
+  // PASSO 1: Desconto do Supabase
+  let fatorDesconto = 0.9; // 10% padrão
+  try {
     const { data: config } = await supabase.from('configuracoes').select('valor').eq('chave', 'desconto_site').single();
-    const descontoStr = config?.valor || process.env.DESCONTO_SITE || '10';
-    const desconto = parseInt(descontoStr, 10);
-    const fatorDesconto = 1 - (desconto / 100);
+    const desconto = parseInt(config?.valor || process.env.DESCONTO_SITE || '10', 10);
+    fatorDesconto = 1 - (desconto / 100);
+  } catch (err) {
+    console.error('[checkout] Erro ao buscar config Supabase:', err);
+    // Continua com o padrão
+  }
 
+  // PASSO 2: Preços reais do Mercado Livre
+  const precosReais: Record<string, number> = {};
+  try {
     const ids = itens.map(i => i.id).join(',');
     const mlResposta = await fetch(`https://api.mercadolibre.com/items?ids=${ids}&attributes=id,price`);
-    const mlDados = await mlResposta.json();
-
-    const precosReais: Record<string, number> = {};
-    if (Array.isArray(mlDados)) {
-      for (const res of mlDados) {
-        if (res.code === 200 && res.body) {
-          precosReais[res.body.id] = res.body.price;
+    if (mlResposta.ok) {
+      const mlDados = await mlResposta.json();
+      if (Array.isArray(mlDados)) {
+        for (const r of mlDados) {
+          if (r.code === 200 && r.body) precosReais[r.body.id] = r.body.price;
         }
       }
     }
+  } catch (err) {
+    console.error('[checkout] Erro ao buscar precos ML (nao critico):', err);
+    // Continua usando precos do frontend como fallback
+  }
 
-    let totalRealItens = 0;
-    const itensValidados = itens.map(i => {
-      const precoOriginal = precosReais[i.id] || i.preco; // Fallback caso ML falhe e caia fora de 200 pro item
-      const precoComDesconto = Number((precoOriginal * fatorDesconto).toFixed(2));
-      totalRealItens += (precoComDesconto * i.quantidade);
-      return { ...i, preco: precoComDesconto };
-    });
+  let totalRealItens = 0;
+  const itensValidados = itens.map(i => {
+    const precoOriginal = precosReais[i.id] ?? i.preco;
+    const precoComDesconto = Number((precoOriginal * fatorDesconto).toFixed(2));
+    totalRealItens += precoComDesconto * i.quantidade;
+    return { ...i, preco: precoComDesconto };
+  });
+  const totalCalculado = totalRealItens + frete.preco;
 
-    const totalCalculado = totalRealItens + frete.preco;
-
-    // 1. INSERIR PEDIDO PENDENTE NO BANCO DE DADOS PRIMEIRO
+  // PASSO 3: Inserir pedido no Supabase
+  let dbOrderId: string;
+  try {
     const { data: dbOrder, error: dbError } = await supabase.from('pedidos').insert({
       status: 'pendente',
       cliente_nome: comprador.nome,
@@ -79,13 +94,19 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     }).select('id').single();
 
     if (dbError || !dbOrder) {
-      console.error('[checkout] Erro DB:', JSON.stringify(dbError));
-      return res.status(500).json({ erro: 'Erro ao registrar pedido no sistema', detalhe: dbError?.message });
+      const msg = dbError?.message || 'Sem ID retornado';
+      console.error('[checkout] Erro DB:', msg);
+      return res.status(500).json({ erro: `[PASSO 3-DB] ${msg}` });
     }
+    dbOrderId = dbOrder.id;
+  } catch (err: any) {
+    return res.status(500).json({ erro: `[PASSO 3-CATCH] ${err?.message || String(err)}` });
+  }
 
-    // 2. Montar a preferência de pagamento com referência ao ID interno
+  // PASSO 4: Criar preferência no Mercado Pago
+  try {
     const preferencia = {
-      external_reference: dbOrder.id, // VÍNCULO CRUCIAL COM NOSSO BANCO DE DADOS
+      external_reference: dbOrderId,
       items: [
         ...itensValidados.map(item => ({
           id: item.id,
@@ -113,44 +134,33 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         },
         identification: { type: 'CPF', number: comprador.cpf.replace(/\D/g, '') },
       },
-      payment_methods: {
-        excluded_payment_types: [],
-        installments: 6,
-      },
+      payment_methods: { excluded_payment_types: [], installments: 6 },
       back_urls: {
-        success: `${process.env.SITE_URL || 'https://sylviosrecords.vercel.app'}/pedido/sucesso`,
-        failure: `${process.env.SITE_URL || 'https://sylviosrecords.vercel.app'}/pedido/falha`,
-        pending: `${process.env.SITE_URL || 'https://sylviosrecords.vercel.app'}/pedido/pendente`,
+        success: `${process.env.SITE_URL}/pedido/sucesso`,
+        failure: `${process.env.SITE_URL}/pedido/falha`,
+        pending: `${process.env.SITE_URL}/pedido/pendente`,
       },
       auto_approve: false,
-      notification_url: `${process.env.SITE_URL || 'https://sylviosrecords.vercel.app'}/api/webhook-mp`,
+      notification_url: `${process.env.SITE_URL}/api/webhook-mp`,
       statement_descriptor: 'SYLVIOS RECORDS',
       expires: false,
     };
 
     const resposta = await fetch('https://api.mercadopago.com/checkout/preferences', {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        Authorization: `Bearer ${token}`,
-      },
+      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
       body: JSON.stringify(preferencia),
     });
 
-    const dados = await resposta.json() as { id?: string; init_point?: string; sandbox_init_point?: string; error?: string };
+    const dados = await resposta.json() as { id?: string; init_point?: string; error?: string; message?: string; cause?: unknown[] };
 
     if (!resposta.ok || dados.error) {
-      console.error('[checkout] Erro MP:', dados);
-      return res.status(500).json({ erro: 'Erro ao criar link de pagamento', detalhe: dados });
+      console.error('[checkout] Erro MP:', JSON.stringify(dados));
+      return res.status(500).json({ erro: `[PASSO 4-MP] ${dados.message || dados.error || 'Erro desconhecido MP'}`, detalhe: dados.cause });
     }
 
-    return res.json({
-      preferenceId: dados.id,
-      checkoutUrl: dados.init_point,
-      sandboxUrl: dados.sandbox_init_point,
-    });
-  } catch (err) {
-    console.error('[checkout] Erro:', err);
-    return res.status(500).json({ erro: 'Erro interno no servidor' });
+    return res.json({ preferenceId: dados.id, checkoutUrl: dados.init_point });
+  } catch (err: any) {
+    return res.status(500).json({ erro: `[PASSO 4-CATCH] ${err?.message || String(err)}` });
   }
 }
