@@ -131,7 +131,14 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${tokenME}`, 'User-Agent': 'Sylvios Records (sylviosrecords.com.br)' },
         body: JSON.stringify(cartPayload)
       });
-      const cartData = await cartResp.json();
+      const textResp = await cartResp.text();
+      let cartData;
+      try {
+        cartData = JSON.parse(textResp);
+      } catch (e) {
+        return res.status(500).json({ erro: `Melhor Envio retornou HTML/Texto inesperado. Status ${cartResp.status}`, detalhe: textResp.substring(0, 200) });
+      }
+
       if (!cartResp.ok || cartData.error) return res.status(500).json({ erro: 'Falha no Melhor Envio (Cart)', detalhe: cartData });
 
       const meOrderId = cartData.id;
