@@ -20,6 +20,7 @@ export function PaginaAdmin() {
   const [loading, setLoading] = useState(false);
   const [erro, setErro] = useState('');
   const [pedidos, setPedidos] = useState<AdminPedido[]>([]);
+  const [filtroStatus, setFiltroStatus] = useState<'pagos' | 'pendentes' | 'todos'>('pagos');
   
   // Modal de Etiqueta
   const [pedidoFoco, setPedidoFoco] = useState<AdminPedido | null>(null);
@@ -180,6 +181,28 @@ export function PaginaAdmin() {
           </button>
         </div>
 
+        {/* Abas de Filtro */}
+        <div className="flex gap-2 mb-4 bg-zinc-900/50 p-1.5 rounded-xl border border-white/5 w-fit">
+          <button 
+            onClick={() => setFiltroStatus('pagos')} 
+            className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${filtroStatus === 'pagos' ? 'bg-red-600 text-white shadow-lg' : 'text-zinc-400 hover:text-white hover:bg-white/5'}`}
+          >
+            Pagos & Enviados
+          </button>
+          <button 
+            onClick={() => setFiltroStatus('pendentes')} 
+            className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${filtroStatus === 'pendentes' ? 'bg-amber-600 text-white shadow-lg' : 'text-zinc-400 hover:text-white hover:bg-white/5'}`}
+          >
+            Carrinhos Abandonados
+          </button>
+          <button 
+            onClick={() => setFiltroStatus('todos')} 
+            className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${filtroStatus === 'todos' ? 'bg-zinc-700 text-white shadow-lg' : 'text-zinc-400 hover:text-white hover:bg-white/5'}`}
+          >
+            Todos
+          </button>
+        </div>
+
         <div className="bg-zinc-900 border border-white/5 rounded-2xl overflow-hidden shadow-xl">
           <div className="overflow-x-auto">
             <table className="w-full text-left border-collapse">
@@ -193,7 +216,11 @@ export function PaginaAdmin() {
                 </tr>
               </thead>
               <tbody className="text-sm text-zinc-300 divide-y divide-white/5">
-                {pedidos.map(p => (
+                {pedidos.filter(p => {
+                  if (filtroStatus === 'pagos') return p.status === 'pago' || p.status === 'enviado';
+                  if (filtroStatus === 'pendentes') return p.status === 'pendente';
+                  return true;
+                }).map(p => (
                   <tr key={p.id} className="hover:bg-white/[0.02] transition-colors">
                     <td className="p-4 whitespace-nowrap text-zinc-500">{new Date(p.criado_em).toLocaleDateString('pt-BR', { day: '2-digit', month: 'short', hour: '2-digit', minute:'2-digit' })}</td>
                     <td className="p-4">
@@ -227,9 +254,13 @@ export function PaginaAdmin() {
                     </td>
                   </tr>
                 ))}
-                {pedidos.length === 0 && (
+                {pedidos.filter(p => {
+                  if (filtroStatus === 'pagos') return p.status === 'pago' || p.status === 'enviado';
+                  if (filtroStatus === 'pendentes') return p.status === 'pendente';
+                  return true;
+                }).length === 0 && (
                   <tr>
-                    <td colSpan={5} className="p-10 text-center text-zinc-500">Nenhum pedido encontrado.</td>
+                    <td colSpan={5} className="p-10 text-center text-zinc-500">Nenhum pedido encontrado nesta aba.</td>
                   </tr>
                 )}
               </tbody>
