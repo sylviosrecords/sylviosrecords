@@ -1,7 +1,12 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
+import { createClient } from '@supabase/supabase-js';
 
-// Integração com o SDK do Mercado Pago (Server-side)
-// Documentação: https://www.mercadopago.com.br/developers/pt/reference/preferences/_checkout_preferences/post
+// Setup admin Supabase client to bypass RLS for inserting orders
+const supabase = createClient(
+  process.env.SUPABASE_URL!,
+  process.env.SUPABASE_SERVICE_ROLE_KEY!,
+  { auth: { persistSession: false } }
+);
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   if (req.method !== 'POST') {
@@ -23,10 +28,35 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       frete: { nome: string; preco: number };
     };
 
-    // Montar a preferência de pagamento do Mercado Pago
+    // 1. INSERIR PEDIDO PENDENTE NO BANCO DE DADOS PRIMEIRO
+    const { data: dbOrder, error: dbError } = await supabase.from('pedidos').insert({
+      status: 'pendente',
+      cliente_nome: comprador.nome,
+      cliente_email: comprador.email,
+      cliente_cpf: comprador.cpf,
+      cliente_telefone: comprador.telefone,
+      cep: comprador.endereco?.cep,
+      logradouro: comprador.endereco?.logradouro,
+      numero: comprador.endereco?.numero,
+      complemento: comprador.endereco?.complemento,
+      bairro: comprador.endereco?.bairro,
+      cidade: comprador.endereco?.cidade,
+      estado: comprador.endereco?.estado,
+      frete_nome: frete.nome,
+      frete_valor: frete.preco,
+      itens: itens.map(i => ({ id: i.id, titulo: i.titulo, preco: i.preco, quantidade: i.quantidade })),
+      total: itens.reduce((acc, i) => acc + (i.preco * i.quantidade), 0) + frete.preco,
+    }).select('id').single();
+
+    if (dbError || !dbOrder) {
+      console.error('[checkout] Erro ao salvar pedido no DB:', dbError);
+      return res.status(500).json({ erro: 'Erro ao registrar pedido no sistema', detalhe: dbError });
+    }
+
+    // 2. Montar a preferência de pagamento com referência ao ID interno
     const preferencia = {
+      external_reference: dbOrder.id, // VÍNCULO CRUCIAL COM NOSSO BANCO DE DADOS
       items: [
-        // Itens do pedido
         ...itens.map(item => ({
           id: item.id,
           title: item.titulo,
@@ -35,7 +65,6 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
           currency_id: 'BRL',
           picture_url: item.foto,
         })),
-        // Frete como item separado (padrão MP)
         ...(frete.preco > 0 ? [{
           id: 'frete',
           title: frete.nome,
@@ -52,9 +81,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         identification: { type: 'CPF', number: comprador.cpf.replace(/\D/g, '') },
       },
       payment_methods: {
-        // Permite PIX, boleto e cartão
         excluded_payment_types: [],
-        installments: 6, // Máximo de parcelas
+        installments: 6,
       },
       back_urls: {
         success: `${process.env.SITE_URL || 'https://sylviosrecords.vercel.app'}/pedido/sucesso`,
@@ -63,18 +91,6 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       },
       auto_approve: false,
       notification_url: `${process.env.SITE_URL || 'https://sylviosrecords.vercel.app'}/api/webhook-mp`,
-      metadata: {
-        frete_nome: frete.nome,
-        frete_valor: frete.preco,
-        cliente_telefone: comprador.telefone,
-        endereco_cep: comprador.endereco?.cep,
-        endereco_logradouro: comprador.endereco?.logradouro,
-        endereco_numero: comprador.endereco?.numero,
-        endereco_complemento: comprador.endereco?.complemento,
-        endereco_bairro: comprador.endereco?.bairro,
-        endereco_cidade: comprador.endereco?.cidade,
-        endereco_estado: comprador.endereco?.estado,
-      },
       statement_descriptor: 'SYLVIOS RECORDS',
       expires: false,
     };
@@ -92,7 +108,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
     if (!resposta.ok || dados.error) {
       console.error('[checkout] Erro MP:', dados);
-      return res.status(500).json({ erro: 'Erro ao criar preferência de pagamento', detalhe: dados });
+      return res.status(500).json({ erro: 'Erro ao criar link de pagamento', detalhe: dados });
     }
 
     return res.json({

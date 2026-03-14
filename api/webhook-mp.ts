@@ -47,6 +47,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         endereco_numero?: string;
         endereco_complemento?: string;
       };
+      external_reference?: string;
     };
 
     console.log('[webhook-mp] Pagamento:', { id: data.id, status: pagamento.status });
@@ -56,69 +57,48 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       return res.status(200).json({ ok: true, status: pagamento.status });
     }
 
-    // 3. Verificar se pedido já existe (evita duplicatas)
-    const mpPaymentId = String(data.id);
-    const { data: existente } = await supabase
+    // 3. Obter ID do pedido via external_reference
+    const pedidoId = pagamento.external_reference;
+    if (!pedidoId) {
+      console.log('[webhook-mp] Pagamento sem external_reference, ignorando.', data.id);
+      return res.status(200).json({ ok: true, ignorado: true });
+    }
+
+    // 4. Verificar o pedido no nosso banco
+    const { data: dbOrder, error: dbError } = await supabase
       .from('pedidos')
-      .select('id')
-      .eq('mp_payment_id', mpPaymentId)
+      .select('*')
+      .eq('id', pedidoId)
       .single();
 
-    if (existente) {
-      console.log('[webhook-mp] Pedido já existe:', existente.id);
-      return res.status(200).json({ ok: true, pedido_id: existente.id });
+    if (dbError || !dbOrder) {
+      console.error('[webhook-mp] Pedido não encontrado no DB:', pedidoId);
+      return res.status(404).json({ erro: 'Pedido não encontrado' });
     }
 
-    // 4. Montar os dados do pedido
-    const pedidoId = gerarIdPedido();
-    const itens = (pagamento.additional_info?.items || [])
-      .filter(i => i.id !== 'frete')
-      .map(i => ({
-        id: i.id,
-        titulo: i.title,
-        preco: parseFloat(i.unit_price),
-        quantidade: parseInt(i.quantity),
-        foto: i.picture_url || '',
-      }));
-
-    const frete = (pagamento.additional_info?.items || []).find(i => i.id === 'frete');
-    const freteValor = frete ? parseFloat(frete.unit_price) : 0;
-    const freteNome = pagamento.metadata?.frete_nome || (frete?.title) || 'Frete';
-    const subtotal = itens.reduce((sum, i) => sum + i.preco * i.quantidade, 0);
-    const endereco = pagamento.additional_info?.shipments?.receiver_address;
-
-    const pedido = {
-      id: pedidoId,
-      mp_payment_id: mpPaymentId,
-      status: 'pago',
-      cliente_nome: `${pagamento.payer.first_name} ${pagamento.payer.last_name}`.trim(),
-      cliente_email: pagamento.payer.email,
-      cliente_cpf: pagamento.payer.identification?.number,
-      cliente_telefone: pagamento.metadata?.cliente_telefone,
-      cep: endereco?.zip_code,
-      logradouro: endereco?.street_name,
-      numero: pagamento.metadata?.endereco_numero || endereco?.street_number,
-      complemento: pagamento.metadata?.endereco_complemento,
-      cidade: endereco?.city_name,
-      estado: endereco?.state_name,
-      subtotal,
-      frete_nome: freteNome,
-      frete_valor: freteValor,
-      total: pagamento.transaction_amount,
-      itens,
-    };
-
-    // 5. Salvar no Supabase
-    const { error: dbError } = await supabase.from('pedidos').insert(pedido);
-    if (dbError) {
-      console.error('[webhook-mp] Erro ao salvar pedido:', dbError);
-      return res.status(500).json({ erro: 'Erro ao salvar pedido no banco' });
+    if (dbOrder.status !== 'pendente') {
+      console.log('[webhook-mp] Pedido já foi processado:', pedidoId, 'Status:', dbOrder.status);
+      return res.status(200).json({ ok: true, pedido_id: pedidoId });
     }
 
-    console.log('[webhook-mp] Pedido salvo:', pedidoId);
+    // 5. Atualizar status no Supabase de pendente -> pago
+    const { error: updateError } = await supabase
+      .from('pedidos')
+      .update({
+        status: 'pago',
+        mp_payment_id: String(data.id),
+      })
+      .eq('id', pedidoId);
 
-    // 6. Enviar e-mail de confirmação
-    await enviarEmailConfirmacao(pedido);
+    if (updateError) {
+      console.error('[webhook-mp] Erro ao atualizar status:', updateError);
+      return res.status(500).json({ erro: 'Erro ao atualizar status no banco', detalhe: updateError });
+    }
+
+    console.log('[webhook-mp] Pedido aprovado! Status pendente -> pago. ID:', pedidoId);
+
+    // 6. Enviar e-mail de confirmação usando os dados que NÓS geramos no checkout.ts
+    await enviarEmailConfirmacao(dbOrder);
 
     return res.status(200).json({ ok: true, pedido_id: pedidoId });
   } catch (err) {
