@@ -211,7 +211,7 @@ async function enviarEmailConfirmacao(pedido: {
 
   try {
     const result = await resend.emails.send({
-      from: 'Sylvio\'s Records <pedidos@sylviosrecords.com.br>',
+      from: 'Sylvio\'s Records <onboarding@resend.dev>',
       to: pedido.cliente_email,
       subject: `✅ Pedido ${pedido.id} confirmado — Sylvio's Records`,
       html,
