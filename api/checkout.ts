@@ -76,10 +76,14 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
   let totalRealItens = 0;
   const itensValidados = itens.map(i => {
-    const precoOriginal = precosReais[i.id] ?? i.preco;
-    const precoComDescontoSite = precoOriginal * fatorDescontoSite;
-    const precoComCupom = precoComDescontoSite * fatorDescontoCupom;
-    const precoFinal = Number(precoComCupom.toFixed(2));
+    const precoML = precosReais[i.id];
+    // Preço máximo aceitável = preço ML com desconto do site
+    const precoMaximo = precoML ? Number((precoML * fatorDescontoSite).toFixed(2)) : null;
+    // Usamos o preço enviado pelo frontend, MAS bloqueamos se for MAIOR que o máximo (anti-fraude)
+    const precoFrontend = Number(Number(i.preco).toFixed(2));
+    const precoBase = (precoMaximo !== null && precoFrontend > precoMaximo) ? precoMaximo : precoFrontend;
+    // Aplica cupom sobre o preço já com desconto do site
+    const precoFinal = Number((precoBase * fatorDescontoCupom).toFixed(2));
     totalRealItens += precoFinal * i.quantidade;
     return { ...i, preco: precoFinal };
   });
