@@ -19,13 +19,14 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   }
 
   // Validação básica do body
-  const { itens, comprador, frete } = req.body as {
+  const { itens, comprador, frete, cupom } = req.body as {
     itens: Array<{ titulo: string; preco: number; quantidade: number; foto: string; id: string }>;
     comprador: { 
       nome: string; email: string; cpf: string; telefone: string;
       endereco?: { cep: string; logradouro: string; numero: string; complemento?: string; bairro: string; cidade: string; estado: string; };
     };
     frete: { nome: string; preco: number };
+    cupom?: string;
   };
 
   if (!itens?.length || !comprador?.nome || !comprador?.email) {
@@ -33,14 +34,26 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   }
 
   // PASSO 1: Desconto do Supabase
-  let fatorDesconto = 0.9; // 10% padrão
+  let fatorDescontoSite = 0.9; // 10% padrão
+  let fatorDescontoCupom = 1.0; // Sem cupom por padrão
   try {
     const { data: config } = await supabase.from('configuracoes').select('valor').eq('chave', 'desconto_site').single();
     const desconto = parseInt(config?.valor || process.env.DESCONTO_SITE || '10', 10);
-    fatorDesconto = 1 - (desconto / 100);
+    fatorDescontoSite = 1 - (desconto / 100);
   } catch (err) {
     console.error('[checkout] Erro ao buscar config Supabase:', err);
     // Continua com o padrão
+  }
+
+  if (cupom) {
+    try {
+      const { data: cupomData } = await supabase.from('cupons').select('*').eq('codigo', cupom.toUpperCase()).eq('ativo', true).single();
+      if (cupomData && typeof cupomData.desconto === 'number') {
+        fatorDescontoCupom = 1 - (cupomData.desconto / 100);
+      }
+    } catch (err) {
+      console.error('[checkout] Erro ao validar cupom:', err);
+    }
   }
 
   // PASSO 2: Preços reais do Mercado Livre
@@ -64,9 +77,11 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   let totalRealItens = 0;
   const itensValidados = itens.map(i => {
     const precoOriginal = precosReais[i.id] ?? i.preco;
-    const precoComDesconto = Number((precoOriginal * fatorDesconto).toFixed(2));
-    totalRealItens += precoComDesconto * i.quantidade;
-    return { ...i, preco: precoComDesconto };
+    const precoComDescontoSite = precoOriginal * fatorDescontoSite;
+    const precoComCupom = precoComDescontoSite * fatorDescontoCupom;
+    const precoFinal = Number(precoComCupom.toFixed(2));
+    totalRealItens += precoFinal * i.quantidade;
+    return { ...i, preco: precoFinal };
   });
   const totalCalculado = totalRealItens + frete.preco;
 

@@ -207,7 +207,7 @@ export function PaginaCatalogo({ navigate }: { navigate: (path: string) => void 
             </button>
             <a href={STORE_LINK} target="_blank" rel="noopener noreferrer"
               className="shrink-0 sr-gradient text-white px-3 py-2 sm:px-4 rounded-full text-sm font-bold flex items-center gap-1.5 hover:opacity-90 transition-opacity shadow-lg shadow-red-900/30 active:scale-95">
-              <span className="hidden sm:inline">Ver Loja</span> <ExternalLink className="w-4 h-4"/>
+              <span className="hidden sm:inline">Ver no ML</span> <ExternalLink className="w-4 h-4"/>
             </a>
           </div>
         </div>

@@ -1,6 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'motion/react';
-import { Lock, Package, CheckCircle, Truck, RefreshCw, X, Settings, Info } from 'lucide-react';
+import { Lock, Package, CheckCircle, Truck, RefreshCw, X, Settings, Info, Ticket, Trash2 } from 'lucide-react';
+
+interface AdminCupom {
+  codigo: string;
+  desconto: number;
+  ativo: boolean;
+}
+
 import { fmt } from '../utils';
 
 // Tipo Simplificado do Pedido no db
@@ -35,6 +42,13 @@ export function PaginaAdmin() {
   const [novoDesconto, setNovoDesconto] = useState(10);
   const [descontoMsg, setDescontoMsg] = useState('');
 
+  // Controle de Abas
+  const [abaAtiva, setAbaAtiva] = useState<'pedidos' | 'cupons'>('pedidos');
+  const [cupons, setCupons] = useState<AdminCupom[]>([]);
+  const [novoCupomCodigo, setNovoCupomCodigo] = useState('');
+  const [novoCupomDesconto, setNovoCupomDesconto] = useState(10);
+  const [cupomMsg, setCupomMsg] = useState('');
+
   // 1. Login
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -52,6 +66,10 @@ export function PaginaAdmin() {
         headers: { Authorization: `Bearer ${senha}` }
       });
       if (cfgResp.ok) { const cfg = await cfgResp.json(); setDescontoAtual(cfg.desconto ?? 10); setNovoDesconto(cfg.desconto ?? 10); }
+      
+      const cupomResp = await fetch('/api/admin?action=cupons', { headers: { Authorization: `Bearer ${senha}` } });
+      if (cupomResp.ok) { const c = await cupomResp.json(); setCupons(c.cupons || []); }
+      
       setLogado(true);
     } catch {
       setErro('Acesso negado. Tente novamente.');
@@ -149,6 +167,52 @@ export function PaginaAdmin() {
     }
   };
 
+  // 4. Ações de Cupons
+  const carregarCupons = async () => {
+    const resp = await fetch('/api/admin?action=cupons', { headers: { Authorization: `Bearer ${senha}` } });
+    if (resp.ok) { const data = await resp.json(); setCupons(data.cupons || []); }
+  };
+
+  const handleSalvarCupom = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setCupomMsg('');
+    try {
+      const resp = await fetch('/api/admin?action=cupons', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${senha}` },
+        body: JSON.stringify({ codigo: novoCupomCodigo, desconto: novoCupomDesconto, ativo: true })
+      });
+      const data = await resp.json();
+      if (!resp.ok) throw new Error(data.erro || 'Falha ao salvar cupom');
+      setCupomMsg('✅ Cupom salvo!');
+      setNovoCupomCodigo('');
+      setNovoCupomDesconto(10);
+      carregarCupons();
+      setTimeout(() => setCupomMsg(''), 3000);
+    } catch (err: any) {
+      setCupomMsg(`❌ Erro: ${err.message}`);
+    }
+  };
+
+  const handleExcluirCupom = async (codigo: string) => {
+    if (!confirm(`Remover definitivamente o cupom ${codigo}?`)) return;
+    try {
+      await fetch('/api/admin?action=cupons', { method: 'DELETE', headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${senha}` }, body: JSON.stringify({ codigo }) });
+      carregarCupons();
+    } catch (err: any) {
+      alert(err.message);
+    }
+  };
+
+  const handleToggleCupom = async (cupom: AdminCupom) => {
+    try {
+      await fetch('/api/admin?action=cupons', { method: 'POST', headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${senha}` }, body: JSON.stringify({ codigo: cupom.codigo, desconto: cupom.desconto, ativo: !cupom.ativo }) });
+      carregarCupons();
+    } catch (err: any) {
+      alert(err.message);
+    }
+  };
+
   // Tela de Login (Gatekeeper)
   if (!logado) {
     return (
@@ -194,15 +258,37 @@ export function PaginaAdmin() {
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4">
           <div>
             <h1 className="text-3xl font-bold text-white flex items-center gap-3">
-              <Package className="w-8 h-8 text-red-500" /> Painel de Pedidos
+              <Package className="w-8 h-8 text-red-500" /> Painel Admin
             </h1>
-            <p className="text-zinc-500 text-sm mt-1">Gerencie suas vendas e imprima etiquetas.</p>
+            <p className="text-zinc-500 text-sm mt-1">Gerencie suas vendas, configurações e cupons.</p>
           </div>
-          <button onClick={carregarPedidos} disabled={loading} className="flex items-center gap-2 bg-zinc-800 hover:bg-zinc-700 text-white px-4 py-2 rounded-lg text-sm transition-colors">
-            <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} /> Atualizar
-          </button>
+          
+          <div className="flex flex-col md:flex-row gap-4 w-full md:w-auto">
+            <div className="flex bg-zinc-900 border border-white/10 rounded-xl p-1 w-full md:w-auto">
+              <button 
+                onClick={() => setAbaAtiva('pedidos')}
+                className={`flex-1 md:flex-none px-6 py-2 rounded-lg text-sm font-bold transition-all flex items-center justify-center gap-2 ${abaAtiva === 'pedidos' ? 'bg-zinc-800 text-white shadow' : 'text-zinc-500 hover:text-white'}`}
+              >
+                <Package className="w-4 h-4" /> Vendas
+              </button>
+              <button 
+                onClick={() => setAbaAtiva('cupons')}
+                className={`flex-1 md:flex-none px-6 py-2 rounded-lg text-sm font-bold transition-all flex items-center justify-center gap-2 ${abaAtiva === 'cupons' ? 'bg-zinc-800 text-white shadow' : 'text-zinc-500 hover:text-white'}`}
+              >
+                <Ticket className="w-4 h-4" /> Cupons
+              </button>
+            </div>
+            
+            {abaAtiva === 'pedidos' && (
+              <button onClick={carregarPedidos} disabled={loading} className="flex items-center justify-center gap-2 bg-zinc-800 hover:bg-zinc-700 text-white px-4 py-2 rounded-lg text-sm transition-colors mt-2 md:mt-0">
+                <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} /> Atualizar
+              </button>
+            )}
+          </div>
         </div>
 
+        {abaAtiva === 'pedidos' ? (
+        <>
         {/* Abas de Filtro */}
         <div className="flex gap-2 mb-4 bg-zinc-900/50 p-1.5 rounded-xl border border-white/5 w-fit">
           <button 
@@ -344,6 +430,62 @@ export function PaginaAdmin() {
             {descontoMsg && <p className="text-sm font-bold" style={{ color: descontoMsg.startsWith('❌') ? '#f87171' : '#4ade80' }}>{descontoMsg}</p>}
           </div>
         </div>
+        </>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div className="md:col-span-1 bg-zinc-900 border border-white/5 rounded-2xl p-6 shadow-xl h-fit">
+              <h2 className="text-xl font-bold text-white mb-6 flex items-center gap-2">
+                <Ticket className="text-red-500 w-5 h-5"/> Novo Cupom
+              </h2>
+              <form onSubmit={handleSalvarCupom} className="space-y-4">
+                <div>
+                  <label className="text-zinc-400 text-xs font-bold mb-1 block">CÓDIGO (ex: BLACKFRIDAY)</label>
+                  <input type="text" required value={novoCupomCodigo} onChange={e => setNovoCupomCodigo(e.target.value.toUpperCase().replace(/\s/g, ''))} className="w-full bg-black/50 border border-zinc-700 rounded-lg px-4 py-3 text-white focus:outline-none focus:border-red-500 uppercase font-mono" placeholder="SYLVIO10" />
+                </div>
+                <div>
+                  <label className="text-zinc-400 text-xs font-bold mb-1 block">DESCONTO (%)</label>
+                  <input type="number" required min="1" max="100" value={novoCupomDesconto} onChange={e => setNovoCupomDesconto(Number(e.target.value))} className="w-full bg-black/50 border border-zinc-700 rounded-lg px-4 py-3 text-white focus:outline-none focus:border-red-500 font-bold" />
+                </div>
+                {cupomMsg && <p className="text-xs font-bold text-green-400">{cupomMsg}</p>}
+                <button type="submit" className="w-full py-3 bg-red-600 hover:bg-red-700 text-white rounded-lg font-bold transition-colors">Criar Cupom</button>
+              </form>
+            </div>
+            
+            <div className="md:col-span-2 bg-zinc-900 border border-white/5 rounded-2xl overflow-hidden shadow-xl">
+               <div className="overflow-x-auto">
+                <table className="w-full text-left border-collapse">
+                  <thead>
+                    <tr className="bg-black/40 text-zinc-400 text-xs uppercase tracking-wider">
+                      <th className="p-4 font-medium">Código</th>
+                      <th className="p-4 font-medium">Desconto</th>
+                      <th className="p-4 font-medium text-center">Status</th>
+                      <th className="p-4 font-medium text-right">Ação</th>
+                    </tr>
+                  </thead>
+                  <tbody className="text-sm text-zinc-300 divide-y divide-white/5">
+                    {cupons.map(c => (
+                      <tr key={c.codigo} className="hover:bg-white/[0.02]">
+                        <td className="p-4 font-mono font-bold text-white">{c.codigo}</td>
+                        <td className="p-4 font-bold text-red-400">{c.desconto}% OFF</td>
+                        <td className="p-4 text-center">
+                          <button onClick={() => handleToggleCupom(c)} className={`px-3 py-1 rounded-full text-xs font-bold ${c.ativo ? 'bg-green-500/10 text-green-500 border border-green-500/20' : 'bg-zinc-800 text-zinc-500'}`}>
+                            {c.ativo ? 'ATIVO' : 'DESATIVADO'}
+                          </button>
+                        </td>
+                        <td className="p-4 text-right">
+                           <button onClick={() => handleExcluirCupom(c.codigo)} className="p-2 text-zinc-500 hover:text-red-500 bg-black/30 rounded-lg transition-colors"><Trash2 className="w-4 h-4" /></button>
+                        </td>
+                      </tr>
+                    ))}
+                    {cupons.length === 0 && (
+                      <tr><td colSpan={4} className="p-10 text-center text-zinc-500">Nenhum cupom listado.</td></tr>
+                    )}
+                  </tbody>
+                </table>
+               </div>
+            </div>
+          </div>
+        )}
       </div>
 
       {/* Modal de Gerar Etiqueta */}

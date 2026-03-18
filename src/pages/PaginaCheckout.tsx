@@ -5,6 +5,7 @@ import { useCarrinho } from '../contexts/CarrinhoContext';
 import { NavSecundaria } from '../components/NavSecundaria';
 import { fmt } from '../utils';
 import { DadosComprador } from '../types';
+import { supabase } from '../lib/supabase';
 
 // Formata CPF
 function formatCPF(v: string) {
@@ -51,6 +52,11 @@ export function PaginaCheckout({ navigate, freteNome, fretePreco, cepFrete }: {
   const [carregando, setCarregando] = useState(false);
   const [erro, setErro] = useState('');
   const [buscandoCep, setBuscandoCep] = useState(false);
+
+  const [cupomCodigo, setCupomCodigo] = useState('');
+  const [cupomValidado, setCupomValidado] = useState<{ codigo: string; desconto: number } | null>(null);
+  const [cupomErro, setCupomErro] = useState('');
+  const [validandoCupom, setValidandoCupom] = useState(false);
 
   const [dados, setDados] = useState<DadosComprador>({
     nome: '',
@@ -103,6 +109,32 @@ export function PaginaCheckout({ navigate, freteNome, fretePreco, cepFrete }: {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [cepFrete]);
 
+  const aplicarCupom = async () => {
+    if (!cupomCodigo.trim()) return;
+    setValidandoCupom(true);
+    setCupomErro('');
+    try {
+      const { data, error } = await supabase
+        .from('cupons')
+        .select('*')
+        .eq('codigo', cupomCodigo.trim().toUpperCase())
+        .eq('ativo', true)
+        .single();
+      
+      if (error || !data) {
+        setCupomErro('Cupom inválido ou expirado.');
+        setCupomValidado(null);
+      } else {
+        setCupomValidado({ codigo: data.codigo, desconto: data.desconto });
+        setCupomCodigo('');
+      }
+    } catch {
+      setCupomErro('Erro ao validar cupom.');
+    } finally {
+      setValidandoCupom(false);
+    }
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!freteNome) {
@@ -130,6 +162,7 @@ export function PaginaCheckout({ navigate, freteNome, fretePreco, cepFrete }: {
           })),
           comprador: dados,
           frete: { nome: freteNome, preco: fretePreco || 0 },
+          cupom: cupomValidado ? cupomValidado.codigo : undefined,
         }),
       });
 
@@ -163,7 +196,10 @@ export function PaginaCheckout({ navigate, freteNome, fretePreco, cepFrete }: {
     <label className="block text-zinc-400 text-xs mb-1">{children}</label>
   );
 
-  const totalComFrete = total + (fretePreco || 0);
+  const totalItensComCupom = cupomValidado 
+    ? total * (1 - cupomValidado.desconto / 100) 
+    : total;
+  const totalComFrete = totalItensComCupom + (fretePreco || 0);
 
   return (
     <div className="min-h-screen bg-[#080808]">
@@ -268,7 +304,39 @@ export function PaginaCheckout({ navigate, freteNome, fretePreco, cepFrete }: {
                 <span className="text-white">{fmt(fretePreco || 0)}</span>
               </div>
             )}
-            <div className="border-t border-white/10 mt-3 pt-3 flex justify-between font-bold">
+            {cupomValidado && (
+              <div className="flex justify-between text-sm py-1 text-green-400 font-bold">
+                <span>Cupom ({cupomValidado.codigo})</span>
+                <span>-{cupomValidado.desconto}%</span>
+              </div>
+            )}
+            
+            {/* Campo de Cupom */}
+            <div className="border-t border-white/10 mt-4 pt-4">
+              <Label>Cupom de Desconto</Label>
+              <div className="flex gap-2">
+                <input 
+                  style={InputStyle} 
+                  value={cupomCodigo} 
+                  onChange={e => setCupomCodigo(e.target.value.toUpperCase().replace(/\s/g, ''))} 
+                  placeholder="Ex: BLACKFRIDAY" 
+                  disabled={!!cupomValidado}
+                />
+                {!cupomValidado ? (
+                  <button type="button" onClick={aplicarCupom} disabled={validandoCupom || !cupomCodigo} className="px-4 bg-zinc-800 hover:bg-zinc-700 text-white rounded-lg text-sm font-bold disabled:opacity-50 transition-colors whitespace-nowrap">
+                    {validandoCupom ? '...' : 'Aplicar'}
+                  </button>
+                ) : (
+                  <button type="button" onClick={() => setCupomValidado(null)} className="px-4 bg-red-900/30 text-red-400 hover:bg-red-900/50 rounded-lg text-sm font-bold transition-colors whitespace-nowrap">
+                    Remover
+                  </button>
+                )}
+              </div>
+              {cupomErro && <p className="text-red-400 text-xs mt-1">{cupomErro}</p>}
+              {cupomValidado && <p className="text-green-400 text-xs mt-1">Cupom {cupomValidado.codigo} aplicado com sucesso!</p>}
+            </div>
+
+            <div className="border-t border-white/10 mt-4 pt-3 flex justify-between font-bold">
               <span className="text-white">Total</span>
               <span className="text-red-400 text-xl">{fmt(totalComFrete)}</span>
             </div>

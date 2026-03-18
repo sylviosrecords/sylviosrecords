@@ -81,6 +81,48 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     }
   }
 
+  // ── GET /api/admin?action=cupons ─────────────────────────────────────────
+  if (req.method === 'GET' && action === 'cupons') {
+    try {
+      const { data: cupons, error } = await supabase.from('cupons').select('*').order('codigo');
+      if (error) return res.status(500).json({ erro: 'Falha ao ler cupons' });
+      return res.json({ cupons: cupons || [] });
+    } catch (err: any) {
+      return res.status(500).json({ erro: err.message });
+    }
+  }
+
+  // ── POST /api/admin?action=cupons ─────────────────────────────────────────
+  if (req.method === 'POST' && action === 'cupons') {
+    try {
+      const { codigo, desconto, ativo } = req.body as { codigo: string; desconto: number; ativo: boolean };
+      if (!codigo || typeof desconto !== 'number' || desconto < 0 || desconto > 100) {
+        return res.status(400).json({ erro: 'Dados de cupom inválidos' });
+      }
+      const { error } = await supabase.from('cupons').upsert(
+        { codigo: codigo.toUpperCase(), desconto, ativo },
+        { onConflict: 'codigo' }
+      );
+      if (error) return res.status(500).json({ erro: `ERRO BANCO: ${error.message}` });
+      return res.json({ ok: true, cupom: { codigo: codigo.toUpperCase(), desconto, ativo } });
+    } catch (err: any) {
+      return res.status(500).json({ erro: `ERRO FATAL: ${err.message}` });
+    }
+  }
+
+  // ── DELETE /api/admin?action=cupons ───────────────────────────────────────
+  if (req.method === 'DELETE' && action === 'cupons') {
+    try {
+      const { codigo } = req.body as { codigo: string };
+      if (!codigo) return res.status(400).json({ erro: 'Código obrigatório' });
+      const { error } = await supabase.from('cupons').delete().eq('codigo', codigo.toUpperCase());
+      if (error) return res.status(500).json({ erro: `ERRO BANCO: ${error.message}` });
+      return res.json({ ok: true });
+    } catch (err: any) {
+      return res.status(500).json({ erro: err.message });
+    }
+  }
+
   // ── POST /api/admin?action=etiqueta ───────────────────────────────────────
   if (req.method === 'POST' && action === 'etiqueta') {
     const tokenME = process.env.MELHOR_ENVIO_TOKEN;
