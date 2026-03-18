@@ -1,0 +1,11 @@
+User-agent: *
+Allow: /
+
+# Bloqueia páginas privadas/funcionais
+Disallow: /admin
+Disallow: /checkout
+Disallow: /carrinho
+Disallow: /pedido/
+Disallow: /favoritos
+
+Sitemap: https://sylviosrecords.com.br/sitemap.xml

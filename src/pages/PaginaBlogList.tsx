@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { motion } from 'motion/react';
 import { ArrowLeft, Calendar, ChevronRight } from 'lucide-react';
 import { STORE_NAME } from '../config';
+import { SEO } from '../components/SEO';
 import artigosData from '../artigos.json';
 import type { Artigo } from '../types';
 
@@ -12,13 +13,16 @@ export function PaginaBlogList({ navigate }: { navigate: (path: string) => void 
   const categorias = ['Todos', ...Array.from(new Set(artigos.map(a => a.categoria)))];
   const artigosFiltrados = catFiltro === 'Todos' ? artigos : artigos.filter(a => a.categoria === catFiltro);
 
-  useEffect(() => {
-    document.title = `Blog e Artigos — ${STORE_NAME}`;
-    return () => { document.title = STORE_NAME; };
-  }, []);
+  // o SEO component cuida do titulo e canonical agora
+
 
   return (
     <div className="min-h-screen bg-[#080808] text-zinc-100 pt-24 pb-20 px-6">
+      <SEO 
+        title="Blog e Artigos" 
+        description="Guias, curiosidades e listas essenciais sobre música, cinema e colecionismo de mídias físicas."
+        url="https://sylviosrecords.com.br/blog" 
+      />
       <div className="max-w-7xl mx-auto">
         <button onClick={() => { if (window.history.length > 2) window.history.back(); else navigate('/'); }}
           className="flex items-center gap-2 text-zinc-500 hover:text-white transition-colors mb-8 text-sm group">

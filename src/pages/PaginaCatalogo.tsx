@@ -12,6 +12,7 @@ import { FAQItem as FaqAccordion } from '../components/FaqAccordion';
 import colecoesData from '../colecoes.json';
 import artigosData from '../artigos.json';
 import type { Colecao, Artigo } from '../types';
+import { SEO } from '../components/SEO';
 
 const colecoes: Colecao[] = (colecoesData as Colecao[]).slice().reverse();
 const artigos: Artigo[] = (artigosData as Artigo[]).slice().reverse();
@@ -162,6 +163,11 @@ export function PaginaCatalogo({ navigate }: { navigate: (path: string) => void 
 
   return (
     <div className="min-h-screen bg-[#080808] text-zinc-100">
+      <SEO 
+        title="CDs, DVDs e Blu-rays Originais – Mercado Líder Platinum desde 2005"
+        description="Compre CDs, DVDs e Blu-rays 100% originais com até 10% de desconto. Rock, Metal, MPB e muito mais. Sylvios Records, Mercado Líder Platinum desde 2005. Entrega para todo o Brasil."
+        url="https://sylviosrecords.com.br"
+      />
       <nav className={`fixed top-0 w-full z-50 transition-all duration-300 transform-gpu ${scrolled ? 'bg-[#080808]/92 backdrop-blur-xl border-b border-white/6 py-3 shadow-[0_4px_30px_rgba(0,0,0,0.5)]' : 'bg-transparent py-5'}`}>
         <div className="max-w-7xl mx-auto px-4 flex items-center justify-between gap-3">
           <button onClick={() => navigate('/')} className="flex items-center gap-3 group shrink-0">
