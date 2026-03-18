@@ -556,6 +556,12 @@ export function PaginaAdmin() {
                 <span className="text-zinc-500 block text-xs uppercase font-bold mb-2">Resumo Financeiro</span>
                 <div className="flex justify-between mb-1"><span>Subtotal</span> <span>{fmt(pedidoDetalhes.subtotal || 0)}</span></div>
                 <div className="flex justify-between mb-2"><span>Frete ({pedidoDetalhes.frete_nome})</span> <span>{fmt(pedidoDetalhes.frete_valor)}</span></div>
+                {pedidoDetalhes.cupom_codigo && (
+                  <div className="flex justify-between mb-2 text-green-400 font-bold">
+                    <span>🎟️ Cupom: <span className="font-mono">{pedidoDetalhes.cupom_codigo}</span></span>
+                    <span>aplicado</span>
+                  </div>
+                )}
                 <div className="flex justify-between text-white font-bold pt-2 border-t border-white/10">
                   <span>Total Pago</span> <span>{fmt(pedidoDetalhes.total)}</span>
                 </div>

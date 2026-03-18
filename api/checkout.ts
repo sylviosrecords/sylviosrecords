@@ -112,6 +112,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       subtotal: totalRealItens,
       itens: itensValidados.map(i => ({ id: i.id, titulo: i.titulo, preco: i.preco, quantidade: i.quantidade })),
       total: totalCalculado,
+      cupom_codigo: cupom ? cupom.toUpperCase() : null,
     }).select('id').single();
 
     if (dbError || !dbOrder) {
