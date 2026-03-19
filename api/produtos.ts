@@ -49,19 +49,22 @@ export default async function handler(req: any, res: any) {
     // Monta URL de busca de IDs
     let idsUrl = `https://api.mercadolibre.com/users/${SELLER_ID}/items/search?limit=50&offset=${offset}&status=active`;
 
-    // Para CDs e DVDs/Blurays, usa busca por texto para filtrar
-    const termoCategoria = busca
-      ? String(busca)
-      : categoria === 'cds'
-        ? 'cd'
-        : categoria === 'dvds'
-          ? 'dvd'
-          : categoria === 'blurays'
-            ? 'blu-ray'
-            : '';
+    // Filtra por categoria formal se disponível (CDs = Música, DVDs = Filmes)
+    if (categoria !== 'todos' && CATEGORIA_IDS[categoria as string]) {
+      idsUrl += `&category=${CATEGORIA_IDS[categoria as string]}`;
+    }
 
-    const termoBusca = [termoCategoria, genero ? String(genero) : ''].filter(Boolean).join(' ');
+    // Monta o termo de busca combinando busca textual e gênero
+    const termos = [];
+    if (busca)  termos.push(String(busca));
+    if (genero) termos.push(String(genero));
 
+    // Para Blu-rays, como compartilham categoria com DVDs, forçamos o termo se não houver busca
+    if (categoria === 'blurays' && !busca && !genero) {
+      termos.push('blu-ray');
+    }
+
+    const termoBusca = termos.filter(Boolean).join(' ');
     if (termoBusca) idsUrl += `&q=${encodeURIComponent(termoBusca)}`;
 
     const idsRes  = await fetch(idsUrl, { headers: auth });
