@@ -1,5 +1,8 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
 import { createClient } from '@supabase/supabase-js';
+import { Resend } from 'resend';
+
+const resend = new Resend(process.env.RESEND_API_KEY);
 
 const supabase = createClient(
   process.env.SUPABASE_URL!,
@@ -216,11 +219,48 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         body: JSON.stringify({ orders: [String(meOrderId)] })
       });
 
+      const codigoRastreio = `ME-${meOrderId}`;
       await supabase.from('pedidos').update({
-        status: 'enviado', codigo_rastreio: `ME-${meOrderId}`, atualizado_em: new Date().toISOString()
+        status: 'enviado', codigo_rastreio: codigoRastreio, atualizado_em: new Date().toISOString()
       }).eq('id', pedidoId);
 
-      return res.json({ ok: true, me_order_id: meOrderId, mensagem: "Etiqueta gerada com sucesso!" });
+      // Enviar e-mail de envio para o cliente
+      try {
+        const SITE_URL = process.env.SITE_URL || 'https://sylviosrecords.com.br';
+        const html = `
+        <!DOCTYPE html>
+        <html lang="pt-BR">
+        <body style="margin:0;padding:20px;background:#0a0a0a;font-family:Arial,sans-serif;color:#fff;">
+          <div style="max-width:560px;margin:0 auto;background:#111;border-radius:16px;overflow:hidden;border:1px solid #1e1e1e;padding:32px 24px;text-align:center;">
+            <p style="margin:0 0 16px;color:rgba(255,255,255,0.7);font-size:12px;text-transform:uppercase;letter-spacing:3px;">Sylvio's Records</p>
+            <h1 style="margin:0 0 24px;color:#fff;font-size:24px;">Seu pedido foi enviado! 📦</h1>
+            <p style="color:#aaa;font-size:15px;line-height:1.6;margin-bottom:24px;">
+              Boas notícias, <strong>${pedido.cliente_nome.split(' ')[0]}</strong>!<br>
+              Seu disco já foi embalado e despachado.
+            </p>
+            <div style="background:#1a1a1a;border:1px solid #2a2a2a;border-radius:10px;padding:20px;margin-bottom:32px;">
+              <p style="margin:0;color:#666;font-size:11px;text-transform:uppercase;letter-spacing:2px;">Código de Rastreio</p>
+              <p style="margin:8px 0 0;color:#3b82f6;font-size:24px;font-weight:bold;letter-spacing:2px;">${codigoRastreio}</p>
+            </div>
+            <a href="${SITE_URL}/pedido/${pedido.id}" style="display:inline-block;background:linear-gradient(135deg,#dc2626,#7f1d1d);color:#fff;text-decoration:none;font-weight:bold;font-size:14px;padding:14px 32px;border-radius:10px;">
+              Acompanhar Entrega →
+            </a>
+          </div>
+        </body>
+        </html>`;
+
+        await resend.emails.send({
+          from: 'Sylvio\'s Records <onboarding@resend.dev>',
+          to: pedido.cliente_email,
+          subject: `📦 Pedido Enviado! Rastreio: ${codigoRastreio} — Sylvio's Records`,
+          html,
+        });
+        console.log('[admin] E-mail de envio disparado para:', pedido.cliente_email);
+      } catch (emailErr) {
+        console.error('[admin] Erro ao enviar e-mail de envio:', emailErr);
+      }
+
+      return res.json({ ok: true, me_order_id: meOrderId, mensagem: "Etiqueta gerada e e-mail enviado com sucesso!" });
     } catch (err: any) {
       return res.status(500).json({ erro: err.message });
     }
