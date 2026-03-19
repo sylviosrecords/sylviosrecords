@@ -38,7 +38,7 @@ export default async function handler(req: any, res: any) {
 
   if (req.method === 'OPTIONS') return res.status(200).end();
 
-  const { categoria = 'todos', busca, pagina = '1' } = req.query;
+  const { categoria = 'todos', busca, pagina = '1', genero } = req.query;
   const limite = 20;
   const offset = (parseInt(pagina) - 1) * limite;
 
@@ -50,7 +50,7 @@ export default async function handler(req: any, res: any) {
     let idsUrl = `https://api.mercadolibre.com/users/${SELLER_ID}/items/search?limit=50&offset=${offset}&status=active`;
 
     // Para CDs e DVDs/Blurays, usa busca por texto para filtrar
-    const termoBusca = busca
+    const termoCategoria = busca
       ? String(busca)
       : categoria === 'cds'
         ? 'cd'
@@ -59,6 +59,8 @@ export default async function handler(req: any, res: any) {
           : categoria === 'blurays'
             ? 'blu-ray'
             : '';
+
+    const termoBusca = [termoCategoria, genero ? String(genero) : ''].filter(Boolean).join(' ');
 
     if (termoBusca) idsUrl += `&q=${encodeURIComponent(termoBusca)}`;
 
@@ -73,7 +75,7 @@ export default async function handler(req: any, res: any) {
 
     // Busca detalhes em lote
     const detalhesRes = await fetch(
-      `https://api.mercadolibre.com/items?ids=${ids.join(',')}&attributes=id,title,price,original_price,thumbnail,permalink,sold_quantity,condition,available_quantity`,
+      `https://api.mercadolibre.com/items?ids=${ids.join(',')}&attributes=id,title,price,original_price,thumbnail,permalink,sold_quantity,condition,available_quantity,attributes`,
       { headers: auth }
     );
     if (!detalhesRes.ok) throw new Error(`Items detail error: ${detalhesRes.status}`);
@@ -83,6 +85,7 @@ export default async function handler(req: any, res: any) {
       .filter((d: any) => d.code === 200)
       .map((d: any) => {
         const item = d.body;
+        const attrGenero = item.attributes?.find((a: any) => a.id === 'GENRE' || a.name === 'Gênero');
         return {
           id:             item.id,
           titulo:         item.title,
@@ -93,6 +96,7 @@ export default async function handler(req: any, res: any) {
           vendidos:       item.sold_quantity || 0,
           condicao:       item.condition,
           disponivel:     item.available_quantity > 0,
+          genero:         attrGenero?.value_name || '',
         };
       });
 

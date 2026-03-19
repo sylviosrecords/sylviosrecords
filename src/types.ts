@@ -13,6 +13,7 @@ export interface Produto {
   condicao: string;
   disponivel: boolean;
   estoque?: number;
+  genero?: string;
 }
 
 export interface Colecao {

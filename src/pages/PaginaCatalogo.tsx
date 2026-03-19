@@ -24,6 +24,14 @@ const CATEGORIAS = [
   { id:'blurays', label:'Blu-Rays', icon:<Disc className="w-4 h-4"/> },
 ];
 
+const GENEROS_MUSICA = [
+  "Rock", "Pop", "MPB", "Metal", "Sertanejo", "Trilha Sonora", "Gospel", "Samba / Pagode", "Reggae", "Axé", "Forró e Música Nordestina", "Blues / Jazz", "Funk", "New Age", "Regional", "Jazz", "Rap / Hip Hop", "Eletrônica", "Clássica", "Música Italiana", "Comédia", "World Music", "Soul / R&B", "Musical", "Rock and Roll", "Country", "Instrumental", "Folk", "Brega", "Arrocha", "Infantil", "Indie Rock", "Bossa Nova", "Hip Hop", "Tango", "Electronic", "Punk / Hardcore", "R&B / Soul", "Heavy metal", "Folk / Regional", "Soul", "Rock / Jovem Guarda", "Documentário", "Rap e Hip Hop"
+];
+
+const GENEROS_FILME = [
+  "Comédia", "Ação", "Drama", "Suspense", "Clássico", "Ficção Científica", "Documentário", "Romance", "Guerra", "Policial", "Religioso", "Épico", "Musical", "Ópera", "Aventura", "Infantil", "Faroeste", "Animação", "Terror", "Fantasia", "Artes Marciais", "Horror", "Western", "Ficção cientifica", "Rock", "Comédia Musical", "Família", "Cartoon", "Ação Aventura", "Comédia romântica", "Futebol", "Bíblico", "MPB", "Pop", "Dança", "Esportes", "Nacional", "Drama Romântico", "Anime", "Mistério", "Coleção", "Biografia"
+];
+
 function SecaoColecoes({ navigate }: { navigate: (path: string) => void }) {
   const scrollRef = useRef<HTMLDivElement>(null);
 
@@ -144,8 +152,9 @@ export function PaginaCatalogo({ navigate }: { navigate: (path: string) => void 
   const [buscaInput, setBuscaInput] = useState('');
   const [navSearch,  setNavSearch]  = useState('');
   const [pagina,     setPagina]     = useState(1);
+  const [genero,     setGenero]     = useState('');
   const buscaTimer = useRef<ReturnType<typeof setTimeout>|null>(null);
-  const { produtos, total, loading, error, limite } = useProdutos(categoria, busca, pagina);
+  const { produtos, total, loading, error, limite } = useProdutos(categoria, busca, pagina, genero);
   const totalPaginas = Math.ceil(total / limite);
 
   useEffect(() => {
@@ -159,7 +168,8 @@ export function PaginaCatalogo({ navigate }: { navigate: (path: string) => void 
     if (buscaTimer.current) clearTimeout(buscaTimer.current);
     buscaTimer.current = setTimeout(() => { setBusca(v); setPagina(1); }, 500);
   };
-  const handleCategoria = (c: string) => { setCategoria(c); setPagina(1); setBusca(''); setBuscaInput(''); };
+  const handleCategoria = (c: string) => { setCategoria(c); setPagina(1); setBusca(''); setBuscaInput(''); setGenero(''); };
+  const handleGenero = (g: string) => { setGenero(genero === g ? '' : g); setPagina(1); };
 
   return (
     <div className="min-h-screen bg-[#080808] text-zinc-100">
@@ -311,6 +321,20 @@ export function PaginaCatalogo({ navigate }: { navigate: (path: string) => void 
               </button>
             ))}
           </div>
+
+          {(categoria === 'cds' || categoria === 'dvds' || categoria === 'blurays') && (
+            <div className="flex overflow-x-auto pb-4 mb-6 gap-2 snap-x [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
+              {(categoria === 'cds' ? GENEROS_MUSICA : GENEROS_FILME).map(g => (
+                <button key={g} onClick={() => handleGenero(g)}
+                  className={`snap-start shrink-0 px-3 py-1.5 rounded-full border text-xs font-medium transition-all ${
+                    genero === g ? 'bg-red-500/20 border-red-500/50 text-red-400' : 'bg-transparent border-white/10 text-zinc-400 hover:border-white/30 hover:text-white'
+                  }`}>
+                  {g}
+                </button>
+              ))}
+            </div>
+          )}
+
           {loading ? (
             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
               {Array.from({length:20}).map((_,i) => <SkeletonCard key={i}/>)}

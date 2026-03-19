@@ -52,8 +52,14 @@ export function ProdutoCard({ p, navigate }: { key?: React.Key; p: Produto; navi
           </svg>
         </button>
       </div>
-      <div className="p-3 flex flex-col flex-1">
-        <p className="text-[11px] text-zinc-400 leading-tight line-clamp-2 min-h-[30px] mb-2 flex-1">{p.titulo}</p>
+      <div className="p-3 flex flex-col flex-1 relative">
+        <p className="text-[11px] text-zinc-400 leading-tight line-clamp-2 min-h-[30px] mb-1.5 flex-1">{p.titulo}</p>
+        
+        {p.genero && (
+          <span className="inline-block bg-white/[0.03] border border-white/5 rounded-full px-2 py-0.5 text-[9px] text-zinc-500 font-medium mb-2 w-fit">
+            {p.genero}
+          </span>
+        )}
         
         {/* Mostra preço original (calculado com +desconto% do ML) riscado e preço atual do site em destaque */}
         {desconto > 0 && (

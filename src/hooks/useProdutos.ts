@@ -19,7 +19,7 @@ async function fetchComCache(url: string) {
 }
 
 // ── useProdutos — lista paginada da home ──────────────────────────────────────
-export function useProdutos(categoria: string, busca: string, pagina: number) {
+export function useProdutos(categoria: string, busca: string, pagina: number, genero: string = '') {
   const [produtos, setProdutos] = useState<Produto[]>([]);
   const [total,    setTotal]    = useState(0);
   const [loading,  setLoading]  = useState(true);
@@ -35,6 +35,7 @@ export function useProdutos(categoria: string, busca: string, pagina: number) {
           pagina: String(pagina), limite: String(limite),
           ...(categoria !== 'todos' && { categoria }),
           ...(busca && { busca }),
+          ...(genero && { genero }),
         });
         const url = `/api/produtos?${params}`;
         
@@ -54,7 +55,7 @@ export function useProdutos(categoria: string, busca: string, pagina: number) {
     };
     carregar();
     return () => { cancelado = true; };
-  }, [categoria, busca, pagina]);
+  }, [categoria, busca, pagina, genero]);
 
   return { produtos, total, loading, error, limite };
 }
