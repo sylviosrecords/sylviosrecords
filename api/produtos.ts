@@ -71,9 +71,9 @@ export default async function handler(req: any, res: any) {
     if (!idsRes.ok) throw new Error(`Items search error: ${idsRes.status}`);
     const idsData = await idsRes.json();
 
-    const ids: string[] = (idsData.results || []).slice(0, 20);
+    const ids: string[] = (idsData.results || []).slice(0, 50); // Puxa 50 para ter margem de filtro
     if (!ids.length) {
-      return res.status(200).json({ produtos: [], total: idsData.paging?.total || 0, pagina: parseInt(pagina), limite });
+      return res.status(200).json({ produtos: [], total: idsData.paging?.total || 0, pagina: parseInt(pagina), limite: 20 });
     }
 
     // Busca detalhes em lote
@@ -84,7 +84,7 @@ export default async function handler(req: any, res: any) {
     if (!detalhesRes.ok) throw new Error(`Items detail error: ${detalhesRes.status}`);
     const detalhesData = await detalhesRes.json();
 
-    const produtos = detalhesData
+    let produtos = detalhesData
       .filter((d: any) => d.code === 200)
       .map((d: any) => {
         const item = d.body;
@@ -103,11 +103,25 @@ export default async function handler(req: any, res: any) {
         };
       });
 
+    // FILTRO RIGOROSO (In-Memory):
+    // Se estivemos filtrando por gênero, removemos itens que o ML trouxe por "fuzzy search" 
+    // mas que não tem o atributo gênero correto.
+    if (genero) {
+      const gLower = String(genero).toLowerCase();
+      produtos = produtos.filter((p: any) => 
+        p.genero.toLowerCase().includes(gLower) || 
+        (p.genero === '' && p.titulo.toLowerCase().includes(gLower)) // Fallback se o ML estiver sem atributo mas título bater
+      );
+    }
+
+    // Retorna apenas 20 (paginação da vitrine)
+    produtos = produtos.slice(0, 20);
+
     return res.status(200).json({
       produtos,
-      total:  idsData.paging?.total || 0,
+      total:  genero ? produtos.length : (idsData.paging?.total || 0), // Simplifica total se houver filtro
       pagina: parseInt(pagina),
-      limite,
+      limite: 20,
     });
 
   } catch (err: any) {
