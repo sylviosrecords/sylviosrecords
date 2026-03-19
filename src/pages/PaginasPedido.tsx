@@ -3,6 +3,10 @@ import { motion } from 'motion/react';
 import { NavSecundaria } from '../components/NavSecundaria';
 
 export function PaginaPedidoSucesso({ navigate }: { navigate: (r: string) => void }) {
+  // O Mercado Pago envia o ID do pedido como ?pedido=... na URL de retorno
+  const params = new URLSearchParams(window.location.search);
+  const pedidoId = params.get('pedido') || params.get('external_reference');
+
   return (
     <div className="min-h-screen bg-[#080808]">
       <NavSecundaria navigate={navigate} />
@@ -29,8 +33,21 @@ export function PaginaPedidoSucesso({ navigate }: { navigate: (r: string) => voi
           transition={{ delay: 0.35 }}
           className="text-zinc-400 max-w-md mb-2"
         >
-          Seu pagamento foi aprovado. Em breve você receberá um e-mail com os detalhes do pedido e o código de rastreio assim que enviarmos.
+          Seu pagamento foi aprovado. Em breve você receberá um e-mail com os detalhes e o código de rastreio assim que enviarmos.
         </motion.p>
+
+        {pedidoId && (
+          <motion.div
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.5 }}
+            className="mt-6 p-4 rounded-xl bg-white/5 border border-white/10 mb-6 w-full max-w-sm"
+          >
+            <p className="text-zinc-500 text-xs uppercase tracking-widest mb-1">Número do Pedido</p>
+            <p className="text-white font-mono font-bold text-sm break-all">{pedidoId}</p>
+          </motion.div>
+        )}
+
         <motion.p
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
@@ -39,19 +56,33 @@ export function PaginaPedidoSucesso({ navigate }: { navigate: (r: string) => voi
         >
           Obrigado por comprar na Sylvio's Records! 🎵
         </motion.p>
-        <motion.button
-          whileHover={{ scale: 1.05 }}
-          whileTap={{ scale: 0.95 }}
-          onClick={() => navigate('/')}
-          className="px-6 py-3 rounded-lg font-bold text-white"
-          style={{ background: 'linear-gradient(135deg, #dc2626, #7f1d1d)' }}
-        >
-          ← Continuar Comprando
-        </motion.button>
+
+        <div className="flex flex-col sm:flex-row gap-3 justify-center">
+          {pedidoId && (
+            <motion.button
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+              onClick={() => navigate(`/pedido/${pedidoId}`)}
+              className="px-6 py-3 rounded-lg font-bold text-white flex items-center gap-2"
+              style={{ background: 'linear-gradient(135deg, #dc2626, #7f1d1d)' }}
+            >
+              📦 Acompanhar Pedido
+            </motion.button>
+          )}
+          <motion.button
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+            onClick={() => navigate('/')}
+            className="px-6 py-3 rounded-lg font-bold text-zinc-400 border border-zinc-700 hover:border-zinc-500"
+          >
+            ← Continuar Comprando
+          </motion.button>
+        </div>
       </div>
     </div>
   );
 }
+
 
 export function PaginaPedidoFalha({ navigate }: { navigate: (r: string) => void }) {
   return (

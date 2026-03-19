@@ -161,7 +161,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         excluded_payment_types: [],
       },
       back_urls: {
-        success: `${process.env.SITE_URL}/pedido/sucesso`,
+        success: `${process.env.SITE_URL}/pedido/sucesso?pedido=${dbOrderId}`,
         failure: `${process.env.SITE_URL}/pedido/falha`,
         pending: `${process.env.SITE_URL}/pedido/pendente`,
       },
