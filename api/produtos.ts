@@ -49,31 +49,28 @@ export default async function handler(req: any, res: any) {
     // Monta URL de busca de IDs
     let idsUrl = `https://api.mercadolibre.com/users/${SELLER_ID}/items/search?limit=50&offset=${offset}&status=active`;
 
-    // Filtra por categoria formal se disponível (CDs = Música, DVDs = Filmes)
-    if (categoria !== 'todos' && CATEGORIA_IDS[categoria as string]) {
-      idsUrl += `&category=${CATEGORIA_IDS[categoria as string]}`;
-    }
+    // Para CDs e DVDs/Blurays, usa busca por texto para filtrar
+    const termoCategoria = busca
+      ? String(busca)
+      : categoria === 'cds'
+        ? 'cd'
+        : categoria === 'dvds'
+          ? 'dvd'
+          : categoria === 'blurays'
+            ? 'blu-ray'
+            : '';
 
-    // Monta o termo de busca combinando busca textual e gênero
-    const termos = [];
-    if (busca)  termos.push(String(busca));
-    if (genero) termos.push(String(genero));
+    const termoBusca = [termoCategoria, genero ? String(genero) : ''].filter(Boolean).join(' ');
 
-    // Para Blu-rays, como compartilham categoria com DVDs, forçamos o termo se não houver busca
-    if (categoria === 'blurays' && !busca && !genero) {
-      termos.push('blu-ray');
-    }
-
-    const termoBusca = termos.filter(Boolean).join(' ');
     if (termoBusca) idsUrl += `&q=${encodeURIComponent(termoBusca)}`;
 
     const idsRes  = await fetch(idsUrl, { headers: auth });
     if (!idsRes.ok) throw new Error(`Items search error: ${idsRes.status}`);
     const idsData = await idsRes.json();
 
-    const ids: string[] = (idsData.results || []).slice(0, 50); // Puxa 50 para ter margem de filtro
+    const ids: string[] = (idsData.results || []).slice(0, 20);
     if (!ids.length) {
-      return res.status(200).json({ produtos: [], total: idsData.paging?.total || 0, pagina: parseInt(pagina), limite: 20 });
+      return res.status(200).json({ produtos: [], total: idsData.paging?.total || 0, pagina: parseInt(pagina), limite });
     }
 
     // Busca detalhes em lote
@@ -84,7 +81,7 @@ export default async function handler(req: any, res: any) {
     if (!detalhesRes.ok) throw new Error(`Items detail error: ${detalhesRes.status}`);
     const detalhesData = await detalhesRes.json();
 
-    let produtos = detalhesData
+    const produtos = detalhesData
       .filter((d: any) => d.code === 200)
       .map((d: any) => {
         const item = d.body;
@@ -103,25 +100,11 @@ export default async function handler(req: any, res: any) {
         };
       });
 
-    // FILTRO RIGOROSO (In-Memory):
-    // Se estivemos filtrando por gênero, removemos itens que o ML trouxe por "fuzzy search" 
-    // mas que não tem o atributo gênero correto.
-    if (genero) {
-      const gLower = String(genero).toLowerCase();
-      produtos = produtos.filter((p: any) => 
-        p.genero.toLowerCase().includes(gLower) || 
-        (p.genero === '' && p.titulo.toLowerCase().includes(gLower)) // Fallback se o ML estiver sem atributo mas título bater
-      );
-    }
-
-    // Retorna apenas 20 (paginação da vitrine)
-    produtos = produtos.slice(0, 20);
-
     return res.status(200).json({
       produtos,
-      total:  genero ? produtos.length : (idsData.paging?.total || 0), // Simplifica total se houver filtro
+      total:  idsData.paging?.total || 0,
       pagina: parseInt(pagina),
-      limite: 20,
+      limite,
     });
 
   } catch (err: any) {
