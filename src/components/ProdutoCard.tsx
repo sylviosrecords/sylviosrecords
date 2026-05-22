@@ -61,11 +61,11 @@ export function ProdutoCard({ p, navigate }: { key?: React.Key; p: Produto; navi
           </span>
         )}
         
-        {/* Mostra preço original (calculado com +desconto% do ML) riscado e preço atual do site em destaque */}
+        {/* Preço do ML riscado, preço do site (com desconto) em destaque */}
         {desconto > 0 && (
-          <p className="text-zinc-600 text-[11px] line-through">{fmt(p.preco / (1 - desconto / 100))} <span className="text-[9px]">(ML)</span></p>
+          <p className="text-zinc-600 text-[11px] line-through">{fmt(p.preco)} <span className="text-[9px]">(ML)</span></p>
         )}
-        <p className="text-white font-bold text-sm">{fmt(p.preco)}</p>
+        <p className="text-white font-bold text-sm">{desconto > 0 ? fmt(p.preco * (1 - desconto / 100)) : fmt(p.preco)}</p>
         
         {p.vendidos > 0 && <p className="text-zinc-600 text-[10px] mt-1">{p.vendidos} vendidos</p>}
 

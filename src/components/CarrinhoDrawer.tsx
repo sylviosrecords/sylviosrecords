@@ -1,10 +1,14 @@
 import React from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { useCarrinho } from '../contexts/CarrinhoContext';
+import { useDesconto } from '../contexts/DescontoContext';
 import { fmt } from '../utils';
 
 export function CarrinhoDrawer({ navigate }: { navigate: (r: string) => void }) {
-  const { itens, total, totalItens, isAberto, fecharCarrinho, removerItem, alterarQuantidade } = useCarrinho();
+  const { itens, totalItens, isAberto, fecharCarrinho, removerItem, alterarQuantidade } = useCarrinho();
+  const { desconto } = useDesconto();
+  const fator = 1 - desconto / 100;
+  const totalComDesconto = itens.reduce((acc, item) => acc + item.produto.preco * fator * item.quantidade, 0);
 
   return (
     <AnimatePresence>
@@ -92,7 +96,7 @@ export function CarrinhoDrawer({ navigate }: { navigate: (r: string) => void }) 
                           {item.produto.titulo}
                         </p>
                         <p className="text-red-400 font-bold text-sm mt-1">
-                          {fmt(item.produto.preco * item.quantidade)}
+                          {fmt(item.produto.preco * fator * item.quantidade)}
                         </p>
 
                         {/* Controle de quantidade */}
@@ -126,7 +130,7 @@ export function CarrinhoDrawer({ navigate }: { navigate: (r: string) => void }) 
               <div className="p-4 border-t border-white/10 space-y-3">
                 <div className="flex justify-between items-center">
                   <span className="text-zinc-400 text-sm">Subtotal ({totalItens} {totalItens === 1 ? 'item' : 'itens'})</span>
-                  <span className="text-white font-bold text-lg">{fmt(total)}</span>
+                  <span className="text-white font-bold text-lg">{fmt(totalComDesconto)}</span>
                 </div>
                 <p className="text-zinc-500 text-xs">Frete calculado no checkout</p>
                 <motion.button

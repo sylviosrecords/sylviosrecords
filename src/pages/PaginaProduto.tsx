@@ -131,11 +131,11 @@ export function PaginaProduto({ slugComposto, navigate }: { slugComposto: string
 
             <div>
               {desconto > 0 && (
-                <p className="text-zinc-500 text-lg line-through">{fmt(produto.preco / (1 - desconto / 100))} <span className="text-sm">(No Mercado Livre)</span></p>
+                <p className="text-zinc-500 text-lg line-through">{fmt(produto.preco)} <span className="text-sm">(No Mercado Livre)</span></p>
               )}
-              <p className="text-4xl font-bold sr-gradient-text">{fmt(produto.preco)}</p>
+              <p className="text-4xl font-bold sr-gradient-text">{desconto > 0 ? fmt(produto.preco * (1 - desconto / 100)) : fmt(produto.preco)}</p>
               {desconto > 0 && (
-                <p className="text-green-400 text-sm mt-1">Comprando pelo site você economiza {fmt((produto.preco / (1 - desconto / 100)) - produto.preco)} (-{desconto}%)</p>
+                <p className="text-green-400 text-sm mt-1">Comprando pelo site você economiza {fmt(produto.preco * (desconto / 100))} (-{desconto}%)</p>
               )}
             </div>
 

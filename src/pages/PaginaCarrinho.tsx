@@ -1,12 +1,16 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { useCarrinho } from '../contexts/CarrinhoContext';
+import { useDesconto } from '../contexts/DescontoContext';
 import { CarrinhoCalculadorFrete } from '../components/CarrinhoCalculadorFrete';
 import { fmt } from '../utils';
 import { NavSecundaria } from '../components/NavSecundaria';
 
 export function PaginaCarrinho({ navigate, setFreteCheckout }: { navigate: (r: string) => void, setFreteCheckout: (f: { nome: string; preco: number } | null, cep?: string) => void }) {
-  const { itens, total, totalItens, removerItem, alterarQuantidade, limparCarrinho } = useCarrinho();
+  const { itens, totalItens, removerItem, alterarQuantidade, limparCarrinho } = useCarrinho();
+  const { desconto } = useDesconto();
+  const fator = 1 - desconto / 100;
+  const totalComDesconto = itens.reduce((acc, item) => acc + item.produto.preco * fator * item.quantidade, 0);
   const [freteEscolhido, setFreteEscolhido] = useState<{ nome: string; preco: number } | null>(null);
   const [cepFrete, setCepFrete] = useState('');
 
@@ -32,7 +36,7 @@ export function PaginaCarrinho({ navigate, setFreteCheckout }: { navigate: (r: s
     );
   }
 
-  const totalComFrete = total + (freteEscolhido?.preco || 0);
+  const totalComFrete = totalComDesconto + (freteEscolhido?.preco || 0);
 
   return (
     <div className="min-h-screen bg-[#080808]">
@@ -79,7 +83,7 @@ export function PaginaCarrinho({ navigate, setFreteCheckout }: { navigate: (r: s
                     </p>
                     <p className="text-zinc-500 text-xs mt-1 capitalize">{item.produto.condicao}</p>
                     <p className="text-red-400 font-bold text-base mt-2">
-                      {fmt(item.produto.preco * item.quantidade)}
+                      {fmt(item.produto.preco * fator * item.quantidade)}
                     </p>
                   </div>
                   <div className="flex flex-col items-end gap-3">
@@ -122,7 +126,7 @@ export function PaginaCarrinho({ navigate, setFreteCheckout }: { navigate: (r: s
             >
               <div className="flex justify-between text-sm">
                 <span className="text-zinc-400">Subtotal</span>
-                <span className="text-white">{fmt(total)}</span>
+                <span className="text-white">{fmt(totalComDesconto)}</span>
               </div>
               {freteEscolhido && (
                 <div className="flex justify-between text-sm">

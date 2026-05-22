@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { motion } from 'motion/react';
 import { ArrowLeft } from 'lucide-react';
 import { useCarrinho } from '../contexts/CarrinhoContext';
+import { useDesconto } from '../contexts/DescontoContext';
 import { NavSecundaria } from '../components/NavSecundaria';
 import { fmt } from '../utils';
 import { DadosComprador } from '../types';
@@ -48,7 +49,10 @@ export function PaginaCheckout({ navigate, freteNome, fretePreco, cepFrete }: {
   fretePreco?: number;
   cepFrete?: string;
 }) {
-  const { itens, total, limparCarrinho } = useCarrinho();
+  const { itens, limparCarrinho } = useCarrinho();
+  const { desconto } = useDesconto();
+  const fator = 1 - desconto / 100;
+  const totalComDesconto = itens.reduce((acc, item) => acc + item.produto.preco * fator * item.quantidade, 0);
   const [carregando, setCarregando] = useState(false);
   const [erro, setErro] = useState('');
   const [buscandoCep, setBuscandoCep] = useState(false);
@@ -156,7 +160,7 @@ export function PaginaCheckout({ navigate, freteNome, fretePreco, cepFrete }: {
           itens: itens.map(i => ({
             id: i.produto.id,
             titulo: i.produto.titulo,
-            preco: i.produto.preco,
+            preco: i.produto.preco, // Preço do ML — o backend aplica o desconto server-side
             quantidade: i.quantidade,
             foto: i.produto.foto,
           })),
@@ -197,8 +201,8 @@ export function PaginaCheckout({ navigate, freteNome, fretePreco, cepFrete }: {
   );
 
   const totalItensComCupom = cupomValidado 
-    ? total * (1 - cupomValidado.desconto / 100) 
-    : total;
+    ? totalComDesconto * (1 - cupomValidado.desconto / 100) 
+    : totalComDesconto;
   const totalComFrete = totalItensComCupom + (fretePreco || 0);
 
   return (
@@ -295,7 +299,7 @@ export function PaginaCheckout({ navigate, freteNome, fretePreco, cepFrete }: {
             {itens.map(item => (
               <div key={item.produto.id} className="flex justify-between text-sm py-1">
                 <span className="text-zinc-400 truncate mr-3 max-w-[70%]">{item.produto.titulo} × {item.quantidade}</span>
-                <span className="text-white">{fmt(item.produto.preco * item.quantidade)}</span>
+                <span className="text-white">{fmt(item.produto.preco * fator * item.quantidade)}</span>
               </div>
             ))}
             {freteNome && (
