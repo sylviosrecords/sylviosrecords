@@ -11,14 +11,34 @@ interface AdminCupom {
 import { fmt } from '../utils';
 
 // Tipo Simplificado do Pedido no db
+interface AdminPedidoItem {
+  id: string;
+  titulo: string;
+  preco: number;
+  quantidade: number;
+}
 interface AdminPedido {
   id: string;
   status: string;
   cliente_nome: string;
   cliente_email: string;
+  cliente_cpf?: string;
+  cliente_telefone?: string;
+  logradouro?: string;
+  numero?: string;
+  complemento?: string;
+  bairro?: string;
+  cidade?: string;
+  estado?: string;
+  cep?: string;
+  frete_nome?: string;
+  frete_valor?: number;
+  subtotal?: number;
   total: number;
   criado_em: string;
   codigo_rastreio?: string;
+  cupom_codigo?: string;
+  itens?: AdminPedidoItem[];
 }
 
 export function PaginaAdmin() {
@@ -335,7 +355,7 @@ export function PaginaAdmin() {
                       <div className="text-white font-medium">{p.cliente_nome}</div>
                       <div className="text-zinc-500 text-xs">{p.cliente_email}</div>
                     </td>
-                    <td className="p-4">
+                    <td className="p-4 align-top">
                       {p.status === 'enviado' ? (
                         <div>
                           <span className="inline-flex items-center gap-1 bg-blue-500/10 text-blue-400 border border-blue-500/20 px-2 py-1 rounded-md text-xs font-bold mb-1"><Truck className="w-3 h-3"/> ENVIADO</span>
@@ -344,7 +364,18 @@ export function PaginaAdmin() {
                       ) : p.status === 'pago' ? (
                         <span className="inline-flex items-center gap-1 bg-green-500/10 text-green-400 border border-green-500/20 px-2 py-1 rounded-md text-xs font-bold"><CheckCircle className="w-3 h-3"/> PAGO (Imprimir)</span>
                       ) : (
-                        <span className="inline-flex items-center gap-1 bg-zinc-800 text-zinc-400 px-2 py-1 rounded-md text-xs font-bold uppercase">{p.status}</span>
+                        <span className="inline-flex items-center gap-1 bg-amber-500/10 border border-amber-500/20 text-amber-500 px-2 py-1 rounded-md text-xs font-bold uppercase mb-2">ABANDONADO</span>
+                      )}
+                      
+                      {filtroStatus === 'pendentes' && p.itens && p.itens.length > 0 && (
+                        <div className="mt-2 pl-3 border-l-2 border-white/5 space-y-1">
+                          {p.itens.map(item => (
+                            <div key={item.id} className="text-xs text-zinc-400 flex items-center justify-between">
+                              <span className="truncate w-32 mr-2">- {item.titulo}</span>
+                              <span className="font-mono bg-white/5 px-1 rounded">x{item.quantidade}</span>
+                            </div>
+                          ))}
+                        </div>
                       )}
                     </td>
                     <td className="p-4 font-medium text-white">{fmt(p.total)}</td>
@@ -553,9 +584,32 @@ export function PaginaAdmin() {
               </div>
 
               <div className="bg-black/30 p-3 rounded-lg border border-white/5">
-                <span className="text-zinc-500 block text-xs uppercase font-bold mb-2">Resumo Financeiro</span>
-                <div className="flex justify-between mb-1"><span>Subtotal</span> <span>{fmt(pedidoDetalhes.subtotal || 0)}</span></div>
-                <div className="flex justify-between mb-2"><span>Frete ({pedidoDetalhes.frete_nome})</span> <span>{fmt(pedidoDetalhes.frete_valor)}</span></div>
+                <span className="text-zinc-500 block text-xs uppercase font-bold mb-2">Produtos ({pedidoDetalhes.itens?.reduce((acc: number, val: any) => acc + val.quantidade, 0) || 0} itens)</span>
+                {pedidoDetalhes.itens && (
+                  <div className="mb-4 space-y-2">
+                    {pedidoDetalhes.itens.map((i: AdminPedidoItem) => {
+                      const fator = pedidoDetalhes.status === 'pendente' ? (1 - descontoAtual/100) : 1;
+                      const precoExibir = pedidoDetalhes.status === 'pendente' ? i.preco * fator : i.preco;
+                      return (
+                        <div key={i.id} className="flex justify-between text-xs text-zinc-400 border-b border-white/5 pb-1 last:border-0 last:pb-0">
+                          <span className="truncate mr-2 flex-1">{i.quantidade}x - {i.titulo}</span>
+                          <span className="font-bold whitespace-nowrap">{fmt(precoExibir * i.quantidade)}</span>
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
+                <span className="text-zinc-500 block text-xs uppercase font-bold mb-2 mt-4 pt-4 border-t border-white/10">Resumo Financeiro</span>
+                <div className="flex justify-between mb-1"><span>Subtotal (Itens)</span> <span>{fmt(pedidoDetalhes.subtotal || 0)}</span></div>
+                {pedidoDetalhes.frete_nome && (
+                  <div className="flex justify-between mb-2"><span>Frete ({pedidoDetalhes.frete_nome})</span> <span>{fmt(pedidoDetalhes.frete_valor)}</span></div>
+                )}
+                {pedidoDetalhes.status === 'pendente' && (
+                  <div className="flex justify-between mb-2 text-red-500 text-xs">
+                    <span>Desconto do Site ({descontoAtual}%)</span>
+                    <span>-{fmt((pedidoDetalhes.itens?.reduce((s:number,i:any) => s+(i.preco*i.quantidade),0)||0) * (descontoAtual/100))}</span>
+                  </div>
+                )}
                 {pedidoDetalhes.cupom_codigo && (
                   <div className="flex justify-between mb-2 text-green-400 font-bold">
                     <span>🎟️ Cupom: <span className="font-mono">{pedidoDetalhes.cupom_codigo}</span></span>
@@ -563,7 +617,7 @@ export function PaginaAdmin() {
                   </div>
                 )}
                 <div className="flex justify-between text-white font-bold pt-2 border-t border-white/10">
-                  <span>Total Pago</span> <span>{fmt(pedidoDetalhes.total)}</span>
+                  <span>{pedidoDetalhes.status === 'pendente' ? 'Total (Simulado)' : 'Total Pago'}</span> <span>{fmt(pedidoDetalhes.total)}</span>
                 </div>
               </div>
             </div>
