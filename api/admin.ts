@@ -123,6 +123,21 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     }
   }
 
+  // O lojista registra o rastreio somente após entregar o pacote à transportadora.
+  if (req.method === 'POST' && action === 'registrar-envio') {
+    const { pedidoId, codigoRastreio } = (req.body || {}) as { pedidoId?: string; codigoRastreio?: string };
+    const codigo = typeof codigoRastreio === 'string' ? codigoRastreio.trim().toUpperCase() : '';
+    if (typeof pedidoId !== 'string' || !/^[A-Z0-9-]{5,50}$/.test(codigo) || codigo.startsWith('ME-')) {
+      return res.status(400).json({ erro: 'Informe o código de rastreio fornecido pela transportadora.' });
+    }
+    const { data, error } = await supabase.from('pedidos')
+      .update({ status: 'enviado', codigo_rastreio: codigo, enviado_em: new Date().toISOString() })
+      .eq('id', pedidoId).eq('status', 'pago').select('id').maybeSingle();
+    if (error) return res.status(500).json({ erro: 'Não foi possível registrar o envio.' });
+    if (!data) return res.status(409).json({ erro: 'O pedido não está aguardando envio. Atualize a lista.' });
+    return res.json({ ok: true });
+  }
+
   // A emissão automática anterior não verificava o pagamento ou geração no Melhor Envio.
   if (req.method === 'POST' && action === 'etiqueta') {
     return res.status(503).json({ erro: 'Emita a etiqueta diretamente no Melhor Envio. A emissão pelo painel está temporariamente indisponível.' });

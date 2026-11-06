@@ -112,6 +112,23 @@ export function PaginaAdmin() {
     }
   };
 
+  const registrarEnvio = async (pedido: AdminPedido) => {
+    const codigo = window.prompt('Após postar o pacote, informe o código de rastreio fornecido pela transportadora:');
+    if (codigo === null) return;
+    try {
+      const resposta = await fetch('/api/admin?action=registrar-envio', {
+        method: 'POST', headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${senha}` },
+        body: JSON.stringify({ pedidoId: pedido.id, codigoRastreio: codigo }),
+      });
+      const resultado = await resposta.json();
+      if (!resposta.ok) throw new Error(resultado.erro || 'Não foi possível registrar o envio.');
+      await carregarPedidos();
+      alert('Envio registrado. O código aparecerá na página de acompanhamento do pedido.');
+    } catch (err) {
+      alert(err instanceof Error ? err.message : 'Não foi possível registrar o envio.');
+    }
+  };
+
   const handleExcluir = async (id: string, nome: string) => {
     if (!confirm(`Tem certeza que deseja EXCLUIR o pedido de ${nome}? Isso não pode ser desfeito.`)) return;
     try {
@@ -346,9 +363,10 @@ export function PaginaAdmin() {
                         Ver Detalhes
                       </button>
                       {p.status === 'pago' && (
-                        <button onClick={() => setPedidoFoco(p)} className="bg-red-600 hover:bg-red-500 text-white px-3 py-1.5 rounded-lg text-xs font-bold transition-colors">
-                          🚛 Gerar Etiqueta
-                        </button>
+                        <>
+                          <button onClick={() => setPedidoFoco(p)} className="bg-red-600 hover:bg-red-500 text-white px-3 py-1.5 rounded-lg text-xs font-bold transition-colors">🚛 Emitir etiqueta</button>
+                          <button onClick={() => registrarEnvio(p)} className="text-blue-400 hover:text-blue-300 text-xs font-bold underline">Registrar envio e rastreio</button>
+                        </>
                       )}
                       {p.status === 'enviado' && (
                         <a href="https://melhorenvio.com.br/painel" target="_blank" rel="noopener noreferrer" className="text-blue-400 hover:text-blue-300 text-xs font-bold underline">
@@ -487,7 +505,7 @@ export function PaginaAdmin() {
             <button onClick={() => setPedidoFoco(null)} className="absolute top-4 right-4 text-zinc-500 hover:text-white"><X className="w-5 h-5" /></button>
             <h2 className="text-xl font-bold text-white mb-3">Emitir etiqueta</h2>
             <p className="text-zinc-300 text-sm mb-4">Por enquanto, emita e pague a etiqueta diretamente no Melhor Envio. Consulte os dados do cliente e dos produtos em “Ver Detalhes”.</p>
-            <p className="text-zinc-400 text-sm mb-5">A emissão não altera automaticamente o status do pedido nem envia um código de rastreio ao cliente.</p>
+            <p className="text-zinc-400 text-sm mb-5">Depois de postar o pacote, use “Registrar envio e rastreio” para atualizar o acompanhamento do cliente.</p>
             <a href="https://melhorenvio.com.br/painel" target="_blank" rel="noopener noreferrer" className="block text-center w-full py-3 bg-red-700 hover:bg-red-600 text-white rounded-xl font-bold">Abrir Melhor Envio ↗</a>
           </div>
         </div>
