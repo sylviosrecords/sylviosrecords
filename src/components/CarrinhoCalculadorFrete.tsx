@@ -82,7 +82,7 @@ export function CarrinhoCalculadorFrete({ quantidade, onFreteEscolhido, freteEsc
 
       {estimativa && opcoes.length > 0 && (
         <p className="text-yellow-500/70 text-xs mt-2">
-          ⚠ Valores estimados — o frete exato é calculado pelo Melhor Envio no checkout.
+          ⚠ Valores estimados para o envio.
         </p>
       )}
 

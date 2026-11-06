@@ -230,7 +230,11 @@ async function enviarEmailConfirmacao(pedido: {
       subject: `✅ Pedido ${pedido.id} confirmado — Sylvio's Records`,
       html,
     });
-    console.log('[email] Confirmação enviada:', result);
+    if (result.error) {
+      console.error('[email] Falha ao enviar confirmação:', result.error.message);
+    } else {
+      console.log('[email] Confirmação enviada:', result.data?.id);
+    }
   } catch (err) {
     console.error('[email] Erro ao enviar:', err);
     // Não falha o webhook por causa do e-mail

@@ -54,8 +54,6 @@ export function PaginaAdmin() {
 
   // Modal de Etiqueta
   const [pedidoFoco, setPedidoFoco] = useState<AdminPedido | null>(null);
-  const [nfeKey, setNfeKey] = useState('');
-  const [gerandoMsg, setGerandoMsg] = useState('');
 
   // Configurador de Desconto
   const [descontoAtual, setDescontoAtual] = useState(10);
@@ -111,42 +109,6 @@ export function PaginaAdmin() {
       }
     } finally {
       setLoading(false);
-    }
-  };
-
-  // 2. Gerar Etiqueta
-  const handleGerarEtiqueta = async () => {
-    if (!pedidoFoco) return;
-    setGerandoMsg('Preparando envio no Melhor Envio...');
-    setErro('');
-    
-    try {
-      const resp = await fetch('/api/admin?action=etiqueta', {
-        method: 'POST',
-        headers: { 
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${senha}` 
-        },
-        body: JSON.stringify({ 
-          pedidoId: pedidoFoco.id, 
-          nfe_key: nfeKey.trim() || undefined 
-        })
-      });
-
-      const data = await resp.json();
-      if (!resp.ok) throw new Error(data.erro || 'Falha ao gerar');
-      
-      setGerandoMsg('Sucesso! Etiqueta gerada e paga.');
-      setTimeout(() => {
-        setPedidoFoco(null);
-        setGerandoMsg('');
-        setNfeKey('');
-        carregarPedidos(); // Atualiza a lista pra mostrar o badge azul
-      }, 2000);
-
-    } catch (err: any) {
-      setGerandoMsg('');
-      setErro(err.message || 'Falha ao conectar no provedor de envios');
     }
   };
 
@@ -519,46 +481,15 @@ export function PaginaAdmin() {
         )}
       </div>
 
-      {/* Modal de Gerar Etiqueta */}
       {pedidoFoco && (
         <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-          <motion.div initial={{ scale: 0.95, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} className="bg-zinc-900 border border-white/10 w-full max-w-md rounded-2xl p-6 relative">
-            <button onClick={() => setPedidoFoco(null)} className="absolute top-4 right-4 text-zinc-500 hover:text-white"><X className="w-5 h-5"/></button>
-            <h2 className="text-xl font-bold text-white mb-1">Emitir Etiqueta de Envio</h2>
-            <p className="text-zinc-400 text-sm mb-6">Pedido de: <strong className="text-white">{pedidoFoco.cliente_nome}</strong></p>
-
-            <div className="space-y-4">
-              <div className="bg-blue-900/20 border border-blue-500/30 p-4 rounded-xl">
-                <h3 className="text-blue-400 font-bold text-sm mb-1">Como você quer enviar?</h3>
-                <p className="text-blue-200/70 text-xs leading-relaxed">
-                  Deixe o campo abaixo VAZIO para gerarmos uma <strong>Declaração de Conteúdo Automática</strong> (ideal para MEI). Se for usar Nota Fiscal, cole a Chave de 44 dígitos.
-                </p>
-              </div>
-
-              <div>
-                <label className="block text-zinc-400 text-xs mb-1 font-bold">Chave NF-e (Opcional - 44 dígitos)</label>
-                <input 
-                  type="text"
-                  maxLength={44}
-                  value={nfeKey}
-                  onChange={e => setNfeKey(e.target.value.replace(/\D/g, ''))}
-                  placeholder="Deixe em branco para Declaração"
-                  className="w-full bg-black/50 border border-zinc-800 rounded-lg px-4 py-3 text-white text-sm focus:outline-none focus:border-red-500 font-mono text-center tracking-widest"
-                />
-              </div>
-
-              {erro && <p className="text-red-400 text-xs text-center border border-red-500/30 bg-red-900/10 p-2 rounded-lg">{erro}</p>}
-              {gerandoMsg && <p className="text-green-400 text-xs text-center font-bold animate-pulse">{gerandoMsg}</p>}
-
-              <button
-                onClick={handleGerarEtiqueta}
-                disabled={!!gerandoMsg}
-                className="w-full py-4 bg-gradient-to-r from-red-600 to-red-800 hover:from-red-500 hover:to-red-700 text-white rounded-xl font-bold transition-all shadow-lg flex justify-center items-center gap-2 disabled:opacity-50"
-              >
-                {gerandoMsg ? 'Processando...' : '💰 Pagar e Gerar no Melhor Envio'}
-              </button>
-            </div>
-          </motion.div>
+          <div className="bg-zinc-900 border border-white/10 w-full max-w-md rounded-2xl p-6 relative">
+            <button onClick={() => setPedidoFoco(null)} className="absolute top-4 right-4 text-zinc-500 hover:text-white"><X className="w-5 h-5" /></button>
+            <h2 className="text-xl font-bold text-white mb-3">Emitir etiqueta</h2>
+            <p className="text-zinc-300 text-sm mb-4">Por enquanto, emita e pague a etiqueta diretamente no Melhor Envio. Consulte os dados do cliente e dos produtos em “Ver Detalhes”.</p>
+            <p className="text-zinc-400 text-sm mb-5">A emissão não altera automaticamente o status do pedido nem envia um código de rastreio ao cliente.</p>
+            <a href="https://melhorenvio.com.br/painel" target="_blank" rel="noopener noreferrer" className="block text-center w-full py-3 bg-red-700 hover:bg-red-600 text-white rounded-xl font-bold">Abrir Melhor Envio ↗</a>
+          </div>
         </div>
       )}
 

@@ -1,8 +1,5 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
 import { createClient } from '@supabase/supabase-js';
-import { Resend } from 'resend';
-
-const resend = new Resend(process.env.RESEND_API_KEY);
 
 const supabase = createClient(
   process.env.SUPABASE_URL!,
@@ -126,144 +123,9 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     }
   }
 
-  // ── POST /api/admin?action=etiqueta ───────────────────────────────────────
+  // A emissão automática anterior não verificava o pagamento ou geração no Melhor Envio.
   if (req.method === 'POST' && action === 'etiqueta') {
-    const tokenME = process.env.MELHOR_ENVIO_TOKEN;
-    if (!tokenME) return res.status(500).json({ erro: 'Token do Melhor Envio não configurado' });
-
-    try {
-      const { pedidoId, nfe_key } = req.body as { pedidoId: string; nfe_key?: string };
-      if (!pedidoId) return res.status(400).json({ erro: 'ID do pedido obrigatório' });
-
-      const { data: pedido, error: dbError } = await supabase
-        .from('pedidos').select('*').eq('id', pedidoId).single();
-      if (dbError || !pedido) return res.status(404).json({ erro: 'Pedido não encontrado' });
-
-      let serviceId = 1;
-      const nomeFrete = pedido.frete_nome?.toLowerCase() || '';
-      if (nomeFrete.includes('sedex')) serviceId = 2;
-      if (nomeFrete.includes('jadlog') || nomeFrete.includes('package')) serviceId = 3;
-
-      const non_commercial = !(nfe_key && nfe_key.length === 44);
-      const invoice = non_commercial ? null : { key: nfe_key };
-
-      const cartPayload = {
-        service: serviceId,
-        agency: null,
-        from: {
-          name: "Sylvios Records",
-          phone: "13996061597",
-          email: "contato@sylviosrecords.com.br",
-          document: "52025529805",
-          address: "Rua Particular",
-          number: "S/N",
-          district: "Ocian",
-          city: "Praia Grande",
-          state_abbr: "SP",
-          postal_code: "11704460"
-        },
-        to: {
-          name: pedido.cliente_nome.substring(0, 50),
-          phone: (pedido.cliente_telefone || "11999999999").replace(/\D/g, ''),
-          email: pedido.cliente_email,
-          document: (pedido.cliente_cpf || "00000000000").replace(/\D/g, ''),
-          address: pedido.logradouro || "Endereço",
-          number: pedido.numero || "S/N",
-          complement: pedido.complemento || "",
-          district: pedido.bairro || "Centro",
-          city: pedido.cidade || "Cidade",
-          state_abbr: pedido.estado || "SP",
-          country_id: "BR",
-          postal_code: (pedido.cep || "").replace(/\D/g, '')
-        },
-        products: pedido.itens.map((i: any) => ({
-          name: i.titulo, quantity: i.quantidade, unitary_value: Number(i.preco).toFixed(2),
-        })),
-        volumes: [{
-          height: 5, width: 30, length: 30,
-          weight: 0.35 * pedido.itens.reduce((sum: number, i: any) => sum + i.quantidade, 0)
-        }],
-        options: { receipt: false, own_hand: false, collect: false, non_commercial, invoice }
-      };
-
-      const cartResp = await fetch('https://melhorenvio.com.br/api/v2/me/cart', {
-        method: 'POST',
-        headers: { 'Accept': 'application/json', 'Content-Type': 'application/json', Authorization: `Bearer ${tokenME}`, 'User-Agent': 'Sylvios Records (sylviosrecords.com.br)' },
-        body: JSON.stringify(cartPayload)
-      });
-      const textResp = await cartResp.text();
-      let cartData;
-      try {
-        cartData = JSON.parse(textResp);
-      } catch (e) {
-        return res.status(500).json({ erro: `Melhor Envio retornou HTML. Status ${cartResp.status}`, detalhe: textResp.substring(0, 200) });
-      }
-
-      if (!cartResp.ok || cartData.error) {
-        let erroReal = cartData.message || cartData.error || 'Falha no Melhor Envio (Cart)';
-        if (cartData.errors) erroReal += ' - ' + JSON.stringify(cartData.errors);
-        return res.status(500).json({ erro: erroReal });
-      }
-
-      const meOrderId = cartData.id;
-
-      await fetch('https://melhorenvio.com.br/api/v2/me/shipment/checkout', {
-        method: 'POST',
-        headers: { 'Accept': 'application/json', 'Content-Type': 'application/json', Authorization: `Bearer ${tokenME}`, 'User-Agent': 'Sylvios Records (sylviosrecords.com.br)' },
-        body: JSON.stringify({ orders: [String(meOrderId)] })
-      });
-
-      await fetch('https://melhorenvio.com.br/api/v2/me/shipment/generate', {
-        method: 'POST',
-        headers: { 'Accept': 'application/json', 'Content-Type': 'application/json', Authorization: `Bearer ${tokenME}`, 'User-Agent': 'Sylvios Records (sylviosrecords.com.br)' },
-        body: JSON.stringify({ orders: [String(meOrderId)] })
-      });
-
-      const codigoRastreio = `ME-${meOrderId}`;
-      await supabase.from('pedidos').update({
-        status: 'enviado', codigo_rastreio: codigoRastreio, atualizado_em: new Date().toISOString()
-      }).eq('id', pedidoId);
-
-      // Enviar e-mail de envio para o cliente
-      try {
-        const SITE_URL = process.env.SITE_URL || 'https://sylviosrecords.com.br';
-        const html = `
-        <!DOCTYPE html>
-        <html lang="pt-BR">
-        <body style="margin:0;padding:20px;background:#0a0a0a;font-family:Arial,sans-serif;color:#fff;">
-          <div style="max-width:560px;margin:0 auto;background:#111;border-radius:16px;overflow:hidden;border:1px solid #1e1e1e;padding:32px 24px;text-align:center;">
-            <p style="margin:0 0 16px;color:rgba(255,255,255,0.7);font-size:12px;text-transform:uppercase;letter-spacing:3px;">Sylvio's Records</p>
-            <h1 style="margin:0 0 24px;color:#fff;font-size:24px;">Seu pedido foi enviado! 📦</h1>
-            <p style="color:#aaa;font-size:15px;line-height:1.6;margin-bottom:24px;">
-              Boas notícias, <strong>${pedido.cliente_nome.split(' ')[0]}</strong>!<br>
-              Seu disco já foi embalado e despachado.
-            </p>
-            <div style="background:#1a1a1a;border:1px solid #2a2a2a;border-radius:10px;padding:20px;margin-bottom:32px;">
-              <p style="margin:0;color:#666;font-size:11px;text-transform:uppercase;letter-spacing:2px;">Código de Rastreio</p>
-              <p style="margin:8px 0 0;color:#3b82f6;font-size:24px;font-weight:bold;letter-spacing:2px;">${codigoRastreio}</p>
-            </div>
-            <a href="${SITE_URL}/pedido/${pedido.id}" style="display:inline-block;background:linear-gradient(135deg,#dc2626,#7f1d1d);color:#fff;text-decoration:none;font-weight:bold;font-size:14px;padding:14px 32px;border-radius:10px;">
-              Acompanhar Entrega →
-            </a>
-          </div>
-        </body>
-        </html>`;
-
-        await resend.emails.send({
-          from: 'Sylvio\'s Records <onboarding@resend.dev>',
-          to: pedido.cliente_email,
-          subject: `📦 Pedido Enviado! Rastreio: ${codigoRastreio} — Sylvio's Records`,
-          html,
-        });
-        console.log('[admin] E-mail de envio disparado para:', pedido.cliente_email);
-      } catch (emailErr) {
-        console.error('[admin] Erro ao enviar e-mail de envio:', emailErr);
-      }
-
-      return res.json({ ok: true, me_order_id: meOrderId, mensagem: "Etiqueta gerada e e-mail enviado com sucesso!" });
-    } catch (err: any) {
-      return res.status(500).json({ erro: err.message });
-    }
+    return res.status(503).json({ erro: 'Emita a etiqueta diretamente no Melhor Envio. A emissão pelo painel está temporariamente indisponível.' });
   }
 
   return res.status(400).json({ erro: 'Ação inválida' });

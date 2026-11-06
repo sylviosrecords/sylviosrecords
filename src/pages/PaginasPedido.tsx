@@ -33,7 +33,7 @@ export function PaginaPedidoSucesso({ navigate }: { navigate: (r: string) => voi
           transition={{ delay: 0.35 }}
           className="text-zinc-400 max-w-md mb-2"
         >
-          Seu pagamento foi aprovado. Em breve você receberá um e-mail com os detalhes e o código de rastreio assim que enviarmos.
+          Seu pagamento foi aprovado. Guarde o número do pedido para acompanhar a preparação e a entrega.
         </motion.p>
 
         {pedidoId && (

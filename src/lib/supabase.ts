@@ -47,13 +47,9 @@ export interface PedidoDB {
 }
 
 
-/** Busca um pedido pelo ID — qualquer um pode ler (política pública) */
+/** Consulta os dados de acompanhamento sem expor dados pessoais do cliente. */
 export async function buscarPedido(id: string): Promise<PedidoDB | null> {
-  const { data, error } = await supabase
-    .from('pedidos')
-    .select('*')
-    .eq('id', id)
-    .single();
-  if (error) { console.error('[supabase] buscarPedido:', error); return null; }
-  return data as PedidoDB;
+  const resposta = await fetch(`/api/pedido?id=${encodeURIComponent(id)}`);
+  if (!resposta.ok) return null;
+  return await resposta.json() as PedidoDB;
 }
