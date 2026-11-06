@@ -205,7 +205,7 @@ async function enviarEmailConfirmacao(pedido: {
 
             <p style="margin:24px 0 0;color:#555;font-size:12px;text-align:center;line-height:1.6;">
               Você receberá o código de rastreio assim que o disco for despachado.<br>
-              Dúvidas? Responda este e-mail.
+              Dúvidas? Entre em contato pelo site.
             </p>
           </td>
         </tr>
@@ -225,7 +225,7 @@ async function enviarEmailConfirmacao(pedido: {
 
   try {
     const result = await resend.emails.send({
-      from: 'Sylvio\'s Records <onboarding@resend.dev>',
+      from: 'Sylvio\'s Records <pedidos@envio.sylviosrecords.com.br>',
       to: pedido.cliente_email,
       subject: `✅ Pedido ${pedido.id} confirmado — Sylvio's Records`,
       html,
