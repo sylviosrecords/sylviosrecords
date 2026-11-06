@@ -1,5 +1,6 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
 import { createClient } from '@supabase/supabase-js';
+import freteHandler from './frete.js';
 
 // Setup admin Supabase client to bypass RLS for inserting orders
 const supabase = createClient(
@@ -19,7 +20,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   }
 
   // Validação básica do body
-  const { itens, comprador, frete, cupom } = req.body as {
+  const { itens, comprador, frete, cupom } = (req.body || {}) as {
     itens: Array<{ titulo: string; preco: number; quantidade: number; foto: string; id: string }>;
     comprador: { 
       nome: string; email: string; cpf: string; telefone: string;
@@ -29,9 +30,31 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     cupom?: string;
   };
 
-  if (!itens?.length || !comprador?.nome || !comprador?.email) {
+  if (!Array.isArray(itens) || !itens.length || !comprador?.nome || !comprador?.email) {
     return res.status(400).json({ erro: '[PASSO 0] Dados do pedido incompletos' });
   }
+
+  if (!frete || typeof frete.nome !== 'string' || !Number.isFinite(frete.preco) || frete.preco < 0 ||
+      !comprador.cpf || !comprador.telefone || !comprador.endereco?.cep ||
+      new Set(itens.map(i => i.id)).size !== itens.length || itens.length > 20 || itens.some(i => !/^MLB\d+$/.test(i.id) || !Number.isInteger(i.quantidade) || i.quantidade < 1 || i.quantidade > 100 || !Number.isFinite(i.preco) || i.preco <= 0)) {
+    return res.status(400).json({ erro: 'Dados do pedido inválidos. Confira o carrinho e o endereço.' });
+  }
+
+  // Recalcula o frete no servidor para o CEP e quantidade informados.
+  let freteStatus = 200;
+  let freteResultado: any;
+  const freteResponse = {
+    setHeader() { return this; },
+    status(code: number) { freteStatus = code; return this; },
+    json(data: unknown) { freteResultado = data; return this; },
+    end() { return this; },
+  };
+  await freteHandler({ method: 'GET', query: { cep: comprador.endereco.cep, quantidade: String(itens.reduce((n, i) => n + i.quantidade, 0)) } } as any, freteResponse as any);
+  const freteAtual = freteResultado?.opcoes?.find((op: any) => op.nome === frete.nome);
+  if (freteStatus !== 200 || !freteAtual || Math.round(freteAtual.preco * 100) !== Math.round(frete.preco * 100)) {
+    return res.status(400).json({ erro: 'O frete mudou ou não está disponível. Volte ao carrinho e calcule novamente.' });
+  }
+  frete.preco = freteAtual.preco;
 
   // PASSO 1: Desconto do Supabase
   let fatorDescontoSite = 0.9; // 10% padrão
@@ -45,49 +68,54 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     // Continua com o padrão
   }
 
+  if (!Number.isFinite(fatorDescontoSite) || fatorDescontoSite <= 0 || fatorDescontoSite > 1) {
+    return res.status(500).json({ erro: 'Configuração de desconto inválida.' });
+  }
+
   if (cupom) {
     try {
       const { data: cupomData } = await supabase.from('cupons').select('*').eq('codigo', cupom.toUpperCase()).eq('ativo', true).single();
-      if (cupomData && typeof cupomData.desconto === 'number') {
-        fatorDescontoCupom = 1 - (cupomData.desconto / 100);
+      if (!cupomData || typeof cupomData.desconto !== 'number' || cupomData.desconto < 0 || cupomData.desconto >= 100) {
+        return res.status(400).json({ erro: 'Cupom inválido ou expirado.' });
       }
+      fatorDescontoCupom = 1 - (cupomData.desconto / 100);
     } catch (err) {
       console.error('[checkout] Erro ao validar cupom:', err);
+      return res.status(500).json({ erro: 'Não foi possível validar o cupom. Tente novamente.' });
     }
   }
 
-  // PASSO 2: Preços reais do Mercado Livre
-  const precosReais: Record<string, number> = {};
-  try {
-    const ids = itens.map(i => i.id).join(',');
-    const mlResposta = await fetch(`https://api.mercadolibre.com/items?ids=${ids}&attributes=id,price`);
-    if (mlResposta.ok) {
-      const mlDados = await mlResposta.json();
-      if (Array.isArray(mlDados)) {
-        for (const r of mlDados) {
-          if (r.code === 200 && r.body) precosReais[r.body.id] = r.body.price;
-        }
-      }
-    }
-  } catch (err) {
-    console.error('[checkout] Erro ao buscar precos ML (nao critico):', err);
-    // Continua usando precos do frontend como fallback
-  }
-
+  // Os preços e a disponibilidade vêm do mesmo catálogo usado pela loja.
+  let itensValidados: typeof itens;
   let totalRealItens = 0;
-  const itensValidados = itens.map(i => {
-    const precoML = precosReais[i.id];
-    // Preço máximo aceitável = preço ML com desconto do site
-    const precoMaximo = precoML ? Number((precoML * fatorDescontoSite).toFixed(2)) : null;
-    // Usamos o preço enviado pelo frontend, MAS bloqueamos se for MAIOR que o máximo (anti-fraude)
-    const precoFrontend = Number(Number(i.preco).toFixed(2));
-    const precoBase = (precoMaximo !== null && precoFrontend > precoMaximo) ? precoMaximo : precoFrontend;
-    // Aplica cupom sobre o preço já com desconto do site
-    const precoFinal = Number((precoBase * fatorDescontoCupom).toFixed(2));
-    totalRealItens += precoFinal * i.quantidade;
-    return { ...i, preco: precoFinal };
-  });
-  const totalCalculado = totalRealItens + frete.preco;
+  try {
+    const tokenResposta = await fetch('https://api.mercadolibre.com/oauth/token', {
+      method: 'POST', headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+      body: new URLSearchParams({ grant_type: 'client_credentials', client_id: process.env.ML_APP_ID || '', client_secret: process.env.ML_SECRET || '' }),
+    });
+    if (!tokenResposta.ok) throw new Error('Falha ao autenticar no catálogo');
+    const auth = await tokenResposta.json() as { access_token: string };
+    const ids = [...new Set(itens.map(i => i.id))].join(',');
+    const mlResposta = await fetch(`https://api.mercadolibre.com/items?ids=${encodeURIComponent(ids)}&attributes=id,title,price,seller_id,status,available_quantity,thumbnail`, { headers: { Authorization: `Bearer ${auth.access_token}` } });
+    if (!mlResposta.ok) throw new Error('Falha ao consultar catálogo');
+    const dados = await mlResposta.json() as Array<{ code: number; body: any }>;
+    const produtos = new Map(dados.filter(r => r.code === 200 && r.body).map(r => [r.body.id, r.body]));
+    itensValidados = itens.map(i => {
+      const produto = produtos.get(i.id);
+      if (!produto || String(produto.seller_id) !== '78078427' || produto.status !== 'active' || produto.available_quantity < i.quantidade || !Number.isFinite(produto.price) || produto.price <= 0 || Math.round(produto.price * 100) !== Math.round(i.preco * 100)) {
+        throw new Error('Um item mudou de preço ou não está disponível. Atualize o carrinho.');
+      }
+      const preco = Number((Number((produto.price * fatorDescontoSite).toFixed(2)) * fatorDescontoCupom).toFixed(2));
+      if (preco <= 0) throw new Error('Não foi possível calcular o valor do pedido.');
+      totalRealItens += preco * i.quantidade;
+      return { ...i, titulo: produto.title, foto: (produto.thumbnail || '').replace('http://', 'https://'), preco };
+    });
+  } catch (err) {
+    console.error('[checkout] Erro ao validar catálogo:', err);
+    return res.status(400).json({ erro: err instanceof Error && err.message.startsWith('Um item') ? err.message : 'Não foi possível validar os produtos. Tente novamente.' });
+  }
+  totalRealItens = Number(totalRealItens.toFixed(2));
+  const totalCalculado = Number((totalRealItens + frete.preco).toFixed(2));
 
   // PASSO 3: Inserir pedido no Supabase
   let dbOrderId: string;
@@ -118,15 +146,17 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     if (dbError || !dbOrder) {
       const msg = dbError?.message || 'Sem ID retornado';
       console.error('[checkout] Erro DB:', msg);
-      return res.status(500).json({ erro: `[PASSO 3-DB] ${msg}` });
+      return res.status(500).json({ erro: 'Não foi possível registrar o pedido. Tente novamente.' });
     }
     dbOrderId = dbOrder.id;
   } catch (err: any) {
-    return res.status(500).json({ erro: `[PASSO 3-CATCH] ${err?.message || String(err)}` });
+    console.error('[checkout] Erro ao registrar pedido:', err);
+    return res.status(500).json({ erro: 'Não foi possível registrar o pedido. Tente novamente.' });
   }
 
   // PASSO 4: Criar preferência no Mercado Pago
   try {
+    const siteUrl = (process.env.SITE_URL || 'https://sylviosrecords.vercel.app').replace(/\/$/, '');
     const preferencia = {
       external_reference: dbOrderId,
       items: [
@@ -161,12 +191,12 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         excluded_payment_types: [],
       },
       back_urls: {
-        success: `${process.env.SITE_URL}/pedido/sucesso?pedido=${dbOrderId}`,
-        failure: `${process.env.SITE_URL}/pedido/falha`,
-        pending: `${process.env.SITE_URL}/pedido/pendente`,
+        success: `${siteUrl}/pedido/sucesso?pedido=${dbOrderId}`,
+        failure: `${siteUrl}/pedido/falha`,
+        pending: `${siteUrl}/pedido/pendente`,
       },
-      auto_approve: false,
-      notification_url: `${process.env.SITE_URL}/api/webhook-mp`,
+      auto_return: 'approved',
+      notification_url: `${siteUrl}/api/webhook-mp`,
       statement_descriptor: 'SYLVIOS RECORDS',
       expires: false,
     };
@@ -181,11 +211,12 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
     if (!resposta.ok || dados.error) {
       console.error('[checkout] Erro MP:', JSON.stringify(dados));
-      return res.status(500).json({ erro: `[PASSO 4-MP] ${dados.message || dados.error || 'Erro desconhecido MP'}`, detalhe: dados.cause });
+      return res.status(502).json({ erro: 'Não foi possível iniciar o pagamento. Tente novamente.' });
     }
 
     return res.json({ preferenceId: dados.id, checkoutUrl: dados.init_point });
   } catch (err: any) {
-    return res.status(500).json({ erro: `[PASSO 4-CATCH] ${err?.message || String(err)}` });
+    console.error('[checkout] Erro ao iniciar pagamento:', err);
+    return res.status(502).json({ erro: 'Não foi possível iniciar o pagamento. Tente novamente.' });
   }
 }

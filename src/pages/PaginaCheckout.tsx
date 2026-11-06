@@ -49,10 +49,11 @@ export function PaginaCheckout({ navigate, freteNome, fretePreco, cepFrete }: {
   fretePreco?: number;
   cepFrete?: string;
 }) {
-  const { itens, limparCarrinho } = useCarrinho();
+  const { itens } = useCarrinho();
   const { desconto } = useDesconto();
   const fator = 1 - desconto / 100;
-  const totalComDesconto = itens.reduce((acc, item) => acc + item.produto.preco * fator * item.quantidade, 0);
+  const precoComDesconto = (preco: number) => Number((preco * fator).toFixed(2));
+  const totalComDesconto = itens.reduce((acc, item) => acc + precoComDesconto(item.produto.preco) * item.quantidade, 0);
   const [carregando, setCarregando] = useState(false);
   const [erro, setErro] = useState('');
   const [buscandoCep, setBuscandoCep] = useState(false);
@@ -172,8 +173,8 @@ export function PaginaCheckout({ navigate, freteNome, fretePreco, cepFrete }: {
 
       const data = await resp.json() as { checkoutUrl?: string; erro?: string };
       if (data.erro) throw new Error(data.erro);
+      if (!resp.ok || !data.checkoutUrl) throw new Error(data.erro || 'Não foi possível iniciar o pagamento. Tente novamente.');
       if (data.checkoutUrl) {
-        limparCarrinho();
         window.location.href = data.checkoutUrl; // Redireciona pro MP
       }
     } catch (err) {
@@ -201,7 +202,7 @@ export function PaginaCheckout({ navigate, freteNome, fretePreco, cepFrete }: {
   );
 
   const totalItensComCupom = cupomValidado 
-    ? totalComDesconto * (1 - cupomValidado.desconto / 100) 
+    ? itens.reduce((acc, item) => acc + Number((precoComDesconto(item.produto.preco) * (1 - cupomValidado.desconto / 100)).toFixed(2)) * item.quantidade, 0)
     : totalComDesconto;
   const totalComFrete = totalItensComCupom + (fretePreco || 0);
 
@@ -299,7 +300,7 @@ export function PaginaCheckout({ navigate, freteNome, fretePreco, cepFrete }: {
             {itens.map(item => (
               <div key={item.produto.id} className="flex justify-between text-sm py-1">
                 <span className="text-zinc-400 truncate mr-3 max-w-[70%]">{item.produto.titulo} × {item.quantidade}</span>
-                <span className="text-white">{fmt(item.produto.preco * fator * item.quantidade)}</span>
+                <span className="text-white">{fmt(precoComDesconto(item.produto.preco) * item.quantidade)}</span>
               </div>
             ))}
             {freteNome && (
@@ -367,7 +368,7 @@ export function PaginaCheckout({ navigate, freteNome, fretePreco, cepFrete }: {
 
           <p className="text-zinc-600 text-xs text-center">
             Ao clicar, você será redirecionado ao pagamento seguro do Mercado Pago.<br />
-            Aceitamos Pix, Boleto e Cartão de Crédito (até 6×).
+            Aceitamos Pix, Boleto e Cartão de Crédito (até 12×).
           </p>
         </form>
       </div>

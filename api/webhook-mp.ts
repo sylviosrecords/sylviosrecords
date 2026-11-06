@@ -30,6 +30,10 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     const respMP = await fetch(`https://api.mercadopago.com/v1/payments/${data.id}`, {
       headers: { Authorization: `Bearer ${token}` },
     });
+    if (!respMP.ok) {
+      console.error('[webhook-mp] Falha ao consultar pagamento:', respMP.status);
+      return res.status(502).json({ erro: 'Falha ao consultar pagamento' });
+    }
     const pagamento = await respMP.json() as {
       status: string;
       status_detail: string;
@@ -81,19 +85,29 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       return res.status(200).json({ ok: true, pedido_id: pedidoId });
     }
 
+    if (Math.round(Number(pagamento.transaction_amount) * 100) !== Math.round(Number(dbOrder.total) * 100)) {
+      console.error('[webhook-mp] Valor do pagamento diverge do pedido:', pedidoId);
+      return res.status(409).json({ erro: 'Valor do pagamento divergente' });
+    }
+
     // 5. Atualizar status no Supabase de pendente -> pago
-    const { error: updateError } = await supabase
+    const { data: updatedOrder, error: updateError } = await supabase
       .from('pedidos')
       .update({
         status: 'pago',
         mp_payment_id: String(data.id),
       })
-      .eq('id', pedidoId);
+      .eq('id', pedidoId)
+      .eq('status', 'pendente')
+      .select('id')
+      .maybeSingle();
 
     if (updateError) {
       console.error('[webhook-mp] Erro ao atualizar status:', updateError);
       return res.status(500).json({ erro: 'Erro ao atualizar status no banco', detalhe: updateError });
     }
+
+    if (!updatedOrder) return res.status(200).json({ ok: true, pedido_id: pedidoId });
 
     console.log('[webhook-mp] Pedido aprovado! Status pendente -> pago. ID:', pedidoId);
 
