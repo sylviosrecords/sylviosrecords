@@ -192,8 +192,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       },
       back_urls: {
         success: `${siteUrl}/pedido/sucesso?pedido=${dbOrderId}`,
-        failure: `${siteUrl}/pedido/falha`,
-        pending: `${siteUrl}/pedido/pendente`,
+        failure: `${siteUrl}/pedido/falha?pedido=${dbOrderId}`,
+        pending: `${siteUrl}/pedido/pendente?pedido=${dbOrderId}`,
       },
       auto_return: 'approved',
       notification_url: `${siteUrl}/api/webhook-mp`,

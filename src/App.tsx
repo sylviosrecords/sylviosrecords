@@ -1,6 +1,6 @@
 import React, { Suspense, lazy, useState } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { useRoute } from './hooks/useRoute';
+import { separarRota, useRoute } from './hooks/useRoute';
 import { useFavoritos, FavCtx } from './contexts/FavoritosContext';
 import { useCarrinhoProvider, CarrinhoCtx } from './contexts/CarrinhoContext';
 import { NavSecundaria } from './components/NavSecundaria';
@@ -36,7 +36,8 @@ const LoadingScreen = () => (
 );
 
 export default function App() {
-  const { route, navigate } = useRoute();
+  const { route: routeCompleta, navigate } = useRoute();
+  const { caminho: route, busca: query } = separarRota(routeCompleta);
   const favCtxValue = useFavoritos();
   const carrinhoCtxValue = useCarrinhoProvider();
 
@@ -69,7 +70,7 @@ export default function App() {
   const slugProduto = isProduto ? route.replace('/produto/', '') : '';
   const slugColecao = isColecao ? route.replace('/colecao/', '') : '';
   const slugArtigo  = isArtigo  ? route.replace('/artigo/', '') : '';
-  const buscaQuery  = isBusca   ? new URLSearchParams(route.split('?')[1]).get('q') || '' : '';
+  const buscaQuery  = isBusca   ? new URLSearchParams(query).get('q') || '' : '';
 
   const isSecundaria = isProduto || isColecao || isArtigo || isColecoesList || isBlogList
     || isBusca || isNovidades || isFavoritos || isCarrinho || isCheckout
